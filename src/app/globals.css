@@ -3,4 +3,32 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  --color-stellar-bg: #030712;
+  --color-stellar-card: #0f172a;
+  --color-stellar-accent: #8b5cf6; /* Violet */
+  --color-stellar-accent-hover: #7c3aed;
+  --color-stellar-secondary: #06b6d4; /* Cyan */
+  
+  --animate-fade-in: fadeIn 0.5s ease-out;
+  --animate-slide-up: slideUp 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+body {
+  background-color: var(--color-stellar-bg);
+  color: white;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
 }

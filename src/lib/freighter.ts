@@ -14,6 +14,16 @@ function errorToMessage(error: unknown): string {
   }
 }
 
+function uint8ToBase64(u8: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < u8.length; i += chunkSize) {
+    const chunk = u8.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}
+
 export async function connectFreighter(): Promise<string> {
   const connected = await isConnected();
   if (connected.error) throw new Error(errorToMessage(connected.error));
@@ -34,7 +44,16 @@ export async function signFreighterMessage(address: string, message: string): Pr
   if (res.error) throw new Error(errorToMessage(res.error));
   if (!res.signedMessage) throw new Error("Failed to sign message");
 
-  return { signedMessage: res.signedMessage, signerAddress: res.signerAddress };
+  const signedMessage =
+    typeof res.signedMessage === "string"
+      ? res.signedMessage
+      : uint8ToBase64(
+          res.signedMessage instanceof Uint8Array
+            ? res.signedMessage
+            : new Uint8Array(res.signedMessage as unknown as ArrayBufferLike),
+        );
+
+  return { signedMessage, signerAddress: res.signerAddress };
 }
 
 export function createAuthMessage(address: string): {

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export function AuthShell({
   title,
@@ -9,8 +10,8 @@ export function AuthShell({
 }: {
   title: string;
   subtitle: string;
-  footer?: React.ReactNode;
-  children: React.ReactNode;
+  footer?: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="min-h-screen bg-zinc-950">

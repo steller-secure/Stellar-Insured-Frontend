@@ -1,4 +1,12 @@
 import NavBar from "@/components/NavBar";
+=======
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth-provider";
+import HeroSection from "@/components/HeroSection";
+import { HowItWorksSection } from '@/components/HowItWorksSection';
+>>>>>>> main
 
 export default function Home() {
   return (

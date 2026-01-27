@@ -13,7 +13,6 @@ interface VotingButtonProps {
 }
 
 export default function VotingButton({
-  voteType,
   selected,
   icon,
   label,

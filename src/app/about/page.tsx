@@ -1,4 +1,4 @@
-import Navbar from '@/components/NavBar'
+import Navbar from '@/components/NavBar/NavBar'
 import Image from 'next/image'
 import walletImg from "@/assests/3D Illustration - Wallet 1.svg"; 
 import safeImg from "@/assests/ChatGPT Image Jun 25, 2025, 02_39_28 PM 1.svg";

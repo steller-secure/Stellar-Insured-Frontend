@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/ui/toast";
 import { connectFreighter, createAuthMessage, signFreighterMessage } from "@/lib/freighter";
 
 type UiState =
@@ -17,6 +18,7 @@ type UiState =
 export default function SignUpPage() {
   const router = useRouter();
   const { setSession, isAddressRegistered, registerAddress } = useAuth();
+  const { showToast } = useToast();
   const [ui, setUi] = useState<UiState>({ status: "idle" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +35,7 @@ export default function SignUpPage() {
   const connect = async () => {
     try {
       if (password !== confirmPassword) {
-        setUi({ status: "error", message: "Passwords do not match" });
+        showToast("Passwords do not match", "error");
         return;
       }
 
@@ -41,7 +43,7 @@ export default function SignUpPage() {
       const address = await connectFreighter();
 
       if (isAddressRegistered(address)) {
-        setUi({ status: "error", message: "This wallet already has an account. Please sign in." });
+        showToast("This wallet already has an account. Please sign in.", "error");
         return;
       }
 
@@ -58,6 +60,7 @@ export default function SignUpPage() {
       });
 
       setUi({ status: "success" });
+      showToast("Account created successfully!", "success");
       router.push("/");
     } catch (e) {
       setUi({ status: "error", message: e instanceof Error ? e.message : "Something went wrong" });
@@ -109,12 +112,6 @@ export default function SignUpPage() {
             className="h-11 rounded-lg border border-white/10 bg-white/5 px-4 text-white placeholder:text-white/30 outline-none focus:border-sky-400/60"
           />
         </label>
-
-        {ui.status === "error" ? (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-            {ui.message}
-          </div>
-        ) : null}
 
         {ui.status === "signing" ? (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">

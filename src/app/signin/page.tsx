@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/ui/toast";
 import { connectFreighter, createAuthMessage, signFreighterMessage } from "@/lib/freighter";
 
 type UiState =
@@ -16,11 +17,22 @@ type UiState =
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setSession, isAddressRegistered } = useAuth();
+  const { showToast } = useToast();
   const [ui, setUi] = useState<UiState>({ status: "idle" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const message = searchParams.get("message");
+
+  useEffect(() => {
+    if (message) {
+      showToast(message, "info");
+    }
+  }, [message, showToast]);
 
   const busy = ui.status === "connecting" || ui.status === "signing";
 
@@ -36,10 +48,8 @@ export default function SignInPage() {
       const address = await connectFreighter();
 
       if (!isAddressRegistered(address)) {
-        setUi({
-          status: "error",
-          message: "No account found for this wallet. Please sign up first.",
-        });
+        showToast("No account found for this wallet. Please sign up first.", "error");
+        setUi({ status: "idle" });
         return;
       }
 
@@ -54,9 +64,12 @@ export default function SignInPage() {
         authenticatedAt: Date.now(),
       });
       setUi({ status: "success" });
-      router.push("/");
+      showToast("Successfully signed in!", "success");
+      router.push(callbackUrl);
     } catch (e) {
-      setUi({ status: "error", message: e instanceof Error ? e.message : "Something went wrong" });
+      const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+      showToast(errorMsg, "error");
+      setUi({ status: "idle" });
     }
   };
 
@@ -112,12 +125,6 @@ export default function SignInPage() {
             Forgotten password?
           </a>
         </div>
-
-        {ui.status === "error" ? (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-            {ui.message}
-          </div>
-        ) : null}
 
         {ui.status === "signing" ? (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">

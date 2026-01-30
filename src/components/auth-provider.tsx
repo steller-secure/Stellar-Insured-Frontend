@@ -94,8 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     if (next) {
       window.localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+      // Sync to cookie for middleware access (expires in 24 hours)
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
+      document.cookie = `${SESSION_KEY}=${encodeURIComponent(JSON.stringify(next))}; path=/; expires=${expires}; SameSite=Lax`;
     } else {
       window.localStorage.removeItem(SESSION_KEY);
+      document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
     }
   }, []);
 

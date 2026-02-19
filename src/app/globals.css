@@ -3,6 +3,7 @@
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-inter: var(--font-inter);
   
   --color-stellar-bg: #030712;
   --color-stellar-card: #0f172a;

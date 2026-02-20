@@ -1,0 +1,31 @@
+# Auto-labeling configuration
+# Add labels to PRs based on changed files
+
+'ci-cd':
+  - '.github/workflows/**'
+  - '.github/setup-cicd.sh'
+
+'documentation':
+  - '**/*.md'
+  - 'docs/**'
+
+'dependencies':
+  - 'package.json'
+  - 'package-lock.json'
+  - 'pnpm-lock.yaml'
+
+'frontend':
+  - 'src/**'
+  - 'public/**'
+
+'configuration':
+  - '*.config.*'
+  - '*.json'
+  - '.eslintrc*'
+  - 'tsconfig.json'
+
+'testing':
+  - '**/*.test.*'
+  - '**/*.spec.*'
+  - 'jest.config.*'
+  - 'jest.setup.*'

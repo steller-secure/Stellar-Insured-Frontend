@@ -1,0 +1,18 @@
+# Code Owners
+# These owners will be automatically requested for review when someone opens a pull request.
+
+# Default owners for everything in the repo
+* @steller-secure/frontend-team
+
+# Workflow and CI/CD configuration
+/.github/ @steller-secure/devops-team
+
+# Infrastructure and deployment
+/vercel.json @steller-secure/devops-team
+/next.config.ts @steller-secure/devops-team
+
+# Core application code
+/src/ @steller-secure/frontend-team
+
+# Documentation
+*.md @steller-secure/frontend-team

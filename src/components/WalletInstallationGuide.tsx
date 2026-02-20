@@ -34,7 +34,7 @@ export function WalletInstallationGuide() {
           </Step>
           
           <Step number={4} title="Refresh This Page">
-            Once installed, refresh this page and you'll be able to connect your wallet.
+            Once installed, refresh this page and you&apos;ll be able to connect your wallet.
           </Step>
         </div>
 

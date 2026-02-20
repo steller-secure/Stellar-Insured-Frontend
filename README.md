@@ -1,5 +1,8 @@
 Stellar Insured 🌐 — Frontend
 
+[![CI](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/ci.yml)
+[![Deploy to Production](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/deploy-production.yml)
+
 Stellar Insured is a decentralized, transparent, and trustless insurance platform built on the Stellar ecosystem.
 This frontend application provides users with a simple and intuitive interface to purchase insurance policies, submit claims, track coverage, and participate in decentralized governance—without relying on traditional insurance intermediaries.
 
@@ -81,6 +84,31 @@ NEXT_PUBLIC_STELLAR_NETWORK=testnet
 
 🧪 Testing
 npm run test
+
+## 🚀 CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing, linting, and deployment.
+
+### Workflows
+- **CI**: Runs on all PRs - linting, testing, and build verification
+- **Deploy to Staging**: Auto-deploys `develop` branch to staging environment
+- **Deploy to Production**: Auto-deploys `main` branch to production environment
+
+### Quick Setup
+```bash
+# Install dependencies including pre-commit hooks
+npm install
+npm run prepare
+
+# Run CI checks locally
+npm run lint
+npm run test
+npm run build
+```
+
+For detailed CI/CD documentation, see [.github/CICD.md](.github/CICD.md)
+
+For quick reference, see [.github/QUICK_REFERENCE.md](.github/QUICK_REFERENCE.md)
 
 🔗 Useful Links
 

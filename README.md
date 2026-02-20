@@ -75,6 +75,29 @@ npm run dev
 The application will be available at:
 http://localhost:3000
 
+🧪 Testing
+
+This project has comprehensive test coverage with unit, integration, and E2E tests.
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in watch mode (for development)
+npm run test:watch
+```
+
+**Test Coverage**: Target 80% coverage for all critical paths
+- Unit tests for all components
+- Integration tests for user flows
+- CI/CD pipeline enforces coverage thresholds
+
+See [TEST_COVERAGE.md](./TEST_COVERAGE.md) for detailed testing documentation.
+See [QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md) for adding new tests.
+
 🌐 Environment Variables
 
 Create a .env.local file in the project root:

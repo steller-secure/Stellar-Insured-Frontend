@@ -59,7 +59,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Archive coverage artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-report-${{ matrix.node-version }}
         path: coverage/

@@ -6,6 +6,7 @@ import { HowItWorksSection } from "@/components/HowItWorksSection";
 import KeyFeaturesSection from "@/components/KeyFeaturesSection";
 import InsuranceCategoriesSection from "@/components/InsuranceCategoriesSection";
 import ReadyToSecureSection from "@/components/ReadyToSecureSection";
+import FeaturePageSectionThree from "@/components/FeaturePageSectionThree";
 import NavBar from "@/components/NavBar/NavBar";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
                 <HowItWorksSection />
                 <KeyFeaturesSection />
                 <InsuranceCategoriesSection />
+                <FeaturePageSectionThree />
                 <ReadyToSecureSection />
             </main>
         </div>

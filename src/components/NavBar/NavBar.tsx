@@ -23,7 +23,7 @@ const navLinks: NavLink[] = [{
 }, {
   id: 3,
   name: 'Features',
-  href: '/features'
+  href: '/#features'
 }, {
   id: 4,
   name: 'Insurance',
@@ -217,7 +217,7 @@ const NavBar = ( ) => {
   }, [isOpen]);
   
   return (
-    <header className='bg-[#1E2433] w-[95%] fixed z-999 h-13 md:h-15 lg:h-18.75 top-5 lg:top-7 rounded-full border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' role="navigation" aria-label="Main navigation">
+    <header className='bg-[#1E2433] fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' role="navigation" aria-label="Main navigation">
 
       {/* desktop navbar */}    
       <div className='hidden lg:flex w-full'>

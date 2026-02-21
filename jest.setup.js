@@ -51,3 +51,14 @@ jest.mock('next/navigation', () => ({
     return '/'
   },
 }))
+
+// Mock useAnalytics
+jest.mock('@/hooks/useAnalytics', () => ({
+  useAnalytics() {
+    return {
+      trackAction: jest.fn(),
+      trackPageView: jest.fn(),
+      trackError: jest.fn(),
+    }
+  },
+}))

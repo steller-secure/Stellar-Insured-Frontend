@@ -8,6 +8,8 @@ import { useAuth } from "@/components/auth-provider-enhanced";
 import { useToast } from "@/components/ui/toast";
 import { connectFreighter, createAuthMessage, signFreighterMessage } from "@/lib/freighter";
 
+import { useAnalytics } from "@/hooks/useAnalytics";
+
 type UiState =
   | { status: "idle" }
   | { status: "connecting" }
@@ -19,6 +21,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { setSession, isAddressRegistered, registerAddress } = useAuth();
   const { showToast } = useToast();
+  const { trackAction, trackError } = useAnalytics();
   const [ui, setUi] = useState<UiState>({ status: "idle" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +39,7 @@ export default function SignUpPage() {
     try {
       if (password !== confirmPassword) {
         showToast("Passwords do not match", "error");
+        trackAction("AUTH", "SIGNUP_ERROR", { reason: "Passwords do not match" });
         return;
       }
 
@@ -44,6 +48,7 @@ export default function SignUpPage() {
 
       if (isAddressRegistered(address)) {
         showToast("This wallet already has an account. Please sign in.", "error");
+        trackAction("AUTH", "SIGNUP_ERROR", { reason: "Wallet already registered" });
         return;
       }
 
@@ -59,10 +64,12 @@ export default function SignUpPage() {
         authenticatedAt: Date.now(),
       });
 
+      trackAction("AUTH", "SIGNUP_SUCCESS", { hasEmail: !!email.trim() });
       setUi({ status: "success" });
       showToast("Account created successfully!", "success");
       router.push("/");
     } catch (e) {
+      trackError(e as Error, { context: "signup" });
       setUi({ status: "error", message: e instanceof Error ? e.message : "Something went wrong" });
     }
   };

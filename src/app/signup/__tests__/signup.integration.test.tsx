@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import SignUpPage from '@/app/signup/page';
-import { AuthProvider } from '@/components/auth-provider';
+import { AuthProvider } from '@/components/auth-provider-enhanced';
 import { ToastProvider } from '@/components/ui/toast';
 
 const mockPush = jest.fn();

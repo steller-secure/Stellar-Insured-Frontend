@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SignInPage from '@/app/signin/page';
-import { AuthProvider } from '@/components/auth-provider';
+import { AuthProvider } from '@/components/auth-provider-enhanced';
 import { ToastProvider } from '@/components/ui/toast';
 import * as freighterApi from '@stellar/freighter-api';
 
@@ -25,7 +25,7 @@ describe('SignIn Integration Flow', () => {
 
   it('completes full signin flow successfully', async () => {
     const user = userEvent.setup();
-    
+
     // Register user first
     localStorage.setItem('stellar_insured_users', JSON.stringify({
       'GTEST123': { createdAt: Date.now() }

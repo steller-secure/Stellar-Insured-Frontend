@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import PoliciesPage from '@/app/policies/page';
-import { AuthProvider } from '@/components/auth-provider';
+import { AuthProvider } from '@/components/auth-provider-enhanced';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({

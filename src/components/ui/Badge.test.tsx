@@ -14,10 +14,10 @@ describe('Badge', () => {
     rerender(<Badge variant="warning">Warning</Badge>);
     expect(screen.getByText('Warning')).toBeInTheDocument();
     
-    rerender(<Badge variant="error">Error</Badge>);
+    rerender(<Badge variant="danger">Error</Badge>);
     expect(screen.getByText('Error')).toBeInTheDocument();
     
-    rerender(<Badge variant="info">Info</Badge>);
+    rerender(<Badge variant="neutral">Info</Badge>);
     expect(screen.getByText('Info')).toBeInTheDocument();
   });
 

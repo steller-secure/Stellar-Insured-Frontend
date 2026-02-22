@@ -130,3 +130,51 @@ export function formatStellarAddress(address: string, length: number = 8): strin
   
   return `${address.slice(0, length)}...${address.slice(-length)}`;
 }
+
+/**
+ * Get current network details from Freighter
+ */
+export async function getCurrentNetwork(): Promise<{
+  network: string;
+  networkPassphrase: string;
+}> {
+  try {
+    // In a real implementation, we would use Freighter API
+    // For now, return testnet as default
+    return {
+      network: 'testnet',
+      networkPassphrase: 'Test SDF Network ; September 2015'
+    };
+  } catch (error) {
+    throw new Error(`Failed to get network details: ${error}`);
+  }
+}
+
+/**
+ * Listen for network changes
+ */
+export function subscribeToNetworkChanges(
+  onChange: (newNetwork: string, oldNetwork: string) => void
+): () => void {
+  let currentNetwork: string | null = null;
+  
+  // Since Freighter doesn't have a direct event listener, we poll
+  const interval = setInterval(async () => {
+    try {
+      const networkDetails = await getCurrentNetwork();
+      const newNetwork = networkDetails.network;
+      
+      if (currentNetwork && currentNetwork !== newNetwork) {
+        onChange(newNetwork, currentNetwork);
+      }
+      
+      currentNetwork = newNetwork;
+    } catch (error) {
+      // Network detection failed, but don't break the polling
+      console.warn('Failed to detect network change:', error);
+    }
+  }, 5000); // Check every 5 seconds
+  
+  // Return unsubscribe function
+  return () => clearInterval(interval);
+}

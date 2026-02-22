@@ -8,6 +8,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatStellarAddress } from "@/lib/stellar";
+import { FeedbackState } from "@/components/ui/FeedbackState";
 
 type WalletStatus = "checking" | "not-installed" | "installed" | "connected";
 
@@ -26,7 +27,19 @@ export function WalletConnectButton({
   children,
   showBalance = true,
 }: WalletConnectButtonProps) {
-  const { connectWallet, disconnect, address, isConnected, status: connectionStatus, error } = useWallet();
+  const { 
+    connectWallet, 
+    disconnect, 
+    reconnectWallet,
+    address, 
+    isConnected, 
+    status: connectionStatus, 
+    error,
+    hasError,
+    canRetry,
+    handleError,
+    showErrorNotification
+  } = useWallet();
   const { xlm, loading: balanceLoading } = useWalletBalance();
   const { showWalletConnected, showWalletDisconnected, showWalletError } = useNotifications();
   const [showInstallationGuide, setShowInstallationGuide] = useState(false);
@@ -55,14 +68,31 @@ export function WalletConnectButton({
         disconnect();
         showWalletDisconnected();
       } else {
-        await connectWallet();
-        if (onConnect) {
+        const result = await connectWallet();
+        if (result && onConnect) {
           await onConnect();
         }
       }
     } catch (err) {
       console.error('Wallet operation failed:', err);
+      // Error is already handled by the useWallet hook
     }
+  };
+
+  const handleRetry = async () => {
+    try {
+      const result = await reconnectWallet();
+      if (result && onConnect) {
+        await onConnect();
+      }
+    } catch (err) {
+      console.error('Wallet retry failed:', err);
+      // Error is already handled by the useWallet hook
+    }
+  };
+
+  const handleInstallClick = () => {
+    setShowInstallationGuide(true);
   };
 
   const getButtonContent = () => {
@@ -107,8 +137,42 @@ export function WalletConnectButton({
     return "primary";
   };
 
+  const getErrorInfo = () => {
+    if (!error) return { code: 'UNKNOWN', suggestion: '' };
+    
+    const errorLower = error.toLowerCase();
+    
+    if (errorLower.includes('not found') || errorLower.includes('not detected')) {
+      return {
+        code: 'WALLET_NOT_INSTALLED',
+        suggestion: 'Please install the Freighter wallet browser extension and refresh the page.'
+      };
+    }
+    
+    if (errorLower.includes('rejected') || errorLower.includes('denied')) {
+      return {
+        code: 'USER_REJECTED',
+        suggestion: 'You cancelled the connection. Please try again if you wish to proceed.'
+      };
+    }
+    
+    if (errorLower.includes('sign')) {
+      return {
+        code: 'SIGNING_FAILED',
+        suggestion: 'Failed to sign the transaction. Please check your wallet settings and try again.'
+      };
+    }
+    
+    return {
+      code: 'WALLET_ERROR',
+      suggestion: 'An error occurred while connecting to your wallet. Please try again.'
+    };
+  };
+
   const isButtonDisabled = disabled || connectionStatus === 'connecting' || connectionStatus === 'signing';
 
+  const errorInfo = getErrorInfo();
+  
   return (
     <div className="flex flex-col gap-3">
       <Button
@@ -122,19 +186,44 @@ export function WalletConnectButton({
 
       {connectionStatus === 'error' && error && (
         <div className="flex flex-col gap-3">
-          <Card className="bg-red-500/10 border border-red-500/20 p-4">
-            <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div>
-                <h4 className="font-medium text-red-100 mb-1">Connection Error</h4>
-                <p className="text-sm text-red-200">
-                  {error}
-                </p>
+          <FeedbackState
+            variant="error"
+            title="Wallet Connection Error"
+            description={error}
+            errorCode={errorInfo.code}
+            recoverySuggestion={errorInfo.suggestion}
+            actionLabel={errorInfo.code === 'WALLET_NOT_INSTALLED' ? "Install Wallet" : undefined}
+            onAction={errorInfo.code === 'WALLET_NOT_INSTALLED' ? handleInstallClick : undefined}
+            showRetryButton={canRetry}
+            onRetry={handleRetry}
+            retryCount={hasError ? 1 : 0}
+            maxRetries={3}
+          />
+          
+          {showInstallationGuide && (
+            <Card className="bg-slate-800/50 border border-slate-700/50 p-4">
+              <WalletInstallationGuide />
+              <div className="mt-4 flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowInstallationGuide(false)}
+                >
+                  Close
+                </Button>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  onClick={() => {
+                    setShowInstallationGuide(false);
+                    window.open('https://www.freighter.app/', '_blank');
+                  }}
+                >
+                  Go to Freighter
+                </Button>
               </div>
-            </div>
-          </Card>
+            </Card>
+          )}
         </div>
       )}
     </div>

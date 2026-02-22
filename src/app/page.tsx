@@ -6,6 +6,22 @@ import InsuranceCategoriesSection from "@/components/InsuranceCategoriesSection"
 import ReadyToSecureSection from "@/components/ReadyToSecureSection";
 import FeaturePageSectionThree from "@/components/FeaturePageSectionThree";
 import NavBar from "@/components/NavBar/NavBar";
+import Footer from "@/components/footer";
+
+export default function Home() {
+    return (
+        <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950 relative">
+            <NavBar />
+            <main className="flex flex-col">
+                <HeroSection />
+                <HowItWorksSection />
+                <KeyFeaturesSection />
+                <InsuranceCategoriesSection />
+                <ReadyToSecureSection />
+                <Footer />
+            </main>
+        </div>
+    );
 import SecureAsset from "@/components/SecureAsset";
 
 export default function Home() {

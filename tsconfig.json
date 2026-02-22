@@ -30,7 +30,9 @@
     "types": [
       "next",
       "jest",
-      "@testing-library/jest-dom"
+      "@testing-library/jest-dom",
+      "react",
+      "react-dom"
     ]
   },
   "include": [

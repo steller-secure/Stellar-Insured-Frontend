@@ -7,10 +7,14 @@ import { Search, Plus } from "lucide-react";
 import { Pagination } from "@/components/Pagination";
 import { FilterDropdown } from "@/components/FilterDropdown";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useWallet } from "@/hooks/useWallet";
+import { WalletStatus } from "@/components/WalletStatus";
+import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { ProtectedRoute } from "@/components/protected-route";
 
 export default function PoliciesPage() {
   const { trackAction } = useAnalytics();
+  const { isConnected } = useWallet();
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -70,8 +74,9 @@ export default function PoliciesPage() {
           </div>
           <div className="flex gap-4">
             <button
-              className="flex items-center gap-2 bg-brand-primary text-brand-bg px-4 py-2 rounded-lg font-bold"
+              className="flex items-center gap-2 bg-brand-primary text-brand-bg px-4 py-2 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => trackAction("POLICY", "POLICY_CREATION_STARTED")}
+              disabled={!isConnected}
             >
               <Plus size={20} />
               New Policy
@@ -90,6 +95,43 @@ export default function PoliciesPage() {
             />
           </div>
         </div>
+        
+        {/* Wallet Status Banner */}
+        {!isConnected && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  Wallet Connection Required
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                  Please connect your wallet to create and manage policies
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <WalletConnectButton showBalance={true} />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {isConnected && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Wallet Connected
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  You're ready to create and manage policies
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <WalletStatus showBalance={true} showAddress={false} compact={true} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="relative">
           <Search

@@ -61,7 +61,7 @@ describe('dao-utils', () => {
     it('counts only active proposals', () => {
       const proposals: Proposal[] = [
         { ...mockProposals[0], status: 'active' },
-        { ...mockProposals[1], status: 'closed' },
+        { ...mockProposals[1], status: 'expired' },
       ];
 
       const stats = getProposalStats(proposals);

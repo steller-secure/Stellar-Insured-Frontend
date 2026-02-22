@@ -2,9 +2,13 @@
 import logo from '@/components/logo.png'
 import Link from 'next/link';
 import { useAuth } from '../auth-provider-enhanced';
+import { useWallet } from '@/hooks/useWallet';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletStatus } from '../WalletStatus';
+import { NotificationCenter } from '../NotificationCenter';
 
 interface NavLink {
   id: number;
@@ -43,6 +47,7 @@ const NavBarList = (
 ) => {
 
   const { session, signOut } = useAuth();
+  const { isConnected } = useWallet();
   const pathname = usePathname();
 
   const isActiveLink = (href: string) => {
@@ -86,12 +91,13 @@ const NavBarList = (
               </Link>
             </li>
             <li>
-              <button
-                className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'
-                aria-label="Disconnect wallet"
-              >
-                Wallet
-              </button>
+              <div className="flex items-center gap-3">
+                {isConnected && (
+                  <WalletStatus showBalance={false} showAddress={false} compact={true} />
+                )}
+                <WalletConnectButton showBalance={false} className="bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]" />
+                <NotificationCenter />
+              </div>
             </li>
           </ul>
         ) : (
@@ -133,13 +139,16 @@ const NavBarList = (
                   Analytics
                 </Link>
               </li>
-              <li className='w-full'>
-                <button
-                  className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'
-                  aria-label="Disconnect wallet"
-                >
-                  Wallet
-                </button>
+              <li className='w-full flex flex-col gap-3'>
+                {isConnected && (
+                  <div className="w-full">
+                    <WalletStatus showBalance={true} showAddress={true} compact={false} />
+                  </div>
+                )}
+                <WalletConnectButton showBalance={true} className="bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]" />
+                <div className="w-full flex justify-center">
+                  <NotificationCenter />
+                </div>
               </li>
             </>
           ) : (

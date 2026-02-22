@@ -6,9 +6,11 @@ import { mockPolicies } from "@/data/mockPolicies";
 import { Search, Plus } from "lucide-react";
 import { Pagination } from "@/components/Pagination";
 import { FilterDropdown } from "@/components/FilterDropdown";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { ProtectedRoute } from "@/components/protected-route";
 
 export default function PoliciesPage() {
+  const { trackAction } = useAnalytics();
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,11 +32,13 @@ export default function PoliciesPage() {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setCurrentPage(1);
+    trackAction("POLICY", "POLICY_FILTER_CHANGED", { tab });
   };
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setCurrentPage(1);
+    trackAction("POLICY", "POLICY_STATUS_FILTER_CHANGED", { status: value });
     // If a specific status is selected, update the active tab to match
     if (value !== 'all') {
       setActiveTab(value);
@@ -65,7 +69,10 @@ export default function PoliciesPage() {
             </p>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 bg-brand-primary text-brand-bg px-4 py-2 rounded-lg font-bold">
+            <button
+              className="flex items-center gap-2 bg-brand-primary text-brand-bg px-4 py-2 rounded-lg font-bold"
+              onClick={() => trackAction("POLICY", "POLICY_CREATION_STARTED")}
+            >
               <Plus size={20} />
               New Policy
             </button>
@@ -108,8 +115,8 @@ export default function PoliciesPage() {
               key={tab}
               onClick={() => handleTabChange(tab)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${activeTab === tab
-                  ? "bg-[#1e2440] text-white"
-                  : "text-brand-text-muted hover:text-white"
+                ? "bg-[#1e2440] text-white"
+                : "text-brand-text-muted hover:text-white"
                 }`}
             >
               {tab === 'all' ? 'All' : tab} ({counts[tab]})

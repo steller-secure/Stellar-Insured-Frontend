@@ -28,7 +28,9 @@
       ]
     },
     "types": [
-      "next"
+      "next",
+      "jest",
+      "@testing-library/jest-dom"
     ]
   },
   "include": [

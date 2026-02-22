@@ -1,5 +1,5 @@
 import { render, waitFor } from '@testing-library/react';
-import { AuthProvider } from '@/components/auth-provider';
+import { AuthProvider } from '@/components/auth-provider-enhanced';
 import { ProtectedRoute } from '@/components/protected-route';
 
 const mockPush = jest.fn();

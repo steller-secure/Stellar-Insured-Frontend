@@ -3,7 +3,6 @@
 import { Sidebar } from "@/components/ui/Sidebar";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/components/auth-provider-enhanced";
-import { connectFreighter, createAuthMessage, signFreighterMessage } from "@/lib/freighter";
 import { useState } from "react";
 
 export default function ClaimsLayout({
@@ -19,6 +18,7 @@ export default function ClaimsLayout({
         
         try {
             setIsConnecting(true);
+            const { connectFreighter, createAuthMessage, signFreighterMessage } = await import("@/lib/freighter");
             const address = await connectFreighter();
             
             // Check if this address is registered

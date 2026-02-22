@@ -7,6 +7,7 @@ import {
   signMessage,
   requestAccess
 } from '@stellar/freighter-api';
+import { errorHandler } from "@/lib/errorHandler";
 
 export interface SignedMessage {
   signedMessage: string;
@@ -19,16 +20,60 @@ export interface SignedMessage {
 export async function connectFreighter(): Promise<string> {
   try {
     const connected = await isConnected();
-    if (connected.error) throw new Error(`Connection error: ${connected.error}`);
-    if (!connected.isConnected) throw new Error("Freighter wallet extension not detected");
+    if (connected.error) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "NOT_INSTALLED",
+        connected.error,
+        { operation: "isConnected" }
+      );
+      throw new Error(appError.message);
+    }
+    if (!connected.isConnected) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "NOT_INSTALLED",
+        new Error("Freighter wallet extension not detected"),
+        { operation: "isConnected" }
+      );
+      throw new Error(appError.message);
+    }
 
     const access = await requestAccess();
-    if (access.error) throw new Error(`Access error: ${access.error}`);
-    if (!access.address) throw new Error("Unable to retrieve wallet address");
+    if (access.error) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "GENERIC_ERROR",
+        access.error,
+        { operation: "requestAccess" }
+      );
+      throw new Error(appError.message);
+    }
+    if (!access.address) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "GENERIC_ERROR",
+        new Error("Unable to retrieve wallet address"),
+        { operation: "requestAccess" }
+      );
+      throw new Error(appError.message);
+    }
 
     return access.address;
   } catch (error) {
-    throw new Error(`Failed to connect to Freighter wallet: ${error}`);
+    // If it's already an AppError message, rethrow it
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+    
+    // Handle unexpected errors
+    const appError = errorHandler.handleError(
+      "WALLET",
+      "GENERIC_ERROR",
+      error,
+      { operation: "connectFreighter" }
+    );
+    throw new Error(appError.message);
   }
 }
 
@@ -51,8 +96,24 @@ export async function signFreighterMessage(
 ): Promise<SignedMessage> {
   try {
     const res = await signMessage(message, { address });
-    if (res.error) throw new Error(`Signing error: ${res.error}`);
-    if (!res.signedMessage) throw new Error("Failed to sign message");
+    if (res.error) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "SIGNING_FAILED",
+        res.error,
+        { operation: "signMessage", address }
+      );
+      throw new Error(appError.message);
+    }
+    if (!res.signedMessage) {
+      const appError = errorHandler.handleError(
+        "WALLET",
+        "SIGNING_FAILED",
+        new Error("Failed to sign message"),
+        { operation: "signMessage", address }
+      );
+      throw new Error(appError.message);
+    }
 
     const signedMessage = typeof res.signedMessage === "string"
       ? res.signedMessage
@@ -65,7 +126,19 @@ export async function signFreighterMessage(
       signerAddress: res.signerAddress,
     };
   } catch (error) {
-    throw new Error(`Failed to sign message: ${error}`);
+    // If it's already an AppError message, rethrow it
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+    
+    // Handle unexpected errors
+    const appError = errorHandler.handleError(
+      "WALLET",
+      "SIGNING_FAILED",
+      error,
+      { operation: "signFreighterMessage", address }
+    );
+    throw new Error(appError.message);
   }
 }
 
@@ -146,7 +219,13 @@ export async function getCurrentNetwork(): Promise<{
       networkPassphrase: 'Test SDF Network ; September 2015'
     };
   } catch (error) {
-    throw new Error(`Failed to get network details: ${error}`);
+    const appError = errorHandler.handleError(
+      "NETWORK",
+      "SERVER_ERROR",
+      error,
+      { operation: "getCurrentNetwork" }
+    );
+    throw new Error(appError.message);
   }
 }
 

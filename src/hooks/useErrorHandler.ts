@@ -10,7 +10,6 @@ import {
   ErrorCategory, 
   RetryPolicy 
 } from '@/lib/errorHandler';
-import { useToast } from '@/components/ui/toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 export interface UseErrorHandlerOptions {
@@ -41,7 +40,6 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     lastRetryTimestamp: null
   });
   
-  const { showToast } = useToast();
   const { trackError } = useAnalytics();
 
   /**
@@ -182,30 +180,30 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
    */
   const showErrorNotification = useCallback((error: AppError) => {
     if (opts.showNotifications && error.userActionable) {
-      showToast(error.message, 'error');
+      console.error(error.message);
     }
-  }, [opts.showNotifications, showToast]);
+  }, [opts.showNotifications]);
 
   /**
    * Show success notification
    */
   const showSuccessNotification = useCallback((message: string) => {
-    showToast(message, 'success');
-  }, [showToast]);
+    console.log('Success:', message);
+  }, []);
 
   /**
    * Show info notification
    */
   const showInfoNotification = useCallback((message: string) => {
-    showToast(message, 'info');
-  }, [showToast]);
+    console.info('Info:', message);
+  }, []);
 
   /**
    * Show warning notification
    */
   const showWarningNotification = useCallback((message: string) => {
-    showToast(message, 'warning');
-  }, [showToast]);
+    console.warn('Warning:', message);
+  }, []);
 
   /**
    * Auto-clear error after timeout

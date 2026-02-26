@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider-enhanced";
-import { useToast } from "@/components/ui/toast";
 import {
   connectFreighter,
   createAuthMessage,
@@ -36,7 +35,6 @@ interface SignUpFormData extends Record<string, any> {
 export default function SignUpPage() {
   const router = useRouter();
   const { setSession, isAddressRegistered, registerAddress } = useAuth();
-  const { showToast } = useToast();
   const { trackAction, trackError } = useAnalytics();
 
   const [ui, setUi] = useState<UiState>({ status: "idle" });
@@ -109,10 +107,7 @@ export default function SignUpPage() {
       const address = await connectFreighter();
 
       if (isAddressRegistered(address)) {
-        showToast(
-          "This wallet already has an account. Please sign in.",
-          "error",
-        );
+        console.error("This wallet already has an account. Please sign in.");
         trackAction("AUTH", "SIGNUP_ERROR", {
           reason: "Wallet already registered",
         });
@@ -140,7 +135,6 @@ export default function SignUpPage() {
         hasEmail: !!formData.email.trim(),
       });
       setUi({ status: "success" });
-      showToast("Account created successfully!", "success");
       router.push("/");
     } catch (e) {
       trackError(e as Error, { context: "signup" });

@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useToast } from '../components/ui/toast';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
@@ -21,7 +20,6 @@ export interface NotificationOptions {
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { showToast } = useToast();
 
   const addNotification = useCallback(({ title = '', message, type = 'info', duration = 5000 }: NotificationOptions) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -36,13 +34,8 @@ export function useNotifications() {
 
     setNotifications(prev => [newNotification, ...prev]);
 
-    // Show toast if duration is specified (non-persistent notification)
-    if (duration !== null) {
-      showToast(message, type);
-    }
-
     return id;
-  }, [showToast]);
+  }, []);
 
   const removeNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(notification => notification.id !== id));

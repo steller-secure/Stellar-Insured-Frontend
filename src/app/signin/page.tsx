@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect, Suspense } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider-enhanced";
-import { useToast } from "@/components/ui/toast";
 import {
   connectFreighter,
   createAuthMessage,
@@ -35,7 +34,6 @@ function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession, isAddressRegistered } = useAuth();
-  const { showToast } = useToast();
 
   const [ui, setUi] = useState<UiState>({ status: "idle" });
   const [rememberMe, setRememberMe] = useState(false);
@@ -49,8 +47,11 @@ function SignInContent() {
   const urlMessage = searchParams.get("message");
 
   useEffect(() => {
-    if (urlMessage) showToast(urlMessage, "info");
-  }, [urlMessage, showToast]);
+    if (urlMessage) {
+      // TODO: Consider alternative notification mechanism
+      console.info(urlMessage);
+    }
+  }, [urlMessage]);
 
   const busy = ui.status === "connecting" || ui.status === "signing";
 
@@ -97,9 +98,8 @@ function SignInContent() {
       const address = await connectFreighter();
 
       if (!isAddressRegistered(address)) {
-        showToast(
+        console.error(
           "No account found for this wallet. Please sign up first.",
-          "error",
         );
         setUi({ status: "idle" });
         return;
@@ -117,11 +117,10 @@ function SignInContent() {
       });
 
       setUi({ status: "success" });
-      showToast("Successfully signed in!", "success");
       router.push(callbackUrl);
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : "Something went wrong";
-      showToast(errorMsg, "error");
+      console.error(errorMsg);
       setUi({ status: "idle" });
     }
   };

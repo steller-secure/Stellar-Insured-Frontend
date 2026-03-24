@@ -10,6 +10,7 @@ import { mockPolicies } from '@/data/mockData';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFormValidation } from '@/hooks/useFormValidation';
+import { useLoading } from '@/contexts/LoadingContext';
 import {
   required,
   positiveNumber,
@@ -43,8 +44,8 @@ export const ClaimForm = () => {
     evidence: null,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+      const { loading ,startLoading, stopLoading } = useLoading();
 
   // Derived state — used in conditional validation for the amount field
   const selectedPolicy = mockPolicies.find((p) => p.id === formData.policyId);
@@ -109,11 +110,14 @@ export const ClaimForm = () => {
     e.preventDefault();
     if (!validate(formData)) return;
 
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSuccess(true);
+    startLoading();
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setIsSuccess(true);
+    } finally {
+      stopLoading();
+}
   };
 
   // ── Success state ─────────────────────────────────────────────────────────────
@@ -243,7 +247,7 @@ export const ClaimForm = () => {
         </Link>
         <Button
           type="submit"
-          isLoading={isSubmitting}
+          isLoading={loading}
           fullWidth
           className="sm:w-auto min-w-40"
         >

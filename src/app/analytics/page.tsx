@@ -4,19 +4,21 @@ import React, { useEffect, useState } from "react";
 import { analytics, AnalyticsEvent } from "@/lib/analytics";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Activity, MousePointerClick, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
+import { useLoading } from "@/contexts/LoadingContext";
 
 export default function AnalyticsDashboard() {
     const [events, setEvents] = useState<AnalyticsEvent[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { startLoading, stopLoading } = useLoading();
 
     const loadData = () => {
-        setLoading(true);
-        const data = analytics.getAnalyticsData();
-        // Sort by newest first
-        setEvents(data.sort((a, b) => b.timestamp - a.timestamp));
-        setLoading(false);
+        startLoading();
+        try {
+            const data = analytics.getAnalyticsData();
+            setEvents(data.sort((a, b) => b.timestamp - a.timestamp));
+        } finally {
+            stopLoading();
+        }
     };
-
     useEffect(() => {
         loadData();
     }, []);
@@ -73,9 +75,10 @@ export default function AnalyticsDashboard() {
                     </div>
                 </div>
 
-                {loading ? (
+                {(events.length === 0) ? (
                     <div className="py-20 text-center text-gray-400">Loading metrics...</div>
-                ) : (
+                ) :
+                 (
                     <div className="grid gap-6">
                         {/* KPI Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

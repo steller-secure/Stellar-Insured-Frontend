@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider-enhanced";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import GlobalLoader from "@/components/loaders/GlobalLoader";
 import { ToastProvider } from "@/components/ui/toast";
 import { NotificationProvider } from "@/context/NotificationContext";
 
@@ -38,15 +40,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
-        <ToastProvider>
-          <NotificationProvider>
-            <ThemeProvider>
-              <AnalyticsProvider>
-                <AuthProvider>{children}</AuthProvider>
-              </AnalyticsProvider>
-            </ThemeProvider>
-          </NotificationProvider>
-        </ToastProvider>
+        <ThemeProvider>
+          <AnalyticsProvider>
+            <AuthProvider>
+              <LoadingProvider>
+                <GlobalLoader />
+                {children}
+              </LoadingProvider>
+            </AuthProvider>
+          </AnalyticsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

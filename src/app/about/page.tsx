@@ -1,7 +1,7 @@
 import NavBar from "@/components/NavBar/NavBar";
 import Image from "next/image";
 
-const Page = () => {
+export default function About() {
   return (
     <div className="min-h-screen relative">
       <NavBar />
@@ -64,4 +64,3 @@ const Page = () => {
   );
 };
 
-export default Page;

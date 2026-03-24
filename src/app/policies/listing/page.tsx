@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { PolicyListingScreen } from "@/components/policies/listing/PolicyListingScreen";
-
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "700"],

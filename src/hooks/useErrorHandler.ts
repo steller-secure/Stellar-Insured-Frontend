@@ -3,14 +3,15 @@
  * Integrates with errorHandler utilities and provides React-specific error management
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { 
-  errorHandler, 
-  AppError, 
-  ErrorCategory, 
-  RetryPolicy 
-} from '@/lib/errorHandler';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { useState, useCallback, useEffect } from "react";
+import {
+  errorHandler,
+  AppError,
+  ErrorCategory,
+  RetryPolicy,
+} from "@/lib/errorHandler";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useNotificationContext } from "@/context/NotificationContext";
 
 export interface UseErrorHandlerOptions {
   autoLog?: boolean;
@@ -28,7 +29,7 @@ export interface ErrorState {
 const DEFAULT_OPTIONS: UseErrorHandlerOptions = {
   autoLog: true,
   showNotifications: true,
-  retryPolicy: undefined
+  retryPolicy: undefined,
 };
 
 export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
@@ -37,39 +38,48 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     error: null,
     isLoading: false,
     retryCount: 0,
-    lastRetryTimestamp: null
+    lastRetryTimestamp: null,
   });
-  
+
   const { trackError } = useAnalytics();
+  const { addNotification } = useNotificationContext();
 
   /**
    * Handle an error with full error management
    */
-  const handleError = useCallback((
-    category: ErrorCategory,
-    errorCode: string,
-    originalError?: unknown,
-    context?: Record<string, any>
-  ) => {
-    const appError = errorHandler.handleError(category, errorCode, originalError, context);
-    
-    setErrorState((prev: ErrorState) => ({
-      error: appError,
-      isLoading: false,
-      retryCount: prev.retryCount,
-      lastRetryTimestamp: prev.lastRetryTimestamp
-    }));
+  const handleError = useCallback(
+    (
+      category: ErrorCategory,
+      errorCode: string,
+      originalError?: unknown,
+      context?: Record<string, any>,
+    ) => {
+      const appError = errorHandler.handleError(
+        category,
+        errorCode,
+        originalError,
+        context,
+      );
 
-    // Track error in analytics
-    trackError(appError.message, {
-      category: appError.category,
-      code: appError.code,
-      severity: appError.severity,
-      context: appError.context
-    });
+      setErrorState((prev: ErrorState) => ({
+        error: appError,
+        isLoading: false,
+        retryCount: prev.retryCount,
+        lastRetryTimestamp: prev.lastRetryTimestamp,
+      }));
 
-    return appError;
-  }, [trackError]);
+      // Track error in analytics
+      trackError(appError.message, {
+        category: appError.category,
+        code: appError.code,
+        severity: appError.severity,
+        context: appError.context,
+      });
+
+      return appError;
+    },
+    [trackError],
+  );
 
   /**
    * Clear current error state
@@ -79,141 +89,173 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       error: null,
       isLoading: false,
       retryCount: 0,
-      lastRetryTimestamp: null
+      lastRetryTimestamp: null,
     });
   }, []);
 
   /**
    * Execute a function with automatic error handling
    */
-  const executeWithErrorHandling = useCallback(async <T>(
-    fn: () => Promise<T>,
-    category: ErrorCategory,
-    errorCode: string = 'GENERIC_ERROR',
-    context?: Record<string, any>
-  ): Promise<T | null> => {
-    try {
-      setErrorState((prev: ErrorState) => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await fn();
-      
-      setErrorState((prev: ErrorState) => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: null,
-        retryCount: 0,
-        lastRetryTimestamp: null
-      }));
-      
-      return result;
-    } catch (error) {
-      const appError = handleError(category, errorCode, error, context);
-      return null;
-    }
-  }, [handleError]);
+  const executeWithErrorHandling = useCallback(
+    async <T>(
+      fn: () => Promise<T>,
+      category: ErrorCategory,
+      errorCode: string = "GENERIC_ERROR",
+      context?: Record<string, any>,
+    ): Promise<T | null> => {
+      try {
+        setErrorState((prev: ErrorState) => ({
+          ...prev,
+          isLoading: true,
+          error: null,
+        }));
+
+        const result = await fn();
+
+        setErrorState((prev: ErrorState) => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+          retryCount: 0,
+          lastRetryTimestamp: null,
+        }));
+
+        return result;
+      } catch (error) {
+        const appError = handleError(category, errorCode, error, context);
+        return null;
+      }
+    },
+    [handleError],
+  );
 
   /**
    * Execute a function with retry logic
    */
-  const executeWithRetry = useCallback(async <T>(
-    fn: () => Promise<T>,
-    category: ErrorCategory,
-    errorCode: string = 'GENERIC_ERROR',
-    context?: Record<string, any>,
-    customRetryPolicy?: RetryPolicy
-  ): Promise<T | null> => {
-    const policy = customRetryPolicy || opts.retryPolicy || errorHandler.getRetryPolicy(category);
-    
-    try {
-      setErrorState((prev: ErrorState) => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await errorHandler.retryWithBackoff(
-        fn,
-        category,
-        policy
-      );
-      
-      setErrorState((prev: ErrorState) => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: null,
-        retryCount: 0,
-        lastRetryTimestamp: null
-      }));
-      
-      return result;
-    } catch (error) {
-      const appError = handleError(category, errorCode, error, {
-        ...context,
-        retryAttempts: policy.maxRetries + 1
-      });
-      
-      setErrorState((prev: ErrorState) => ({
-        ...prev,
-        retryCount: policy.maxRetries + 1,
-        lastRetryTimestamp: Date.now()
-      }));
-      
-      return null;
-    }
-  }, [handleError, opts.retryPolicy]);
+  const executeWithRetry = useCallback(
+    async <T>(
+      fn: () => Promise<T>,
+      category: ErrorCategory,
+      errorCode: string = "GENERIC_ERROR",
+      context?: Record<string, any>,
+      customRetryPolicy?: RetryPolicy,
+    ): Promise<T | null> => {
+      const policy =
+        customRetryPolicy ||
+        opts.retryPolicy ||
+        errorHandler.getRetryPolicy(category);
+
+      try {
+        setErrorState((prev: ErrorState) => ({
+          ...prev,
+          isLoading: true,
+          error: null,
+        }));
+
+        const result = await errorHandler.retryWithBackoff(
+          fn,
+          category,
+          policy,
+        );
+
+        setErrorState((prev: ErrorState) => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+          retryCount: 0,
+          lastRetryTimestamp: null,
+        }));
+
+        return result;
+      } catch (error) {
+        const appError = handleError(category, errorCode, error, {
+          ...context,
+          retryAttempts: policy.maxRetries + 1,
+        });
+
+        setErrorState((prev: ErrorState) => ({
+          ...prev,
+          retryCount: policy.maxRetries + 1,
+          lastRetryTimestamp: Date.now(),
+        }));
+
+        return null;
+      }
+    },
+    [handleError, opts.retryPolicy],
+  );
 
   /**
    * Retry the last failed operation
    */
-  const retryLastOperation = useCallback(async <T>(
-    fn: () => Promise<T>,
-    category: ErrorCategory,
-    errorCode: string = 'GENERIC_ERROR',
-    context?: Record<string, any>
-  ): Promise<T | null> => {
-    if (!errorState.error) {
-      console.warn('No error to retry');
-      return null;
-    }
+  const retryLastOperation = useCallback(
+    async <T>(
+      fn: () => Promise<T>,
+      category: ErrorCategory,
+      errorCode: string = "GENERIC_ERROR",
+      context?: Record<string, any>,
+    ): Promise<T | null> => {
+      if (!errorState.error) {
+        addNotification("No error to retry", "warning");
+        return null;
+      }
 
-    return executeWithRetry(fn, category, errorCode, context);
-  }, [errorState.error, executeWithRetry]);
+      return executeWithRetry(fn, category, errorCode, context);
+    },
+    [errorState.error, executeWithRetry, addNotification],
+  );
 
   /**
    * Show error notification to user
    */
-  const showErrorNotification = useCallback((error: AppError) => {
-    if (opts.showNotifications && error.userActionable) {
-      console.error(error.message);
-    }
-  }, [opts.showNotifications]);
+  const showErrorNotification = useCallback(
+    (error: AppError) => {
+      if (opts.showNotifications && error.userActionable) {
+        addNotification(error.message, "error");
+      }
+    },
+    [opts.showNotifications, addNotification],
+  );
 
   /**
    * Show success notification
    */
-  const showSuccessNotification = useCallback((message: string) => {
-    console.log('Success:', message);
-  }, []);
+  const showSuccessNotification = useCallback(
+    (message: string) => {
+      addNotification(message, "success");
+    },
+    [addNotification],
+  );
 
   /**
    * Show info notification
    */
-  const showInfoNotification = useCallback((message: string) => {
-    console.info('Info:', message);
-  }, []);
+  const showInfoNotification = useCallback(
+    (message: string) => {
+      addNotification(message, "info");
+    },
+    [addNotification],
+  );
 
   /**
    * Show warning notification
    */
-  const showWarningNotification = useCallback((message: string) => {
-    console.warn('Warning:', message);
-  }, []);
+  const showWarningNotification = useCallback(
+    (message: string) => {
+      addNotification(message, "warning");
+    },
+    [addNotification],
+  );
 
   /**
    * Auto-clear error after timeout
    */
   useEffect(() => {
-    if (errorState.error && errorState.error.severity !== 'CRITICAL') {
+    if (errorState.error && errorState.error.severity !== "CRITICAL") {
       const timeoutId = setTimeout(() => {
         clearError();
-      }, 10000); // Auto-clear non-critical errors after 10 seconds
-      
+      }, 10000);
+
       return () => clearTimeout(timeoutId);
     }
   }, [errorState.error, clearError]);
@@ -224,25 +266,26 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     isLoading: errorState.isLoading,
     retryCount: errorState.retryCount,
     lastRetryTimestamp: errorState.lastRetryTimestamp,
-    
+
     // Error handlers
     handleError,
     clearError,
     executeWithErrorHandling,
     executeWithRetry,
     retryLastOperation,
-    
+
     // Notifications
     showErrorNotification,
     showSuccessNotification,
     showInfoNotification,
     showWarningNotification,
-    
+
     // Utilities
     hasError: !!errorState.error,
     isRecoverable: errorState.error?.userActionable ?? false,
-    canRetry: errorState.error !== null && 
-              errorState.retryCount < (opts.retryPolicy?.maxRetries ?? 3)
+    canRetry:
+      errorState.error !== null &&
+      errorState.retryCount < (opts.retryPolicy?.maxRetries ?? 3),
   };
 }
 
@@ -252,23 +295,22 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
 export function useFormErrorHandler(formName: string) {
   const errorHandler = useErrorHandler({
     autoLog: true,
-    showNotifications: true
+    showNotifications: true,
   });
 
-  const handleFormError = useCallback((
-    errorCode: string,
-    originalError?: unknown,
-    field?: string
-  ) => {
-    return errorHandler.handleError('VALIDATION', errorCode, originalError, {
-      form: formName,
-      field
-    });
-  }, [errorHandler, formName]);
+  const handleFormError = useCallback(
+    (errorCode: string, originalError?: unknown, field?: string) => {
+      return errorHandler.handleError("VALIDATION", errorCode, originalError, {
+        form: formName,
+        field,
+      });
+    },
+    [errorHandler, formName],
+  );
 
   return {
     ...errorHandler,
-    handleFormError
+    handleFormError,
   };
 }
 
@@ -284,8 +326,8 @@ export function useApiErrorHandler() {
       baseDelay: 1000,
       maxDelay: 8000,
       exponentialFactor: 2,
-      jitter: true
-    }
+      jitter: true,
+    },
   });
 }
 
@@ -301,8 +343,8 @@ export function useWalletErrorHandler() {
       baseDelay: 2000,
       maxDelay: 5000,
       exponentialFactor: 1.5,
-      jitter: false
-    }
+      jitter: false,
+    },
   });
 }
 

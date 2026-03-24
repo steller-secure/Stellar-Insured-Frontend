@@ -13,6 +13,7 @@ import {
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { required, email } from "@/lib/validators";
 
+import { useNotifications } from "@/hooks/useNotifications";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type UiState =
@@ -32,6 +33,7 @@ interface SignInFormData extends Record<string, any> {
 
 function SignInContent() {
   const router = useRouter();
+  const { showWalletError, showWalletConnected } = useNotifications();
   const searchParams = useSearchParams();
   const { setSession, isAddressRegistered } = useAuth();
 
@@ -116,10 +118,16 @@ function SignInContent() {
         authenticatedAt: Date.now(),
       });
 
+      // Success Toast
+      showWalletConnected(address);
+
       setUi({ status: "success" });
       router.push(callbackUrl);
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+
+      showWalletError(errorMsg);
+
       console.error(errorMsg);
       setUi({ status: "idle" });
     }

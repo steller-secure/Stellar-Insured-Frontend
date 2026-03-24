@@ -14,6 +14,8 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { required, email, minLength, pattern } from "@/lib/validators";
 
+import { useNotifications } from "@/hooks/useNotifications";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type UiState =
@@ -36,6 +38,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { setSession, isAddressRegistered, registerAddress } = useAuth();
   const { trackAction, trackError } = useAnalytics();
+  const { showWalletError } = useNotifications();
 
   const [ui, setUi] = useState<UiState>({ status: "idle" });
 
@@ -138,9 +141,15 @@ export default function SignUpPage() {
       router.push("/");
     } catch (e) {
       trackError(e as Error, { context: "signup" });
+      const errorMessage =
+        e instanceof Error ? e.message : "Something went wrong";
+
+      // Show Toast notification
+      showWalletError(errorMessage);
+
       setUi({
         status: "error",
-        message: e instanceof Error ? e.message : "Something went wrong",
+        message: errorMessage,
       });
     }
   };

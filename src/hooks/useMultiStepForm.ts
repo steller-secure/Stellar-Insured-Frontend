@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useFormPersistence } from './useFormPersistence';
 
 export interface StepValidation {
   isValid: boolean;
@@ -11,6 +12,10 @@ export interface MultiStepFormConfig {
   totalSteps: number;
   storageKey?: string;
   autoSave?: boolean;
+  /** Time-to-live for saved drafts in ms. Defaults to 24 hours. */
+  ttl?: number;
+  /** Debounce delay for auto-save in ms. Defaults to 500ms. */
+  debounceMs?: number;
 }
 
 export function useMultiStepForm<T extends Record<string, any>>(
@@ -21,35 +26,36 @@ export function useMultiStepForm<T extends Record<string, any>>(
   const [formData, setFormData] = useState<T>(initialData);
   const [stepValidations, setStepValidations] = useState<Record<number, StepValidation>>({});
   const [isDraft, setIsDraft] = useState(false);
+  const initialLoadDone = useRef(false);
 
-  // Load draft from localStorage on mount
-  useEffect(() => {
-    if (config.storageKey) {
-      const savedDraft = localStorage.getItem(config.storageKey);
-      if (savedDraft) {
-        try {
-          const parsed = JSON.parse(savedDraft);
-          setFormData(parsed.formData || initialData);
-          setCurrentStep(parsed.currentStep || 1);
-          setIsDraft(true);
-        } catch (error) {
-          console.warn('Failed to load draft:', error);
-        }
-      }
-    }
-  }, [config.storageKey, initialData]);
+  const persistence = useFormPersistence<T>({
+    storageKey: config.storageKey || '',
+    ttl: config.ttl,
+    debounceMs: config.debounceMs,
+    useLocalStorage: true,
+  });
 
-  // Auto-save draft
+  // Load draft on mount
   useEffect(() => {
-    if (config.autoSave && config.storageKey && (isDraft || currentStep > 1)) {
-      const draftData = {
-        formData,
-        currentStep,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(config.storageKey, JSON.stringify(draftData));
+    if (!config.storageKey || initialLoadDone.current) return;
+    initialLoadDone.current = true;
+
+    const draft = persistence.load();
+    if (draft) {
+      setFormData(draft.data);
+      setCurrentStep(draft.currentStep);
+      setIsDraft(true);
     }
-  }, [formData, currentStep, config.autoSave, config.storageKey, isDraft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save on data/step changes (debounced via useFormPersistence)
+  useEffect(() => {
+    if (!config.autoSave || !config.storageKey || !initialLoadDone.current) return;
+    if (!isDraft && currentStep === 1) return;
+
+    persistence.save(formData, currentStep);
+  }, [formData, currentStep, config.autoSave, config.storageKey, isDraft, persistence]);
 
   const updateFormData = useCallback((updates: Partial<T>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -98,11 +104,9 @@ export function useMultiStepForm<T extends Record<string, any>>(
   }, [currentStep, isStepValid]);
 
   const clearDraft = useCallback(() => {
-    if (config.storageKey) {
-      localStorage.removeItem(config.storageKey);
-    }
+    persistence.clear();
     setIsDraft(false);
-  }, [config.storageKey]);
+  }, [persistence]);
 
   const resetForm = useCallback(() => {
     setFormData(initialData);
@@ -130,6 +134,10 @@ export function useMultiStepForm<T extends Record<string, any>>(
     goToStep,
     resetForm,
     clearDraft,
+    
+    // Persistence
+    flushDraft: persistence.flush,
+    lastSavedAt: persistence.lastSavedAt,
     
     // Computed
     isStepValid,

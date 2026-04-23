@@ -7,8 +7,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { errorHandler, AppError } from '@/lib/errorHandler';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { errorHandler } from '@/lib/errorHandler';
+import { analytics } from '@/lib/analytics';
 
 interface Props {
   children: ReactNode;
@@ -48,15 +48,14 @@ class ErrorBoundaryClass extends Component<Props, State> {
     });
 
     // Log the error to analytics
-    const { trackError } = useAnalytics();
-    trackError(error.message, {
+    analytics.trackError(error, {
       componentStack: errorInfo.componentStack,
       errorName: error.name,
       timestamp: Date.now()
     });
 
-    // Create standardized error
-    const appError = errorHandler.createError(
+    // Standardize and notify on boundary errors
+    const appError = errorHandler.handleError(
       'SYSTEM',
       'UNEXPECTED_ERROR',
       error,
@@ -71,7 +70,7 @@ class ErrorBoundaryClass extends Component<Props, State> {
       this.props.onError(error, errorInfo);
     }
 
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo, appError);
   }
 
   handleRetry = () => {

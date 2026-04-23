@@ -12,9 +12,11 @@ import { WalletStatus } from "@/components/WalletStatus";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { connectFreighter, createAuthMessage, signFreighterMessage } from "@/lib/freighter";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 
 export default function ClaimsPage() {
   const { trackAction } = useAnalytics();
+  const { handleError, showErrorNotification } = useErrorHandler();
   const { session, setSession, isAddressRegistered } = useAuth();
   const { isConnected, isConnecting } = useWallet();
   const [isConnectingLocal, setIsConnectingLocal] = useState(false);
@@ -45,7 +47,13 @@ export default function ClaimsPage() {
         authenticatedAt: Date.now(),
       });
     } catch (error) {
-      console.error("Wallet connection failed:", error);
+      const appError = handleError(
+        "WALLET",
+        "GENERIC_ERROR",
+        error,
+        { action: "connectWallet", context: "claims" }
+      );
+      showErrorNotification(appError);
     } finally {
       setIsConnectingLocal(false);
     }

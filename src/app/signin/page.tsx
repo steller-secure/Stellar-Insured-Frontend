@@ -12,8 +12,7 @@ import {
 } from "@/lib/freighter";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { required, email } from "@/lib/validators";
-
-import { useNotifications } from "@/hooks/useNotifications";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type UiState =
@@ -33,7 +32,7 @@ interface SignInFormData extends Record<string, any> {
 
 function SignInContent() {
   const router = useRouter();
-  const { showWalletError, showWalletConnected } = useNotifications();
+  const { handleError, showSuccessNotification, showErrorNotification } = useErrorHandler();
   const searchParams = useSearchParams();
   const { setSession, isAddressRegistered } = useAuth();
 
@@ -100,9 +99,13 @@ function SignInContent() {
       const address = await connectFreighter();
 
       if (!isAddressRegistered(address)) {
-        console.error(
-          "No account found for this wallet. Please sign up first.",
+        const appError = handleError(
+          "AUTHENTICATION",
+          "UNAUTHORIZED",
+          new Error("No account found for this wallet. Please sign up first."),
+          { action: "signin", reason: "address_not_registered" }
         );
+        showErrorNotification(appError);
         setUi({ status: "idle" });
         return;
       }
@@ -118,18 +121,20 @@ function SignInContent() {
         authenticatedAt: Date.now(),
       });
 
-      // Success Toast
-      showWalletConnected(address);
+      showSuccessNotification("Signed in successfully!");
 
       setUi({ status: "success" });
       router.push(callbackUrl);
     } catch (e) {
-      const errorMsg = e instanceof Error ? e.message : "Something went wrong";
+      const appError = handleError(
+        "WALLET",
+        "GENERIC_ERROR",
+        e,
+        { context: "signin" }
+      );
 
-      showWalletError(errorMsg);
-
-      console.error(errorMsg);
       setUi({ status: "idle" });
+      showErrorNotification(appError);
     }
   };
 

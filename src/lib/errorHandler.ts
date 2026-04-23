@@ -125,6 +125,11 @@ const ERROR_MESSAGES: Record<ErrorCategory, Record<string, {
       message: 'Network error occurred. Please check your connection.',
       recoverySuggestion: 'Verify your internet connection is stable and try again.',
       severity: 'MEDIUM'
+    },
+    GENERIC_ERROR: {
+      message: 'A network error occurred. Please retry your request.',
+      recoverySuggestion: 'Check your connection and try again.',
+      severity: 'MEDIUM'
     }
   },
   WALLET: {
@@ -147,12 +152,22 @@ const ERROR_MESSAGES: Record<ErrorCategory, Record<string, {
       message: 'Transaction was rejected by wallet.',
       recoverySuggestion: 'You cancelled the transaction. Please try again if you wish to proceed.',
       severity: 'LOW'
+    },
+    GENERIC_ERROR: {
+      message: 'A wallet error occurred. Please reconnect or try again later.',
+      recoverySuggestion: 'Verify your wallet connection and try again.',
+      severity: 'MEDIUM'
     }
   },
   VALIDATION: {
     INVALID_INPUT: {
       message: 'Please check your input and try again.',
       recoverySuggestion: 'Make sure all required fields are filled correctly.',
+      severity: 'LOW'
+    },
+    GENERIC_ERROR: {
+      message: 'A validation error occurred. Please verify your input.',
+      recoverySuggestion: 'Correct the indicated fields and submit again.',
       severity: 'LOW'
     }
   },
@@ -201,7 +216,9 @@ class ErrorHandler {
     originalError?: unknown,
     context?: Record<string, any>
   ): AppError {
-    const errorInfo = ERROR_MESSAGES[category]?.[errorCode] || 
+    const errorInfo =
+      ERROR_MESSAGES[category]?.[errorCode] ||
+      ERROR_MESSAGES[category]?.GENERIC_ERROR ||
       ERROR_MESSAGES.UNKNOWN.GENERIC_ERROR;
     
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

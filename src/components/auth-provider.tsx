@@ -7,6 +7,8 @@ export type AuthSession = {
   signedMessage: string;
   signerAddress: string;
   authenticatedAt: number;
+  expiresAt: number;
+  refreshToken?: string;
 };
 
 export type RegisteredUser = {

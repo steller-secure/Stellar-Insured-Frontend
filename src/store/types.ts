@@ -5,6 +5,8 @@ export interface AuthSession {
   signedMessage: string;
   signerAddress: string;
   authenticatedAt: number;
+  expiresAt: number;
+  refreshToken?: string;
 }
 
 export interface RegisteredUser {

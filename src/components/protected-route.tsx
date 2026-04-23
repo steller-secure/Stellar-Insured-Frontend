@@ -13,9 +13,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check session validity (this is a client-side double check)
     const now = Date.now();
-    const twentyFourHours = 24 * 60 * 60 * 1000;
-    
-    if (!session || !session.address || (now - session.authenticatedAt > twentyFourHours)) {
+    if (!session || !session.address || (session.expiresAt && session.expiresAt <= now)) {
       const signInUrl = new URL('/signin', window.location.origin);
       signInUrl.searchParams.set('callbackUrl', pathname);
       if (!session) {

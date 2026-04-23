@@ -9,6 +9,22 @@ import { useWalletErrorHandler } from '@/hooks/useErrorHandler';
  * Integrates with error handling system for better user experience
  */
 export function useWallet() {
+    // Session expiration watcher
+    React.useEffect(() => {
+      if (!session || !session.expiresAt) return;
+      const now = Date.now();
+      if (session.expiresAt <= now) {
+        signOut();
+        showErrorNotification?.('Session expired. Please sign in again.');
+        return;
+      }
+      // Set timer to auto sign out at expiration
+      const timeout = setTimeout(() => {
+        signOut();
+        showErrorNotification?.('Session expired. Please sign in again.');
+      }, session.expiresAt - now);
+      return () => clearTimeout(timeout);
+    }, [session, signOut, showErrorNotification]);
   const {
     status,
     session,
@@ -59,11 +75,13 @@ export function useWallet() {
         
         const signed = await signFreighterMessage(address, message);
         
+        const now = Date.now();
         const newSession = {
           address,
           signedMessage: signed.signedMessage,
           signerAddress: signed.signerAddress,
-          authenticatedAt: Date.now(),
+          authenticatedAt: now,
+          expiresAt: now + 24 * 60 * 60 * 1000, // 24 hours
         };
         
         completeConnection(newSession);
@@ -101,11 +119,13 @@ export function useWallet() {
           
           const signed = await signFreighterMessage(address, message);
           
+          const now = Date.now();
           const newSession = {
             address,
             signedMessage: signed.signedMessage,
             signerAddress: signed.signerAddress,
-            authenticatedAt: Date.now(),
+            authenticatedAt: now,
+            expiresAt: now + 24 * 60 * 60 * 1000, // 24 hours
           };
           
           completeConnection(newSession);

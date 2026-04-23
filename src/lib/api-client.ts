@@ -4,7 +4,7 @@
  * retry logic with exponential backoff, and request cancellation.
  */
 
-import { errorHandler, type ErrorCategory } from '@/lib/errorHandler';
+import { errorHandler, type ErrorCategory } from "@/lib/errorHandler";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -21,7 +21,7 @@ export interface ApiError {
   details?: unknown;
 }
 
-export interface RequestConfig extends Omit<RequestInit, 'body'> {
+export interface RequestConfig extends Omit<RequestInit, "body"> {
   params?: Record<string, string | number | boolean | undefined>;
   timeout?: number;
   retries?: number;
@@ -30,7 +30,7 @@ export interface RequestConfig extends Omit<RequestInit, 'body'> {
 
 type RequestInterceptor = (
   url: string,
-  config: RequestInit
+  config: RequestInit,
 ) => [string, RequestInit] | Promise<[string, RequestInit]>;
 
 type ResponseInterceptor = (response: Response) => Response | Promise<Response>;
@@ -51,11 +51,16 @@ export class ApiClientError extends Error {
   code: string;
   details: unknown;
 
-  constructor(message: string, status: number, code?: string, details?: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    details?: unknown,
+  ) {
     super(message);
-    this.name = 'ApiClientError';
+    this.name = "ApiClientError";
     this.status = status;
-    this.code = code ?? 'UNKNOWN_ERROR';
+    this.code = code ?? "UNKNOWN_ERROR";
     this.details = details;
   }
 }
@@ -76,10 +81,10 @@ class ApiClient {
   private activeControllers = new Map<string, AbortController>();
 
   constructor(config: ApiClientConfig) {
-    this.baseURL = config.baseURL.replace(/\/+$/, '');
+    this.baseURL = config.baseURL.replace(/\/+$/, "");
     this.defaultHeaders = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+      "Content-Type": "application/json",
+      Accept: "application/json",
       ...config.defaultHeaders,
     };
     this.defaultTimeout = config.timeout ?? 30_000;
@@ -92,7 +97,7 @@ class ApiClient {
     this.requestInterceptors.push(interceptor);
     return () => {
       this.requestInterceptors = this.requestInterceptors.filter(
-        (i) => i !== interceptor
+        (i) => i !== interceptor,
       );
     };
   }
@@ -101,7 +106,7 @@ class ApiClient {
     this.responseInterceptors.push(interceptor);
     return () => {
       this.responseInterceptors = this.responseInterceptors.filter(
-        (i) => i !== interceptor
+        (i) => i !== interceptor,
       );
     };
   }
@@ -110,7 +115,7 @@ class ApiClient {
     this.errorInterceptors.push(interceptor);
     return () => {
       this.errorInterceptors = this.errorInterceptors.filter(
-        (i) => i !== interceptor
+        (i) => i !== interceptor,
       );
     };
   }
@@ -146,48 +151,57 @@ class ApiClient {
   // ─── HTTP Methods ────────────────────────────────────────────────────────
 
   async get<T>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { ...config, method: 'GET' });
+    return this.request<T>(path, { ...config, method: "GET" });
   }
 
   async post<T>(
     path: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { ...config, method: 'POST', body: data });
+    return this.request<T>(path, { ...config, method: "POST", body: data });
   }
 
   async put<T>(
     path: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { ...config, method: 'PUT', body: data });
+    return this.request<T>(path, { ...config, method: "PUT", body: data });
   }
 
   async patch<T>(
     path: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { ...config, method: 'PATCH', body: data });
+    return this.request<T>(path, { ...config, method: "PATCH", body: data });
   }
 
-  async delete<T>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { ...config, method: 'DELETE' });
+  async delete<T>(
+    path: string,
+    config?: RequestConfig,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(path, { ...config, method: "DELETE" });
   }
 
   // ─── Core Request Logic ──────────────────────────────────────────────────
 
   private async request<T>(
     path: string,
-    config: RequestConfig & { method: string }
+    config: RequestConfig & { method: string },
   ): Promise<ApiResponse<T>> {
     const url = this.buildURL(path, config.params);
     const retries = config.retries ?? this.defaultRetries;
     const timeout = config.timeout ?? this.defaultTimeout;
 
-    const { params: _params, timeout: _timeout, retries: _retries, body, ...fetchOptions } = config;
+    const {
+      params: _params,
+      timeout: _timeout,
+      retries: _retries,
+      body,
+      ...fetchOptions
+    } = config;
 
     // Build RequestInit
     let init: RequestInit = {
@@ -213,7 +227,7 @@ class ApiClient {
       // Merge signals: if caller provided one via cancelToken, combine them
       const existingSignal = init.signal;
       if (existingSignal) {
-        existingSignal.addEventListener('abort', () => controller.abort());
+        existingSignal.addEventListener("abort", () => controller.abort());
       }
 
       try {
@@ -235,7 +249,7 @@ class ApiClient {
             (errorBody?.message as string) ?? response.statusText,
             response.status,
             errorBody?.code as string | undefined,
-            errorBody
+            errorBody,
           );
         }
 
@@ -248,7 +262,7 @@ class ApiClient {
           };
         }
 
-        const data = await response.json() as T;
+        const data = (await response.json()) as T;
         return { data, status: response.status, headers: response.headers };
       } catch (error) {
         clearTimeout(timeoutId);
@@ -262,14 +276,18 @@ class ApiClient {
         }
 
         // Network errors or aborts
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          throw new ApiClientError('Request was cancelled or timed out', 0, 'ABORT');
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw new ApiClientError(
+            "Request was cancelled or timed out",
+            0,
+            "ABORT",
+          );
         }
 
         throw new ApiClientError(
-          error instanceof Error ? error.message : 'Network error',
+          error instanceof Error ? error.message : "Network error",
           0,
-          'NETWORK_ERROR'
+          "NETWORK_ERROR",
         );
       }
     };
@@ -278,14 +296,14 @@ class ApiClient {
     if (retries > 0) {
       return errorHandler.retryWithBackoff<ApiResponse<T>>(
         execute,
-        'NETWORK' as ErrorCategory,
+        "NETWORK" as ErrorCategory,
         {
           maxRetries: retries,
           baseDelay: 1000,
           maxDelay: 8000,
           exponentialFactor: 2,
           jitter: true,
-        }
+        },
       );
     }
 
@@ -296,9 +314,11 @@ class ApiClient {
 
   private buildURL(
     path: string,
-    params?: Record<string, string | number | boolean | undefined>
+    params?: Record<string, string | number | boolean | undefined>,
   ): string {
-    const url = new URL(`${this.baseURL}${path.startsWith('/') ? '' : '/'}${path}`);
+    const url = new URL(
+      `${this.baseURL}${path.startsWith("/") ? "" : "/"}${path}`,
+    );
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -309,7 +329,9 @@ class ApiClient {
     return url.toString();
   }
 
-  private async safeParseJSON(response: Response): Promise<Record<string, unknown> | null> {
+  private async safeParseJSON(
+    response: Response,
+  ): Promise<Record<string, unknown> | null> {
     try {
       return await response.json();
     } catch {
@@ -320,30 +342,27 @@ class ApiClient {
 
 // ─── Default Instance ────────────────────────────────────────────────────────
 
-const BASE_URL =
-  typeof process !== 'undefined'
-    ? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
-    : 'http://localhost:4000';
+import { apiConfig } from "@/config/api";
 
 export const apiClient = new ApiClient({
-  baseURL: BASE_URL,
-  timeout: 30_000,
-  retries: 0,
+  baseURL: apiConfig.baseUrl,
+  timeout: apiConfig.timeout,
+  retries: apiConfig.retries,
 });
 
 // ─── Auth Token Interceptor ──────────────────────────────────────────────────
 
 apiClient.onRequest(async (url, config) => {
   // Read the auth token from the wallet store persisted in localStorage
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem('wallet-store');
+      const raw = localStorage.getItem("wallet-store");
       if (raw) {
         const store = JSON.parse(raw);
         const token = store?.state?.session?.token;
         if (token) {
           const headers = new Headers(config.headers);
-          headers.set('Authorization', `Bearer ${token}`);
+          headers.set("Authorization", `Bearer ${token}`);
           return [url, { ...config, headers }];
         }
       }
@@ -359,29 +378,29 @@ apiClient.onRequest(async (url, config) => {
 apiClient.onError((error) => {
   const category: ErrorCategory =
     error.status === 401 || error.status === 403
-      ? 'AUTHENTICATION'
+      ? "AUTHENTICATION"
       : error.status >= 400 && error.status < 500
-        ? 'VALIDATION'
+        ? "VALIDATION"
         : error.status >= 500
-          ? 'NETWORK'
-          : 'NETWORK';
+          ? "NETWORK"
+          : "NETWORK";
 
   const codeMap: Record<number, string> = {
-    401: 'UNAUTHORIZED',
-    403: 'UNAUTHORIZED',
-    404: 'NOT_FOUND',
-    422: 'INVALID_INPUT',
-    429: 'RATE_LIMITED',
-    500: 'SERVER_ERROR',
-    502: 'SERVER_ERROR',
-    503: 'SERVER_ERROR',
+    401: "UNAUTHORIZED",
+    403: "UNAUTHORIZED",
+    404: "NOT_FOUND",
+    422: "INVALID_INPUT",
+    429: "RATE_LIMITED",
+    500: "SERVER_ERROR",
+    502: "SERVER_ERROR",
+    503: "SERVER_ERROR",
   };
 
   errorHandler.handleError(
     category,
-    codeMap[error.status] ?? 'GENERIC_ERROR',
+    codeMap[error.status] ?? "GENERIC_ERROR",
     error,
-    { url: error.message, status: error.status }
+    { url: error.message, status: error.status },
   );
 
   return error;

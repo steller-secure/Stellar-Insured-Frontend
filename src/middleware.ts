@@ -19,11 +19,9 @@ export function middleware(request: NextRequest) {
   if (sessionCookie) {
     try {
       const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-      // Check if session has required fields and is not expired (24h)
+      // Check if session has required fields and is not expired
       const now = Date.now();
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-      
-      if (session.address && session.authenticatedAt && (now - session.authenticatedAt < twentyFourHours)) {
+      if (session.address && session.expiresAt && session.expiresAt > now) {
         isAuthenticated = true;
       }
     } catch (e) {

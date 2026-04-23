@@ -32,30 +32,35 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
   onValidation
 }) => {
   const [showBreakdown, setShowBreakdown] = useState(data.breakdown.length > 0);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const selectedPolicy = mockPolicies.find(p => p.id === policyId);
 
   // Validate step
-  React.useEffect(() => {
-    const errors: Record<string, string> = {};
+  const errors = React.useMemo(() => {
+    const errs: Record<string, string> = {};
     
     if (!data.claimAmount) {
-      errors.claimAmount = 'Please enter the claim amount';
+      errs.claimAmount = 'Please enter the claim amount';
     } else {
       const amount = parseFloat(data.claimAmount);
       if (isNaN(amount) || amount <= 0) {
-        errors.claimAmount = 'Please enter a valid amount greater than 0';
+        errs.claimAmount = 'Please enter a valid amount greater than 0';
       } else if (selectedPolicy && amount > selectedPolicy.coverageLimit) {
-        errors.claimAmount = `Amount cannot exceed policy limit of ${selectedPolicy.coverageLimitFormatted}`;
+        errs.claimAmount = `Amount cannot exceed policy limit of ${selectedPolicy.coverageLimitFormatted}`;
       }
     }
 
     if (!data.currency) {
-      errors.currency = 'Please select a currency';
+      errs.currency = 'Please select a currency';
     }
 
+    return errs;
+  }, [data, selectedPolicy]);
+
+  React.useEffect(() => {
     const isValid = Object.keys(errors).length === 0;
     onValidation({ isValid, errors });
-  }, [data, selectedPolicy, onValidation]);
+  }, [errors, onValidation]);
 
   const addBreakdownItem = () => {
     const newItem = {
@@ -135,8 +140,11 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
             <label className="block text-sm font-medium text-white mb-2">Currency</label>
             <select
               value={data.currency}
-              onChange={(e) => onDataChange({ currency: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              onChange={(e) => {
+                setTouched(prev => ({ ...prev, currency: true }));
+                onDataChange({ currency: e.target.value });
+              }}
+              className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${touched.currency && errors.currency ? 'border-rose-500' : 'border-slate-600'}`}
             >
               <option value="">Select currency...</option>
               {currencies.map(currency => (
@@ -145,6 +153,15 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                 </option>
               ))}
             </select>
+            {touched.currency && errors.currency && (
+              <p className="mt-1 flex items-center gap-1 text-sm text-rose-400">
+                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="10" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
+                </svg>
+                {errors.currency}
+              </p>
+            )}
           </div>
         </div>
 
@@ -155,8 +172,12 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
           step="0.01"
           placeholder="0.00"
           value={data.claimAmount}
-          onChange={(e) => onDataChange({ claimAmount: e.target.value })}
+          onChange={(e) => {
+            setTouched(prev => ({ ...prev, claimAmount: true }));
+            onDataChange({ claimAmount: e.target.value });
+          }}
           helperText={selectedPolicy ? `Available coverage: ${selectedPolicy.coverageLimitFormatted}` : undefined}
+          error={touched.claimAmount ? errors.claimAmount : undefined}
         />
 
         {/* Estimated Loss */}

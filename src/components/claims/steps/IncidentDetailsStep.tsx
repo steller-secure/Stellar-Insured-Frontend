@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card } from '@/components/ui/Card';
@@ -25,29 +25,35 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
   onDataChange,
   onValidation
 }) => {
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   // Validate step
-  React.useEffect(() => {
-    const errors: Record<string, string> = {};
+  const errors = React.useMemo(() => {
+    const errs: Record<string, string> = {};
     
     if (!data.incidentDate) {
-      errors.incidentDate = 'Please provide the incident date';
+      errs.incidentDate = 'Please provide the incident date';
     } else {
       const incidentDate = new Date(data.incidentDate);
       const today = new Date();
       if (incidentDate > today) {
-        errors.incidentDate = 'Incident date cannot be in the future';
+        errs.incidentDate = 'Incident date cannot be in the future';
       }
     }
     
     if (!data.description) {
-      errors.description = 'Please provide a detailed description';
+      errs.description = 'Please provide a detailed description';
     } else if (data.description.length < 50) {
-      errors.description = 'Description must be at least 50 characters';
+      errs.description = 'Description must be at least 50 characters';
     }
 
+    return errs;
+  }, [data]);
+
+  React.useEffect(() => {
     const isValid = Object.keys(errors).length === 0;
     onValidation({ isValid, errors });
-  }, [data, onValidation]);
+  }, [errors, onValidation]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -75,8 +81,12 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
             label="Incident Date"
             type="date"
             value={data.incidentDate}
-            onChange={(e) => onDataChange({ incidentDate: e.target.value })}
+            onChange={(e) => {
+              setTouched(prev => ({ ...prev, incidentDate: true }));
+              onDataChange({ incidentDate: e.target.value });
+            }}
             max={new Date().toISOString().split('T')[0]}
+            error={touched.incidentDate ? errors.incidentDate : undefined}
           />
           <Input
             label="Approximate Time (Optional)"
@@ -117,9 +127,13 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
 • Any suspicious activities you noticed?
 • Timeline of events..."
           value={data.description}
-          onChange={(e) => onDataChange({ description: e.target.value })}
+          onChange={(e) => {
+            setTouched(prev => ({ ...prev, description: true }));
+            onDataChange({ description: e.target.value });
+          }}
           rows={8}
           helperText={`${data.description.length}/50 characters minimum`}
+          error={touched.description ? errors.description : undefined}
         />
 
         {/* Immediate Actions */}

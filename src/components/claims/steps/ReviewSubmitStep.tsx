@@ -29,23 +29,28 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
   isSubmitting
 }) => {
   const [showFullBreakdown, setShowFullBreakdown] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const selectedPolicy = mockPolicies.find(p => p.id === formData.policyId);
 
   // Validate step
-  React.useEffect(() => {
-    const errors: Record<string, string> = {};
+  const errors = React.useMemo(() => {
+    const errs: Record<string, string> = {};
     
     if (!data.agreedToTerms) {
-      errors.agreedToTerms = 'You must agree to the terms and conditions';
+      errs.agreedToTerms = 'You must agree to the terms and conditions';
     }
     
     if (!data.confirmAccuracy) {
-      errors.confirmAccuracy = 'You must confirm the accuracy of the information';
+      errs.confirmAccuracy = 'You must confirm the accuracy of the information';
     }
 
+    return errs;
+  }, [data]);
+
+  React.useEffect(() => {
     const isValid = Object.keys(errors).length === 0;
     onValidation({ isValid, errors });
-  }, [data, onValidation]);
+  }, [errors, onValidation]);
 
   const formatCurrency = (amount: string | number, currency: string = 'USD') => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -233,11 +238,14 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
               <input
                 type="checkbox"
                 checked={data.confirmAccuracy}
-                onChange={(e) => onDataChange({ confirmAccuracy: e.target.checked })}
-                className="mt-1 w-4 h-4 text-cyan-500 bg-slate-800 border-slate-600 rounded focus:ring-cyan-500"
+                onChange={(e) => {
+                  setTouched(prev => ({ ...prev, confirmAccuracy: true }));
+                  onDataChange({ confirmAccuracy: e.target.checked });
+                }}
+                className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.confirmAccuracy && errors.confirmAccuracy ? 'border-rose-500' : 'border-slate-600'}`}
               />
               <div className="text-sm">
-                <p className="text-white font-medium">I confirm the accuracy of this information</p>
+                <p className={`font-medium ${touched.confirmAccuracy && errors.confirmAccuracy ? 'text-rose-400' : 'text-white'}`}>I confirm the accuracy of this information</p>
                 <p className="text-slate-400 mt-1">
                   I certify that all information provided in this claim is true and accurate to the best of my knowledge.
                   I understand that providing false information may result in claim denial and potential legal consequences.
@@ -249,11 +257,14 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
               <input
                 type="checkbox"
                 checked={data.agreedToTerms}
-                onChange={(e) => onDataChange({ agreedToTerms: e.target.checked })}
-                className="mt-1 w-4 h-4 text-cyan-500 bg-slate-800 border-slate-600 rounded focus:ring-cyan-500"
+                onChange={(e) => {
+                  setTouched(prev => ({ ...prev, agreedToTerms: true }));
+                  onDataChange({ agreedToTerms: e.target.checked });
+                }}
+                className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.agreedToTerms && errors.agreedToTerms ? 'border-rose-500' : 'border-slate-600'}`}
               />
               <div className="text-sm">
-                <p className="text-white font-medium">I agree to the terms and conditions</p>
+                <p className={`font-medium ${touched.agreedToTerms && errors.agreedToTerms ? 'text-rose-400' : 'text-white'}`}>I agree to the terms and conditions</p>
                 <p className="text-slate-400 mt-1">
                   I agree to the claims processing terms, privacy policy, and understand that this claim will be 
                   investigated according to policy terms. I authorize the release of relevant information for claim processing.

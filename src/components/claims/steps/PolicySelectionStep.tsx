@@ -35,6 +35,7 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const selectedPolicy = policies.find(p => p.id === data.policyId);
 
@@ -60,20 +61,24 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
   }, []);
 
   // Validate step
-  React.useEffect(() => {
-    const errors: Record<string, string> = {};
+  const errors = React.useMemo(() => {
+    const errs: Record<string, string> = {};
     
     if (!data.policyId) {
-      errors.policyId = 'Please select a policy';
+      errs.policyId = 'Please select a policy';
     }
     
     if (!data.incidentType) {
-      errors.incidentType = 'Please select an incident type';
+      errs.incidentType = 'Please select an incident type';
     }
 
+    return errs;
+  }, [data]);
+
+  React.useEffect(() => {
     const isValid = Object.keys(errors).length === 0;
     onValidation({ isValid, errors });
-  }, [data, onValidation]);
+  }, [errors, onValidation]);
 
   return (
     <div className="space-y-6">
@@ -94,8 +99,12 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
             label: `${p.name} (${p.policyNumber})`
           }))}
           value={data.policyId}
-          onChange={(e: any) => onDataChange({ policyId: e.target.value })}
+          onChange={(e: any) => {
+            setTouched(prev => ({ ...prev, policyId: true }));
+            onDataChange({ policyId: e.target.value });
+          }}
           disabled={loading}
+          error={touched.policyId ? errors.policyId : undefined}
         />
 
         {/* Selected Policy Details */}
@@ -135,7 +144,11 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
           placeholder="Select the type of incident..."
           options={incidentTypes}
           value={data.incidentType}
-          onChange={(e: any) => onDataChange({ incidentType: e.target.value })}
+          onChange={(e: any) => {
+            setTouched(prev => ({ ...prev, incidentType: true }));
+            onDataChange({ incidentType: e.target.value });
+          }}
+          error={touched.incidentType ? errors.incidentType : undefined}
         />
 
         {/* Incident Type Description */}

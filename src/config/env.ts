@@ -82,8 +82,7 @@ export interface EnvValidationResult {
 
 /**
  * Validate that all required environment variables are present.
- * Returns a result object — does **not** throw so callers can decide
- * how to surface errors.
+ * Throws with a clear message listing all missing variables.
  */
 export function validateEnv(): EnvValidationResult {
   const errors: EnvValidationError[] = [];
@@ -98,11 +97,34 @@ export function validateEnv(): EnvValidationResult {
 }
 
 /**
+ * Validate env and throw if any required variables are missing.
+ * Call this at app startup (e.g. in root layout or server entry).
+ */
+export function assertEnv(): void {
+  const result = validateEnv();
+  if (!result.valid) {
+    const lines = result.errors.map(
+      (e) => `  - ${e.key}: ${e.description}`
+    );
+    throw new Error(
+      `Missing required environment variables:\n${lines.join('\n')}`
+    );
+  }
+}
+
+/**
  * Get a typed env value with its default already applied.
+ * Throws if a required variable is missing and has no default.
  */
 export function getEnv(key: string): string {
   const def = ENV_SCHEMA.find((d) => d.key === key);
-  return readEnv(key) ?? def?.defaultValue ?? '';
+  const value = readEnv(key) ?? def?.defaultValue ?? '';
+  if (def?.required && !value) {
+    throw new Error(
+      `Required environment variable "${def.key}" is missing: ${def.description}`
+    );
+  }
+  return value;
 }
 
 /**

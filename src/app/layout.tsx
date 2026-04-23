@@ -9,6 +9,9 @@ import { LoadingProvider } from "@/contexts/LoadingContext";
 import GlobalLoader from "@/components/loaders/GlobalLoader";
 import { ToastProvider } from "@/components/ui/toast";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { assertEnv } from "@/config/env";
+
+assertEnv();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

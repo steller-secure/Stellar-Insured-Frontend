@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { mockPolicies } from "@/data/mockPolicies";
+import { Policy } from "@/data/mockData";
+import { DataService } from "@/config/dataSource";
 import {
   ArrowLeft,
   Shield,
@@ -13,17 +14,43 @@ import {
   RefreshCw,
   XCircle,
 } from "lucide-react";
+import { LoadingState } from "@/components/ui/SkeletonLoaders";
 
 export default function PolicyDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const policy = mockPolicies.find((p) => p.id === params.id);
+  const [policy, setPolicy] = useState<Policy | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!policy) {
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const fetchedPolicy = await DataService.getPolicy(params.id as string);
+        if (fetchedPolicy) {
+          setPolicy(fetchedPolicy);
+        } else {
+          setError("Policy not found");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load policy");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPolicy();
+  }, [params.id]);
+
+  if (loading) {
+    return <LoadingState message="Loading policy details..." />;
+  }
+
+  if (error || !policy) {
     return (
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
           <AlertCircle size={48} className="text-red-500" />
-          <h2 className="text-2xl font-bold">Policy Not Found</h2>
+          <h2 className="text-2xl font-bold">{error || "Policy Not Found"}</h2>
           <button
             onClick={() => router.push("/policies")}
             className="text-brand-primary hover:underline"

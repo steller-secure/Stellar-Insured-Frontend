@@ -6,12 +6,15 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { mockPolicies } from '@/data/mockData';
+import { type Policy } from '@/data/mockData';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useDataFetchList } from '@/hooks/useDataFetch';
+import { DataService } from '@/config/dataSource';
+import { LoadingState } from '@/components/ui/SkeletonLoaders';
 import {
   required,
   positiveNumber,
@@ -57,8 +60,14 @@ export const ClaimForm = () => {
     showNotifications: true,
   });
 
+  // Fetch policies with loading state
+  const { items: policies, loading: policiesLoading, error: policiesError } = useDataFetchList(
+    () => DataService.getPolicies(),
+    { cacheDuration: 10 * 60 * 1000 } // Cache for 10 minutes
+  );
+
   // Derived state — used in conditional validation for the amount field
-  const selectedPolicy = mockPolicies.find((p) => p.id === formData.policyId);
+  const selectedPolicy = policies.find((p) => p.id === formData.policyId);
 
   // ── Validation rules ──────────────────────────────────────────────────────────
 
@@ -219,29 +228,37 @@ export const ClaimForm = () => {
         </div>
       )}
 
-      <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm sm:p-8 space-y-6 shadow-xl">
+      {/* Show loading state while fetching policies */}
+      {policiesLoading ? (
+        <LoadingState message="Loading your policies..." />
+      ) : policiesError ? (
+        <div role="alert" className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+          <p className="text-red-400">Failed to load policies. Please try again.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm sm:p-8 space-y-6 shadow-xl">
 
-        {/* Policy Selection */}
-        <Select
-          label="Select Policy"
-          placeholder="Choose a policy..."
-          required
-          options={mockPolicies.map((p) => ({
-            value: p.id,
-            label: `${p.name} (${p.policyNumber}) - Coverage: ${p.coverageLimitFormatted}`,
-          }))}
-          value={formData.policyId}
-          onChange={(e) => handleChange('policyId', e.target.value)}
-          onBlur={() => handleBlur('policyId', formData.policyId)}
-          error={touched.policyId ? errors.policyId : undefined}
-          state={
-            touched.policyId && errors.policyId
-              ? 'error'
-              : touched.policyId && formData.policyId
-              ? 'success'
-              : 'default'
-          }
-        />
+          {/* Policy Selection */}
+          <Select
+            label="Select Policy"
+            placeholder="Choose a policy..."
+            required
+            options={policies.map((p) => ({
+              value: p.id,
+              label: `${p.name} (${p.policyNumber}) - Coverage: ${p.coverageLimitFormatted}`,
+            }))}
+            value={formData.policyId}
+            onChange={(e) => handleChange('policyId', e.target.value)}
+            onBlur={() => handleBlur('policyId', formData.policyId)}
+            error={touched.policyId ? errors.policyId : undefined}
+            state={
+              touched.policyId && errors.policyId
+                ? 'error'
+                : touched.policyId && formData.policyId
+                ? 'success'
+                : 'default'
+            }
+          />
 
         {/* Claim Amount */}
         <div className="relative">
@@ -294,7 +311,8 @@ export const ClaimForm = () => {
           onChange={handleFileChange}
           error={errors.evidence}
         />
-      </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
         <Link href="/" className="sm:order-first">

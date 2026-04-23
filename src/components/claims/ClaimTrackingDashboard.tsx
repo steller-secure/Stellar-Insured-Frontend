@@ -5,7 +5,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { mockClaims, type Claim } from '@/data/mockData';
+import { type Claim } from '@/data/mockData';
+import { useDataFetchList } from '@/hooks/useDataFetch';
+import { DataService } from '@/config/dataSource';
+import { ClaimsSkeleton, EmptyState, ErrorState } from '@/components/ui/SkeletonLoaders';
 
 export interface ClaimTrackingDashboardProps {
   showSearch?: boolean;
@@ -98,7 +101,13 @@ export const ClaimTrackingDashboard: React.FC<ClaimTrackingDashboardProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
 
-  const filteredClaims = mockClaims
+  // Fetch claims with loading state
+  const { items: claims, loading, error, refetch } = useDataFetchList(
+    () => DataService.getClaims(),
+    { cacheDuration: 5 * 60 * 1000 } // Cache for 5 minutes
+  );
+
+  const filteredClaims = claims
     .filter(claim => 
       claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.policyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -176,18 +185,19 @@ export const ClaimTrackingDashboard: React.FC<ClaimTrackingDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-white">Your Claims</h3>
-          {filteredClaims.length === 0 ? (
-            <Card className="p-6 text-center bg-slate-800/50 border-slate-700">
-              <div className="space-y-2">
-                <svg className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-slate-400">No claims found</p>
-                {searchTerm && (
-                  <p className="text-sm text-slate-500">Try adjusting your search terms</p>
-                )}
-              </div>
-            </Card>
+          {loading ? (
+            <ClaimsSkeleton />
+          ) : error ? (
+            <ErrorState 
+              title="Failed to load claims"
+              description={error.message}
+              onRetry={refetch}
+            />
+          ) : filteredClaims.length === 0 ? (
+            <EmptyState 
+              title="No claims found"
+              description={searchTerm ? "Try adjusting your search terms" : "You don't have any claims yet"}
+            />
           ) : (
             <div className="space-y-3">
               {filteredClaims.map((claim) => (

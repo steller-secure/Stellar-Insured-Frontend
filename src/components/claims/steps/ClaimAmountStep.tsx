@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { mockPolicies } from '@/data/mockData';
+import { DataService } from '@/config/dataSource';
+import { useDataFetchOne } from '@/hooks/useDataFetch';
 import type { StepValidation } from '@/hooks/useMultiStepForm';
 
 export interface ClaimAmountData {
@@ -33,7 +34,12 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
 }) => {
   const [showBreakdown, setShowBreakdown] = useState(data.breakdown.length > 0);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const selectedPolicy = mockPolicies.find(p => p.id === policyId);
+  
+  // Fetch the selected policy with caching
+  const { item: selectedPolicy, loading } = useDataFetchOne(
+    () => DataService.getPolicy(policyId),
+    { cacheDuration: 10 * 60 * 1000 }
+  );
 
   // Validate step
   const errors = React.useMemo(() => {

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { Policy } from "@/data/mockData";
+import { Policy } from "@/types/policy";
 import { DataService } from "@/config/dataSource";
 import {
   ArrowLeft,

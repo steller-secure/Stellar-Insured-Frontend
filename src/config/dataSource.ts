@@ -8,7 +8,8 @@
  * In production, always use real API endpoints.
  */
 
-import { mockPolicies, mockClaims, type Policy, type Claim } from '@/data/mockData';
+import { mockPolicies, type Policy } from '@/data/mockPolicies';
+import { mockClaims, type Claim } from '@/data/mockData';
 
 export type DataSourceType = 'mock' | 'api';
 

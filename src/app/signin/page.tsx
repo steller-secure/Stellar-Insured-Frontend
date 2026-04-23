@@ -119,6 +119,7 @@ function SignInContent() {
         signedMessage: signed.signedMessage,
         signerAddress: signed.signerAddress,
         authenticatedAt: Date.now(),
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
       });
 
       showSuccessNotification("Signed in successfully!");

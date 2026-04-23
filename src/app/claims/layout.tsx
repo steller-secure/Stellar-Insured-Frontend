@@ -39,6 +39,7 @@ export default function ClaimsLayout({
                 signedMessage: signed.signedMessage,
                 signerAddress: signed.signerAddress,
                 authenticatedAt: Date.now(),
+                expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
             });
         } catch (error) {
             console.error("Wallet connection failed:", error);

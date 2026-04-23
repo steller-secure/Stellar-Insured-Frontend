@@ -171,7 +171,7 @@ export function EmptyState({
 export function ErrorState({ 
   title = 'Error loading data',
   description = 'Please try again later or contact support.',
-  onRetry?: () => void,
+  onRetry,
 }: { 
   title?: string;
   description?: string;

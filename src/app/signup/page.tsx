@@ -11,10 +11,9 @@ import {
   signFreighterMessage,
 } from "@/lib/freighter";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { required, email, minLength, pattern } from "@/lib/validators";
-
-import { useNotifications } from "@/hooks/useNotifications";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,8 +36,8 @@ interface SignUpFormData extends Record<string, any> {
 export default function SignUpPage() {
   const router = useRouter();
   const { setSession, isAddressRegistered, registerAddress } = useAuth();
-  const { trackAction, trackError } = useAnalytics();
-  const { showWalletError } = useNotifications();
+  const { trackAction } = useAnalytics();
+  const { handleError, showSuccessNotification, showErrorNotification } = useErrorHandler();
 
   const [ui, setUi] = useState<UiState>({ status: "idle" });
 
@@ -110,10 +109,13 @@ export default function SignUpPage() {
       const address = await connectFreighter();
 
       if (isAddressRegistered(address)) {
-        console.error("This wallet already has an account. Please sign in.");
-        trackAction("AUTH", "SIGNUP_ERROR", {
-          reason: "Wallet already registered",
-        });
+        const appError = handleError(
+          "AUTHENTICATION",
+          "UNAUTHORIZED",
+          new Error("This wallet already has an account. Please sign in."),
+          { action: "signup", reason: "wallet_already_registered" }
+        );
+        showErrorNotification(appError);
         setUi({ status: "idle" });
         return;
       }
@@ -137,19 +139,21 @@ export default function SignUpPage() {
       trackAction("AUTH", "SIGNUP_SUCCESS", {
         hasEmail: !!formData.email.trim(),
       });
+      showSuccessNotification("Signed up successfully!");
       setUi({ status: "success" });
       router.push("/");
     } catch (e) {
-      trackError(e as Error, { context: "signup" });
-      const errorMessage =
-        e instanceof Error ? e.message : "Something went wrong";
+      const appError = handleError(
+        "WALLET",
+        "GENERIC_ERROR",
+        e,
+        { context: "signup" }
+      );
 
-      // Show Toast notification
-      showWalletError(errorMessage);
-
+      showErrorNotification(appError);
       setUi({
         status: "error",
-        message: errorMessage,
+        message: appError.message,
       });
     }
   };

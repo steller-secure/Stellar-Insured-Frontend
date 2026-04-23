@@ -72,8 +72,12 @@ export function WalletConnectButtonEnhanced({
     try {
       await wallet.connectWallet();
     } catch (error) {
-      console.error('Wallet connection failed:', error);
-      // Error is already handled by the wallet store
+      wallet.handleError(
+        'WALLET',
+        'GENERIC_ERROR',
+        error,
+        { action: 'connect', component: 'WalletConnectButtonEnhanced' }
+      );
     }
   };
 

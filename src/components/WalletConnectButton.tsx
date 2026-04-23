@@ -74,8 +74,12 @@ export function WalletConnectButton({
         }
       }
     } catch (err) {
-      console.error('Wallet operation failed:', err);
-      // Error is already handled by the useWallet hook
+      handleError(
+        'WALLET',
+        'GENERIC_ERROR',
+        err,
+        { action: 'connect', component: 'WalletConnectButton' }
+      );
     }
   };
 
@@ -86,8 +90,12 @@ export function WalletConnectButton({
         await onConnect();
       }
     } catch (err) {
-      console.error('Wallet retry failed:', err);
-      // Error is already handled by the useWallet hook
+      handleError(
+        'WALLET',
+        'GENERIC_ERROR',
+        err,
+        { action: 'reconnect', component: 'WalletConnectButton' }
+      );
     }
   };
 

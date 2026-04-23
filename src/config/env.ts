@@ -55,7 +55,7 @@ const ENV_SCHEMA: EnvVarDef[] = [
     key: 'NEXT_PUBLIC_APP_ENV',
     required: false,
     defaultValue: 'development',
-    description: 'Application environment (development | staging | production)',
+    description: 'Application environment (development | staging | production). Controls data source: development uses mock data, staging/production use real API.',
   },
 ];
 

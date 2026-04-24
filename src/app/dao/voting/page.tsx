@@ -1,5 +1,6 @@
 import DAOVotingClient from "@/components/dao/DAOVotingClient";
 import { mockProposals } from "@/data/dao-mockData";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import type { Metadata } from "next";
 
 /**
@@ -20,5 +21,9 @@ export default async function DAOVotingPage() {
 
   const proposals = mockProposals;
 
-  return <DAOVotingClient initialProposals={proposals} />;
+  return (
+    <ErrorBoundary>
+      <DAOVotingClient initialProposals={proposals} />
+    </ErrorBoundary>
+  );
 }

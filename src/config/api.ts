@@ -13,11 +13,20 @@ export interface ApiConfig {
   retries: number;
   /** localStorage key where the persisted wallet store lives. */
   walletStoreKey: string;
+  /** Client-side rate limiting configuration. */
+  rateLimit: {
+    requestsPerSecond: number;
+    maxBurst: number;
+  };
 }
 
 export const apiConfig: ApiConfig = {
   baseUrl: getEnv('NEXT_PUBLIC_API_BASE_URL'),
   timeout: 30_000,
-  retries: 0,
+  retries: 3, // Increased default retries to benefit from exponential backoff
   walletStoreKey: 'wallet-store',
+  rateLimit: {
+    requestsPerSecond: 5, // Conservative default
+    maxBurst: 10,
+  },
 };

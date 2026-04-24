@@ -5,6 +5,7 @@
  */
 
 import { errorHandler, type ErrorCategory } from "@/lib/errorHandler";
+import { globalRateLimiter } from "@/lib/rate-limiter";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -191,6 +192,9 @@ class ApiClient {
     path: string,
     config: RequestConfig & { method: string },
   ): Promise<ApiResponse<T>> {
+    // Apply client-side rate limiting before processing the request
+    await globalRateLimiter.acquire();
+
     const url = this.buildURL(path, config.params);
     const retries = config.retries ?? this.defaultRetries;
     const timeout = config.timeout ?? this.defaultTimeout;
@@ -304,10 +308,23 @@ class ApiClient {
           exponentialFactor: 2,
           jitter: true,
         },
-      );
+      ).catch((error) => {
+        // If final retry fails with 429, signal the rate limiter to throttle
+        if (error instanceof ApiClientError && error.status === 429) {
+          globalRateLimiter.reset(5000); // Cooldown for 5 seconds
+        }
+        throw error;
+      });
     }
 
-    return execute();
+    try {
+      return await execute();
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 429) {
+        globalRateLimiter.reset(5000);
+      }
+      throw error;
+    }
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────

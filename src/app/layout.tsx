@@ -10,6 +10,7 @@ import GlobalLoader from "@/components/loaders/GlobalLoader";
 import { ToastProvider } from "@/components/ui/toast";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { assertEnv } from "@/config/env";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { WebVitals } from "@/components/web-vitals";
 
 assertEnv();
@@ -47,19 +48,21 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <Suspense fallback={null}>
-            <AnalyticsProvider>
-              <WebVitals />
-              <ToastProvider>
-                <NotificationProvider>
-                  <AuthProvider>
-                    <LoadingProvider>
-                      <GlobalLoader />
-                      {children}
-                    </LoadingProvider>
-                  </AuthProvider>
-                </NotificationProvider>
-              </ToastProvider>
-            </AnalyticsProvider>
+            <ErrorBoundary>
+              <AnalyticsProvider>
+                <WebVitals />
+                <ToastProvider>
+                  <NotificationProvider>
+                    <AuthProvider>
+                      <LoadingProvider>
+                        <GlobalLoader />
+                        {children}
+                      </LoadingProvider>
+                    </AuthProvider>
+                  </NotificationProvider>
+                </ToastProvider>
+              </AnalyticsProvider>
+            </ErrorBoundary>
           </Suspense>
         </ThemeProvider>
       </body>

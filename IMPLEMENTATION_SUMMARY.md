@@ -285,9 +285,6 @@ export NEXT_PUBLIC_API_BASE_URL=https://api.stellar-insured.com
 # Build and deploy
 npm run build
 npm start
-```
-
----
 
 ## Troubleshooting
 
@@ -304,11 +301,3 @@ npm start
 **A**: Make sure you have an `ErrorState` component in your JSX when `error` is truthy.
 
 ---
-
-## Questions or Issues?
-
-Refer to `docs/DATA_MANAGEMENT_GUIDE.md` for:
-- Complete API reference
-- Code examples
-- Best practices
-- Advanced patterns

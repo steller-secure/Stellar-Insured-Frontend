@@ -1,158 +1,461 @@
-Stellar Insured 🌐 — Frontend
+# 🌐 Stellar Insured Frontend
 
 [![CI](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/ci.yml)
 [![Deploy to Production](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/steller-secure/Stellar-Insured-Frontend/actions/workflows/deploy-production.yml)
 
-Stellar Insured is a decentralized, transparent, and trustless insurance platform built on the Stellar ecosystem.
-This frontend application provides users with a simple and intuitive interface to purchase insurance policies, submit claims, track coverage, and participate in decentralized governance—without relying on traditional insurance intermediaries.
+A modern, decentralized insurance platform built on the Stellar ecosystem.
 
-The frontend is designed for policyholders, DAO participants, and contributors, enabling seamless interaction with Stellar Soroban smart contracts and backend services while preserving transparency, security, and usability.
+Stellar Insured empowers individuals and organizations to purchase insurance coverage, submit claims, participate in governance, and manage policies through a transparent, blockchain-powered experience. By leveraging Stellar and Soroban smart contracts, the platform removes traditional intermediaries while improving transparency, security, and accessibility.
 
-✨ Key Features
+---
 
-Insurance policy purchase and management
+## 🚀 Overview
 
-Claim submission and claim status tracking
+Traditional insurance systems often suffer from:
 
-DAO proposal creation and voting
+* Limited transparency
+* Slow claims processing
+* High operational overhead
+* Centralized decision-making
+* Restricted access to governance
 
-Wallet-based authentication (non-custodial)
+Stellar Insured addresses these challenges through a decentralized architecture where policyholders can interact directly with smart contracts and governance mechanisms.
 
-Real-time UI updates from on-chain and backend events
+The frontend serves as the primary user interface for:
 
-Responsive and accessible design
+* Policyholders managing insurance coverage
+* Claimants submitting and tracking claims
+* DAO members participating in governance
+* Contributors interacting with protocol services
 
-🧑‍💻 Tech Stack
+---
 
-Framework: Next.js (App Router)
+## ✨ Core Features
 
-Language: TypeScript
+### 🛡️ Insurance Management
 
-Styling: CSS / Tailwind CSS
+* Browse available insurance products
+* Purchase policies directly through connected wallets
+* View active and expired coverage
+* Track policy details and premium information
 
-State Management: React Hooks
+### 📋 Claims Processing
 
-Blockchain: Stellar wallet integrations
+* Submit insurance claims digitally
+* Upload supporting evidence and documentation
+* Monitor claim review progress
+* Receive claim status updates in real time
 
-Deployment: Vercel
+### 🏛️ DAO Governance
 
-📁 Project Structure
-.
-├── public/                  # Static assets
-├── src/
-│   ├── app/                 # Next.js App Router
-│   ├── components/          # Reusable UI components
-│   ├── data/                # Static and mock data
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Utilities and helpers
-│   ├── styles/              # Global and modular styles
-│   ├── types/               # Shared TypeScript types
-│   └── App.css              # Global app styles
-├── middleware.ts            # Next.js middleware
-├── .gitignore
-├── CONTRIBUTING.md
-├── README.md
-├── components.json          # UI component config
-├── eslint.config.mjs
-├── next.config.ts
-├── package-lock.json
+* Create governance proposals
+* Vote on protocol decisions
+* Monitor proposal activity
+* Participate in community-driven insurance management
 
-📦 Installation & Setup
-Prerequisites
+### 🔐 Wallet Authentication
 
-Node.js 18+
+* Non-custodial authentication
+* Stellar wallet integration
+* Secure transaction signing
+* No usernames or passwords required
 
-npm or yarn
+### 📊 Real-Time Updates
 
-Local Development
-# Install dependencies
-npm install
+* Live policy updates
+* Instant claim status synchronization
+* Governance voting updates
+* Blockchain event monitoring
 
-# Start development server
-npm run dev
+### ♿ Accessibility & UX
 
+* WCAG-focused accessibility improvements
+* Keyboard navigation support
+* Responsive mobile-first design
+* Screen reader compatibility
+* Dark and light theme support
 
-The application will be available at:
-http://localhost:3000
+---
 
-🧪 Testing
+## 🏗️ Architecture
 
-This project has comprehensive test coverage with unit, integration, and E2E tests.
+```text
+┌──────────────────────────┐
+│     Frontend (Next.js)   │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│     Backend Services     │
+│     REST APIs            │
+│     Authentication       │
+│     Claims Processing    │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│   Soroban Smart Contracts │
+│   Policy Management       │
+│   Governance              │
+│   Claims Settlement       │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│    Stellar Blockchain    │
+└──────────────────────────┘
+```
+
+---
+
+## 🧑‍💻 Technology Stack
+
+### Frontend
+
+* Next.js (App Router)
+* React
+* TypeScript
+* Tailwind CSS
+* ShadCN UI
+
+### State & Data
+
+* React Hooks
+* Context API
+* Custom Data Fetching Hooks
+
+### Blockchain
+
+* Stellar Wallet Kit
+* Soroban Smart Contracts
+* Stellar Network APIs
+
+### Tooling
+
+* ESLint
+* Prettier
+* GitHub Actions
+* Vercel Deployment
+
+---
+
+## 📁 Project Structure
 
 ```bash
-# Run all tests
+.
+├── public/
+│   ├── images/
+│   ├── icons/
+│   └── assets/
+│
+├── src/
+│   ├── app/                  # Next.js App Router pages
+│   ├── components/           # Reusable UI components
+│   ├── data/                 # Static data & mock data
+│   ├── hooks/                # Custom React hooks
+│   ├── lib/                  # Utilities & helpers
+│   ├── styles/               # Global styles
+│   ├── types/                # Shared TypeScript types
+│   └── context/              # Context providers
+│
+├── middleware.ts
+├── README.md
+├── CONTRIBUTING.md
+├── components.json
+├── next.config.ts
+└── package.json
+```
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Before running the project locally, ensure you have:
+
+* Node.js 18+
+* npm, pnpm, or yarn
+* Git
+* A Stellar wallet (recommended: Freighter)
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/steller-secure/Stellar-Insured-Frontend.git
+
+cd Stellar-Insured-Frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 🌐 Environment Variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+
+NEXT_PUBLIC_STELLAR_NETWORK=testnet
+
+NEXT_PUBLIC_STELLAR_RPC_URL=https://soroban-testnet.stellar.org
+
+NEXT_PUBLIC_APP_NAME=Stellar Insured
+```
+
+### Variable Reference
+
+| Variable                    | Description                       |
+| --------------------------- | --------------------------------- |
+| NEXT_PUBLIC_API_BASE_URL    | Backend API URL                   |
+| NEXT_PUBLIC_STELLAR_NETWORK | Stellar network (testnet/mainnet) |
+| NEXT_PUBLIC_STELLAR_RPC_URL | Soroban RPC endpoint              |
+| NEXT_PUBLIC_APP_NAME        | Application display name          |
+
+---
+
+## 🧪 Testing
+
+This project maintains comprehensive automated testing coverage.
+
+### Run All Tests
+
+```bash
 npm test
+```
 
-# Run tests with coverage report
+### Coverage Report
+
+```bash
 npm run test:coverage
+```
 
-# Run tests in watch mode (for development)
+### Watch Mode
+
+```bash
 npm run test:watch
 ```
 
-**Test Coverage**: Target 80% coverage for all critical paths
-- Unit tests for all components
-- Integration tests for user flows
-- CI/CD pipeline enforces coverage thresholds
+### Build Verification
 
-See [TEST_COVERAGE.md](./TEST_COVERAGE.md) for detailed testing documentation.
-See [QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md) for adding new tests.
+```bash
+npm run build
+```
 
-🌐 Environment Variables
+### Linting
 
-Create a .env.local file in the project root:
+```bash
+npm run lint
+```
 
-NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
-NEXT_PUBLIC_STELLAR_NETWORK=testnet
+### Coverage Goals
 
-🧪 Testing
-npm run test
+* Unit Tests
+* Integration Tests
+* User Flow Validation
+* Accessibility Testing
+* Component Testing
+
+Target Coverage: **80%+**
+
+---
 
 ## 🚀 CI/CD Pipeline
 
-This project uses GitHub Actions for automated testing, linting, and deployment.
+GitHub Actions automatically handles:
 
-### Workflows
-- **CI**: Runs on all PRs - linting, testing, and build verification
-- **Deploy to Staging**: Auto-deploys `develop` branch to staging environment
-- **Deploy to Production**: Auto-deploys `main` branch to production environment
+### Continuous Integration
 
-### Quick Setup
+* Dependency installation
+* Type checking
+* Linting
+* Unit testing
+* Build verification
+
+### Continuous Deployment
+
+#### Staging
+
+Triggered on:
+
+```text
+develop branch
+```
+
+#### Production
+
+Triggered on:
+
+```text
+main branch
+```
+
+Deployment Platform:
+
+```text
+Vercel
+```
+
+---
+
+## 🔒 Security
+
+Security is a core priority of Stellar Insured.
+
+### Security Measures
+
+* Wallet-based authentication
+* Non-custodial user accounts
+* Environment variable protection
+* Secure API communication
+* Smart contract verification
+* Input validation and sanitization
+
+### Best Practices
+
+* Never commit `.env` files
+* Validate all user inputs
+* Review smart contract interactions carefully
+* Keep dependencies updated
+
+---
+
+## ♿ Accessibility
+
+The application follows modern accessibility standards.
+
+Implemented improvements include:
+
+* ARIA labels
+* Keyboard navigation
+* Screen reader support
+* Focus management
+* Semantic HTML
+* Responsive design
+
+Target Standard:
+
+```text
+WCAG 2.1 AA
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome community contributions.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+
 ```bash
-# Install dependencies including pre-commit hooks
-npm install
-npm run prepare
+git checkout -b feature/my-feature
+```
 
-# Run CI checks locally
+3. Make changes
+4. Run tests
+
+```bash
 npm run lint
 npm run test
 npm run build
 ```
 
-For detailed CI/CD documentation, see [.github/CICD.md](.github/CICD.md)
+5. Commit using conventional commits
 
-For quick reference, see [.github/QUICK_REFERENCE.md](.github/QUICK_REFERENCE.md)
+```bash
+feat: add claim status notifications
+```
 
-🔗 Useful Links
+6. Push changes
+7. Open a Pull Request
 
-Stellar Docs: https://developers.stellar.org
+For detailed contribution guidelines see:
 
-Soroban Docs: https://soroban.stellar.org/docs
+```text
+CONTRIBUTING.md
+```
 
-Next.js Docs: https://nextjs.org/docs
+---
 
-🤝 Contributing
+## 📚 Resources
 
-Contributions are welcome 🚀
+### Stellar Ecosystem
 
-Fork the repository
+* Stellar Developer Docs
+* Soroban Documentation
+* Stellar Wallet Kit
 
-Create a feature branch
+### Frontend Development
 
-Commit clear, descriptive messages
+* Next.js Documentation
+* React Documentation
+* Tailwind CSS Documentation
 
-Open a Pull Request
+---
 
-📜 License
+## 🗺️ Roadmap
 
-MIT License
+### Phase 1
+
+* Policy marketplace
+* Wallet authentication
+* Claims submission
+
+### Phase 2
+
+* DAO governance
+* Voting mechanisms
+* Proposal management
+
+### Phase 3
+
+* Advanced analytics
+* Risk scoring
+* On-chain claim automation
+
+### Phase 4
+
+* Mobile application
+* Multi-chain integrations
+* Institutional insurance pools
+
+---
+
+## 📜 License
+
+Licensed under the MIT License.
+
+See the LICENSE file for details.
+
+---
+
+Built with ❤️ on Stellar to make insurance more transparent, accessible, and community-driven.

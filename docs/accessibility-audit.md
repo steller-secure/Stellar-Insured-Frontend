@@ -11,7 +11,7 @@
 
 This report documents the accessibility audit and improvements made to the Stellar Insured Frontend application. The audit focused on identifying and remediate accessibility barriers for users with disabilities, ensuring compliance with WCAG 2.1 AA standards.
 
-### Overall Status: ✅ IMPROVED
+### Overall Status: 
 
 **Key Achievements:**
 - Added comprehensive ARIA labels to all interactive elements

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#0A0F1F"/>
+  <rect x="60" y="60" width="1080" height="510" rx="24" fill="#101935" stroke="#94BCCA" stroke-width="2"/>
+  <circle cx="600" cy="220" r="64" fill="#22BBF9" opacity="0.15"/>
+  <path d="M600 168 L648 248 L552 248 Z" fill="#22BBF9"/>
+  <text x="600" y="340" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700">Stellar Insured</text>
+  <text x="600" y="400" text-anchor="middle" fill="#94BCCA" font-family="system-ui, -apple-system, sans-serif" font-size="28">Decentralized Insurance on Stellar</text>
+  <text x="600" y="480" text-anchor="middle" fill="#64748B" font-family="system-ui, -apple-system, sans-serif" font-size="22">Transparent policies · Smart claims · DAO governance</text>
+</svg>

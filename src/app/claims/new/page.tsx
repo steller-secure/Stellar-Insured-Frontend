@@ -1,11 +1,8 @@
-import React from 'react';
-import { MultiStepClaimForm } from '@/components/claims/MultiStepClaimForm';
-import { Metadata } from 'next';
+import React from "react";
+import { MultiStepClaimForm } from "@/components/claims/MultiStepClaimForm";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-    title: 'File a Claim | Stellar Insured',
-    description: 'Submit a new insurance claim with our guided multi-step process.',
-};
+export const metadata = pageMetadata.newClaim;
 
 export default function NewClaimPage() {
     return (

@@ -1,5 +1,8 @@
 import NavBar from "@/components/NavBar/NavBar";
 import Image from "next/image";
+import { pageMetadata } from "@/lib/metadata";
+
+export const metadata = pageMetadata.about;
 
 export default function About() {
   return (

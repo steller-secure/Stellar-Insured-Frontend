@@ -3,28 +3,8 @@ import { useWallet } from '@/hooks/useWallet';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { useNotifications } from '@/hooks/useNotifications';
 import { subscribeToNetworkChanges } from '@/lib/stellar';
-
-/**
- * Custom hook for managing wallet balance
- */
-export interface WalletBalance {
-  xlm: number;
-  assets: Array<{
-    code: string;
-    issuer: string;
-    balance: number;
-  }>;
-  loading: boolean;
-  refreshing: boolean;
-  error: string | null;
-  lastUpdated: number | null;
-}
-
-export interface UseWalletBalanceReturn extends WalletBalance {
-  refetch: () => Promise<void>;
-  isPollingActive: boolean;
-  pollingInterval: number;
-}
+import { type WalletBalance, type WalletBalanceAsset, type UseWalletBalanceReturn } from '@/types/wallet';
+import { type StellarAccountBalance } from '@/types/stellar';
 
 // Configuration constants
 const POLLING_INTERVAL_MS = 30000; // 30 seconds
@@ -45,7 +25,7 @@ export function useWalletBalance(): UseWalletBalanceReturn {
 
   // Track previous balances to detect changes
   const prevXlmBalance = useRef(0);
-  const prevAssets = useRef<{ code: string; issuer: string; balance: number }[]>([]);
+  const prevAssets = useRef<WalletBalanceAsset[]>([]);
   
   // Polling and activity tracking refs
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,15 +57,17 @@ export function useWalletBalance(): UseWalletBalanceReturn {
       const server = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
       const account = await server.loadAccount(address);
       
+      const balances = account.balances as unknown as StellarAccountBalance[];
+
       const xlmBalance = parseFloat(
-        account.balances.find((b: any) => b.asset_type === 'native')?.balance || '0'
+        balances.find((b) => b.asset_type === 'native')?.balance || '0'
       );
 
-      const assets = account.balances
-        .filter((b: any) => b.asset_type !== 'native')
-        .map((b: any) => ({
-          code: (b as any).asset_code,
-          issuer: (b as any).asset_issuer,
+      const assets = balances
+        .filter((b) => b.asset_type !== 'native')
+        .map((b) => ({
+          code: b.asset_code || '',
+          issuer: b.asset_issuer || '',
           balance: parseFloat(b.balance),
         }));
 
@@ -97,6 +79,7 @@ export function useWalletBalance(): UseWalletBalanceReturn {
         xlm: xlmBalance,
         assets,
         loading: false,
+        refreshing: false,
         error: null,
         lastUpdated: Date.now(),
       });
@@ -112,8 +95,8 @@ export function useWalletBalance(): UseWalletBalanceReturn {
 
       if (assetsChanged) {
         // Show notification for asset changes
-        assets.forEach((asset: { code: string; issuer: string; balance: number }) => {
-          const prevAsset = prevAssets.current.find((a: { code: string; issuer: string; balance: number }) => a.code === asset.code && a.issuer === asset.issuer);
+        assets.forEach((asset: WalletBalanceAsset) => {
+          const prevAsset = prevAssets.current.find((a: WalletBalanceAsset) => a.code === asset.code && a.issuer === asset.issuer);
           if (!prevAsset || prevAsset.balance !== asset.balance) {
             showBalanceUpdated(asset.balance, asset.code);
           }

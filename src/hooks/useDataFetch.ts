@@ -12,13 +12,32 @@ export interface DataFetchState<T> {
 interface UseDataFetchOptions {
   cacheDuration?: number;
   autoFetch?: boolean;
-  onSuccess?: (data: any) => void;
+  // Callback when data is loaded
+  onSuccess?: (data: T) => void;
+  // Callback on error
   onError?: (error: Error) => void;
 }
 
+// Simple in-memory cache
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const dataCache = new Map<string, CacheEntry<unknown>>();
+
+/**
+ * Generic data fetch hook with loading states
+ * 
+ * @example
+ * const { data, loading, error, refetch } = useDataFetch(
+ *   async () => DataService.getPolicies(),
+ *   { cacheDuration: 5 * 60 * 1000 } // 5 minutes
+ * );
+ */
 export function useDataFetch<T>(
   fetchFn: () => Promise<T>,
-  options: UseDataFetchOptions = {}
+  options: UseDateFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void> } {
   const { autoFetch = true, onSuccess, onError } = options;
   const [state, setState] = useState<DataFetchState<T>>({
@@ -41,8 +60,15 @@ export function useDataFetch<T>(
   }, [fetchFn, onSuccess, onError]);
 
   useEffect(() => {
-    if (autoFetch) {
-      refetch();
+    if (!autoFetch) return;
+
+    // Check cache first
+    if (cacheDuration > 0) {
+      const cached = dataCache.get(cacheKeyRef.current);
+      if (cached && Date.now() - cached.timestamp < cacheDuration) {
+        setState({ data: cached.data as T, loading: false, error: null });
+        return;
+      }
     }
   }, [refetch, autoFetch]);
 
@@ -84,41 +110,37 @@ export function useDataFetchOne<T>(
 
 export function useDataFetchList<T>(
   fetchFn: () => Promise<T[]>,
-  options: UseDataFetchOptions = {}
-): { items: T[]; loading: boolean; error: Error | null; refetch: () => Promise<void> } {
-  const { autoFetch = true, onSuccess, onError } = options;
-  const [state, setState] = useState<{ items: T[]; loading: boolean; error: Error | null }>({
-    items: [],
-    loading: true,
-    error: null,
-  });
+  options: UseDateFetchOptions<T[]> = {}
+) {
+  const result = useDataFetch(fetchFn, options);
+  
+  return {
+    ...result,
+    items: result.data || [],
+    isEmpty: result.data?.length === 0,
+  };
+}
 
-  const refetch = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    try {
-      const result = await rateLimiter.execute(() => fetchFn());
-      setState({ items: result, loading: false, error: null });
-      onSuccess?.(result);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setState({ items: [], loading: false, error });
-      onError?.(error);
-    }
-  }, [fetchFn, onSuccess, onError]);
-
-  useEffect(() => {
-    if (autoFetch) {
-      refetch();
-    }
-  }, [refetch, autoFetch]);
-
-  return { ...state, refetch };
+/**
+ * Hook for fetching a single item
+ */
+export function useDataFetchOne<T>(
+  fetchFn: () => Promise<T | undefined>,
+  options: UseDateFetchOptions<T | undefined> = {}
+) {
+  const result = useDataFetch(fetchFn, options);
+  
+  return {
+    ...result,
+    item: result.data,
+    notFound: !result.loading && !result.error && !result.data,
+  };
 }
 
 export function useDataFetchDependency<T>(
-  fetchFn: (deps: any[]) => Promise<T>,
-  dependencies: any[] = [],
-  options: UseDataFetchOptions = {}
+  fetchFn: (deps: unknown[]) => Promise<T>,
+  dependencies: unknown[] = [],
+  options: UseDateFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void> } {
   const { autoFetch = true, onSuccess, onError } = options;
   const [state, setState] = useState<DataFetchState<T>>({

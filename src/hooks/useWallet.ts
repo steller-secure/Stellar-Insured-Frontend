@@ -2,23 +2,62 @@ import React, { useCallback } from 'react';
 import { useWalletStore } from '@/store';
 import { connectFreighter, signFreighterMessage, createAuthMessage } from '@/lib/freighter';
 import { useWalletErrorHandler } from '@/hooks/useErrorHandler';
-import { rateLimiter } from '../lib/rateLimiter';
-import type { AuthSession } from '@/store/types';
+import { errorHandler } from '@/lib/errorHandler';
 
 export function useWallet() {
-  const { status, session, signOut, setStatus, completeConnection, startConnection, isAddressRegistered, registerAddress } = useWalletStore();
-  const { executeWithErrorHandling, showSuccessNotification, showErrorNotification, showInfoNotification } = useWalletErrorHandler();
+  const {
+    status,
+    session,
+    error,
+    setStatus,
+    setSession,
+    setError,
+    signOut,
+    isAddressRegistered,
+    registerAddress,
+    getRegisteredUser,
+    startConnection,
+    completeConnection,
+    failConnection,
+  } = useWalletStore();
 
-  // Reset on expiration
-  React.useEffect(() => {
-    if (!session?.expiresAt) return;
-    const timeout = setTimeout(() => {
-      signOut();
-      rateLimiter.reset(); //  Clear queue
-      showInfoNotification?.('Session expired.');
-    }, session.expiresAt - Date.now());
-    return () => clearTimeout(timeout);
-  }, [session, signOut, showInfoNotification]);
+
+  const {
+    executeWithErrorHandling,
+    handleError,
+    showSuccessNotification,
+    showErrorNotification,
+    retryLastOperation,
+    hasError,
+    canRetry
+  } = useWalletErrorHandler();
+
+    // Session expiration watcher
+    React.useEffect(() => {
+      if (!session || !session.expiresAt) return;
+      const now = Date.now();
+      if (session.expiresAt <= now) {
+        signOut();
+        const appError = errorHandler.createError(
+          'AUTHENTICATION',
+          'SESSION_EXPIRED',
+          new Error('Session expired')
+        );
+        showErrorNotification?.(appError);
+        return;
+      }
+      // Set timer to auto sign out at expiration
+      const timeout = setTimeout(() => {
+        signOut();
+        const appError = errorHandler.createError(
+          'AUTHENTICATION',
+          'SESSION_EXPIRED',
+          new Error('Session expired')
+        );
+        showErrorNotification?.(appError);
+      }, session.expiresAt - now);
+      return () => clearTimeout(timeout);
+    }, [session, signOut, showErrorNotification]);
 
   const connectWallet = useCallback(async () => {
     if (session) return session;

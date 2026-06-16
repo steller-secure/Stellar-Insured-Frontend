@@ -57,6 +57,12 @@ const ENV_SCHEMA: EnvVarDef[] = [
     defaultValue: 'development',
     description: 'Application environment (development | staging | production). Controls data source: development uses mock data, staging/production use real API.',
   },
+  {
+    key: 'NEXT_PUBLIC_SITE_URL',
+    required: false,
+    defaultValue: 'https://stellar-insured.com',
+    description: 'Public site URL used for canonical links, Open Graph, and structured data',
+  },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

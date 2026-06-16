@@ -1,4 +1,6 @@
+
 'use client';
+
 
 /**
  * React Error Boundary Component

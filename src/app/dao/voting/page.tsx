@@ -1,15 +1,13 @@
 import DAOVotingClient from "@/components/dao/DAOVotingClient";
 import { mockProposals } from "@/data/dao-mockData";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  createBreadcrumbSchema,
+  pageMetadata,
+} from "@/lib/metadata";
 
-/**
- * Page metadata for SEO
- */
-export const metadata: Metadata = {
-  title: "DAO Governance | StellarInsured",
-  description: "Participate in governance decisions and vote on proposals",
-};
+export const metadata = pageMetadata.dao;
 
 /**
  * Server Component - fetches data and renders client component
@@ -23,6 +21,12 @@ export default async function DAOVotingPage() {
 
   return (
     <ErrorBoundary>
+      <JsonLd
+        data={createBreadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "DAO Governance", path: "/dao/voting" },
+        ])}
+      />
       <DAOVotingClient initialProposals={proposals} />
     </ErrorBoundary>
   );

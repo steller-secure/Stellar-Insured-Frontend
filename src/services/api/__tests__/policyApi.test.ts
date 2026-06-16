@@ -48,7 +48,11 @@ describe('policyApi', () => {
     });
 
     it('creates a cancel token for list requests', async () => {
-      mockedClient.get.mockResolvedValue({ data: {}, status: 200, headers: new Headers() });
+      mockedClient.get.mockResolvedValue({
+        data: { items: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 },
+        status: 200,
+        headers: new Headers(),
+      });
 
       await policyApi.list();
 
@@ -58,7 +62,15 @@ describe('policyApi', () => {
 
   describe('getById', () => {
     it('calls GET /api/policies/:id', async () => {
-      const mockPolicy = { id: 'p1', name: 'Test Policy' };
+      const mockPolicy = {
+        id: 'p1',
+        name: 'Test Policy',
+        type: 'Health' as const,
+        status: 'active' as const,
+        coverageLimit: 50000,
+        coverageLimitFormatted: '$50,000',
+        policyNumber: 'HEL-1234-XX',
+      };
       mockedClient.get.mockResolvedValue({ data: mockPolicy, status: 200, headers: new Headers() });
 
       const result = await policyApi.getById('p1');
@@ -71,7 +83,16 @@ describe('policyApi', () => {
     });
 
     it('encodes special characters in ID', async () => {
-      mockedClient.get.mockResolvedValue({ data: {}, status: 200, headers: new Headers() });
+      const mockPolicy = {
+        id: 'p/1',
+        name: 'Test Policy',
+        type: 'Health' as const,
+        status: 'active' as const,
+        coverageLimit: 50000,
+        coverageLimitFormatted: '$50,000',
+        policyNumber: 'HEL-1234-XX',
+      };
+      mockedClient.get.mockResolvedValue({ data: mockPolicy, status: 200, headers: new Headers() });
 
       await policyApi.getById('p/1');
 
@@ -84,25 +105,43 @@ describe('policyApi', () => {
 
   describe('create', () => {
     it('calls POST /api/policies with body', async () => {
-      const newPolicy = { name: 'New', type: 'Health' as const, coverageLimit: 50000 };
-      mockedClient.post.mockResolvedValue({ data: { id: 'p99', ...newPolicy }, status: 201, headers: new Headers() });
+      const newPolicy = { name: 'New Policy', type: 'Health' as const, coverageLimit: 50000 };
+      const createdPolicy = {
+        id: 'p99',
+        name: 'New Policy',
+        type: 'Health' as const,
+        status: 'pending' as const,
+        coverageLimit: 50000,
+        coverageLimitFormatted: '$50,000',
+        policyNumber: 'HEL-9999-XX',
+      };
+      mockedClient.post.mockResolvedValue({ data: createdPolicy, status: 201, headers: new Headers() });
 
       const result = await policyApi.create(newPolicy);
 
       expect(mockedClient.post).toHaveBeenCalledWith('/api/policies', newPolicy, undefined);
-      expect(result.data).toMatchObject({ id: 'p99', name: 'New' });
+      expect(result.data).toMatchObject({ id: 'p99', name: 'New Policy' });
     });
   });
 
   describe('update', () => {
     it('calls PUT /api/policies/:id with body', async () => {
-      mockedClient.put.mockResolvedValue({ data: { id: 'p1', name: 'Updated' }, status: 200, headers: new Headers() });
+      const updatedPolicy = {
+        id: 'p1',
+        name: 'Updated Policy',
+        type: 'Health' as const,
+        status: 'active' as const,
+        coverageLimit: 50000,
+        coverageLimitFormatted: '$50,000',
+        policyNumber: 'HEL-1234-XX',
+      };
+      mockedClient.put.mockResolvedValue({ data: updatedPolicy, status: 200, headers: new Headers() });
 
-      await policyApi.update('p1', { name: 'Updated' });
+      await policyApi.update('p1', { name: 'Updated Policy' });
 
       expect(mockedClient.put).toHaveBeenCalledWith(
         '/api/policies/p1',
-        { name: 'Updated' },
+        { name: 'Updated Policy' },
         undefined
       );
     });
@@ -122,7 +161,16 @@ describe('policyApi', () => {
     it('calls POST /api/policies/premium', async () => {
       const payload = { policyType: 'Health' as const, coverageLimit: 50000 };
       mockedClient.post.mockResolvedValue({
-        data: { basePremium: 200, finalPremium: 250, riskMultiplier: 1.25, breakdown: {} },
+        data: {
+          basePremium: 200,
+          finalPremium: 250,
+          riskMultiplier: 1.25,
+          breakdown: {
+            coverageComponent: 200,
+            riskComponent: 50,
+            fees: 0,
+          },
+        },
         status: 200,
         headers: new Headers(),
       });

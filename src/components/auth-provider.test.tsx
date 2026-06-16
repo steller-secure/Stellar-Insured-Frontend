@@ -14,7 +14,8 @@ const TestComponent = () => {
         address: 'GTEST123',
         signedMessage: 'signed',
         signerAddress: 'GTEST123',
-        authenticatedAt: Date.now()
+        authenticatedAt: Date.now(),
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000
       })}>Sign In</button>
       <button onClick={signOut}>Sign Out</button>
       <button onClick={() => registerAddress('GTEST123')}>Register</button>

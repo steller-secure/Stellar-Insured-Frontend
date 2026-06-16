@@ -5,11 +5,17 @@
 
 import apiClient, { type ApiResponse, type RequestConfig } from '@/lib/api-client';
 import type { PaginatedResponse, PaginationParams, SortParams } from '@/lib/types/api.types';
-import type { Proposal, VoteType } from '@/types/dao-types';
+import {
+  paginatedProposalSchema,
+  proposalSchema,
+  castVoteResponseSchema,
+  daoStatsSchema,
+  type Proposal,
+  type VoteType,
+  type ProposalStatus,
+} from '@/types/api';
 
 // ─── Query types ─────────────────────────────────────────────────────────────
-
-export type ProposalStatus = 'active' | 'pending' | 'expired';
 
 export interface ProposalListParams extends PaginationParams, SortParams {
   status?: ProposalStatus;
@@ -46,12 +52,16 @@ export const daoApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<PaginatedResponse<Proposal>>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.list);
-    return apiClient.get<PaginatedResponse<Proposal>>('/api/dao/proposals', {
+    const response = await apiClient.get<unknown>('/api/dao/proposals', {
       params: params as Record<string, string | number | boolean | undefined>,
       signal: controller.signal,
       retries: 1,
       ...config,
     });
+    return {
+      ...response,
+      data: paginatedProposalSchema.parse(response.data),
+    };
   },
 
   /**
@@ -62,10 +72,14 @@ export const daoApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<Proposal>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.detail);
-    return apiClient.get<Proposal>(
+    const response = await apiClient.get<unknown>(
       `/api/dao/proposals/${encodeURIComponent(id)}`,
       { signal: controller.signal, ...config }
     );
+    return {
+      ...response,
+      data: proposalSchema.parse(response.data),
+    };
   },
 
   /**
@@ -75,7 +89,11 @@ export const daoApi = {
     data: CreateProposalRequest,
     config?: RequestConfig
   ): Promise<ApiResponse<Proposal>> {
-    return apiClient.post<Proposal>('/api/dao/proposals', data, config);
+    const response = await apiClient.post<unknown>('/api/dao/proposals', data, config);
+    return {
+      ...response,
+      data: proposalSchema.parse(response.data),
+    };
   },
 
   /**
@@ -86,11 +104,15 @@ export const daoApi = {
     vote: VoteType,
     config?: RequestConfig
   ): Promise<ApiResponse<{ success: boolean; updatedProposal: Proposal }>> {
-    return apiClient.post(
+    const response = await apiClient.post<unknown>(
       `/api/dao/proposals/${encodeURIComponent(proposalId)}/vote`,
       { vote },
       config
     );
+    return {
+      ...response,
+      data: castVoteResponseSchema.parse(response.data),
+    };
   },
 
   /**
@@ -105,7 +127,11 @@ export const daoApi = {
       totalVotingPower: number;
     }>
   > {
-    return apiClient.get('/api/dao/statistics', { retries: 1, ...config });
+    const response = await apiClient.get<unknown>('/api/dao/statistics', { retries: 1, ...config });
+    return {
+      ...response,
+      data: daoStatsSchema.parse(response.data),
+    };
   },
 
   /**

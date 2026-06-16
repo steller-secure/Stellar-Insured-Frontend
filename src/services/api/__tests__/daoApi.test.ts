@@ -48,7 +48,24 @@ describe('daoApi', () => {
 
   describe('getProposalById', () => {
     it('calls GET /api/dao/proposals/:id', async () => {
-      const proposal = { id: 'PROP-001', title: 'Test Proposal' };
+      const proposal = {
+        id: 'PROP-001',
+        title: 'Test Proposal',
+        description: 'Test Proposal Description here',
+        proposer: 'GBX...',
+        proposerName: 'Alice',
+        status: 'active' as const,
+        startDate: '2026-06-16T12:00:00Z',
+        endDate: '2026-06-23T12:00:00Z',
+        votesFor: 15000,
+        votesAgainst: 1200,
+        votesAbstain: 300,
+        totalVotes: 16500,
+        quorum: 10000,
+        userVotingPower: 500,
+        hasVoted: true,
+        userVote: 'for' as const,
+      };
       mockedClient.get.mockResolvedValue({ data: proposal, status: 200, headers: new Headers() });
 
       const result = await daoApi.getProposalById('PROP-001');
@@ -65,12 +82,30 @@ describe('daoApi', () => {
     it('calls POST /api/dao/proposals with body', async () => {
       const payload = {
         title: 'New Proposal',
-        description: 'Description',
+        description: 'Proposal description of length 10 or more',
         startDate: '2026-01-01',
         endDate: '2026-01-31',
       };
+      const createdProposal = {
+        id: 'PROP-NEW',
+        title: 'New Proposal',
+        description: 'Proposal description of length 10 or more',
+        proposer: 'GBX...',
+        proposerName: 'Alice',
+        status: 'pending' as const,
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        votesFor: 0,
+        votesAgainst: 0,
+        votesAbstain: 0,
+        totalVotes: 0,
+        quorum: 10000,
+        userVotingPower: 500,
+        hasVoted: false,
+        userVote: null,
+      };
       mockedClient.post.mockResolvedValue({
-        data: { id: 'PROP-NEW', ...payload },
+        data: createdProposal,
         status: 201,
         headers: new Headers(),
       });
@@ -83,9 +118,28 @@ describe('daoApi', () => {
   });
 
   describe('castVote', () => {
+    const updatedProposal = {
+      id: 'PROP-001',
+      title: 'Test Proposal',
+      description: 'Test Proposal Description here',
+      proposer: 'GBX...',
+      proposerName: 'Alice',
+      status: 'active' as const,
+      startDate: '2026-06-16T12:00:00Z',
+      endDate: '2026-06-23T12:00:00Z',
+      votesFor: 15500,
+      votesAgainst: 1200,
+      votesAbstain: 300,
+      totalVotes: 17000,
+      quorum: 10000,
+      userVotingPower: 500,
+      hasVoted: true,
+      userVote: 'for' as const,
+    };
+
     it('calls POST /api/dao/proposals/:id/vote with vote type', async () => {
       mockedClient.post.mockResolvedValue({
-        data: { success: true, updatedProposal: { id: 'PROP-001' } },
+        data: { success: true, updatedProposal },
         status: 200,
         headers: new Headers(),
       });
@@ -102,7 +156,7 @@ describe('daoApi', () => {
 
     it('supports all vote types', async () => {
       mockedClient.post.mockResolvedValue({
-        data: { success: true, updatedProposal: {} },
+        data: { success: true, updatedProposal },
         status: 200,
         headers: new Headers(),
       });

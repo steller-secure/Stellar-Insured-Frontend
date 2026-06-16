@@ -8,8 +8,9 @@
  * In production, always use real API endpoints.
  */
 
-import { mockPolicies, type Policy } from '@/data/mockPolicies';
-import { mockClaims, type Claim } from '@/data/mockData';
+import { mockPolicies } from '@/data/mockPolicies';
+import { mockClaims } from '@/data/mockData';
+import { type Policy, type Claim } from '@/types/api';
 
 export type DataSourceType = 'mock' | 'api';
 
@@ -155,7 +156,7 @@ export class DataService {
 /**
  * For development debugging: Get information about current data source
  */
-export function getDataSourceInfo(): Record<string, any> {
+export function getDataSourceInfo(): Record<string, unknown> {
   const config = getActiveDataSource();
   return {
     environment: process.env.NEXT_PUBLIC_APP_ENV || 'development',

@@ -5,39 +5,15 @@
 
 import apiClient, { type ApiResponse, type RequestConfig } from '@/lib/api-client';
 import type { PaginatedResponse, PaginationParams, SortParams } from '@/lib/types/api.types';
-
-// ─── Claim types ─────────────────────────────────────────────────────────────
-
-export type ClaimStatus = 'Active' | 'Pending' | 'Approved' | 'Rejected';
-
-export interface Claim {
-  id: string;
-  policyId: string;
-  policyName: string;
-  incidentType: string;
-  amount: number;
-  amountFormatted: string;
-  dateFiled: string;
-  status: ClaimStatus;
-  description: string;
-  evidence?: string[];
-  walletAddress?: string;
-}
-
-export interface ClaimCreationRequest {
-  policyId: string;
-  incidentType: string;
-  amount: number;
-  description: string;
-  evidence?: string[];
-  walletAddress?: string;
-}
-
-export interface ClaimUpdateRequest {
-  status?: ClaimStatus;
-  description?: string;
-  evidence?: string[];
-}
+import {
+  paginatedClaimSchema,
+  claimSchema,
+  claimStatsSchema,
+  type Claim,
+  type ClaimCreationRequest,
+  type ClaimUpdateRequest,
+  type ClaimStatus,
+} from '@/types/api';
 
 export interface ClaimListParams extends PaginationParams, SortParams {
   status?: ClaimStatus;
@@ -63,12 +39,16 @@ export const claimApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<PaginatedResponse<Claim>>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.list);
-    return apiClient.get<PaginatedResponse<Claim>>('/api/claims', {
+    const response = await apiClient.get<unknown>('/api/claims', {
       params: params as Record<string, string | number | boolean | undefined>,
       signal: controller.signal,
       retries: 1,
       ...config,
     });
+    return {
+      ...response,
+      data: paginatedClaimSchema.parse(response.data),
+    };
   },
 
   /**
@@ -79,10 +59,14 @@ export const claimApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<Claim>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.detail);
-    return apiClient.get<Claim>(`/api/claims/${encodeURIComponent(id)}`, {
+    const response = await apiClient.get<unknown>(`/api/claims/${encodeURIComponent(id)}`, {
       signal: controller.signal,
       ...config,
     });
+    return {
+      ...response,
+      data: claimSchema.parse(response.data),
+    };
   },
 
   /**
@@ -92,7 +76,11 @@ export const claimApi = {
     data: ClaimCreationRequest,
     config?: RequestConfig
   ): Promise<ApiResponse<Claim>> {
-    return apiClient.post<Claim>('/api/claims', data, config);
+    const response = await apiClient.post<unknown>('/api/claims', data, config);
+    return {
+      ...response,
+      data: claimSchema.parse(response.data),
+    };
   },
 
   /**
@@ -103,11 +91,15 @@ export const claimApi = {
     data: ClaimUpdateRequest,
     config?: RequestConfig
   ): Promise<ApiResponse<Claim>> {
-    return apiClient.patch<Claim>(
+    const response = await apiClient.patch<unknown>(
       `/api/claims/${encodeURIComponent(id)}`,
       data,
       config
     );
+    return {
+      ...response,
+      data: claimSchema.parse(response.data),
+    };
   },
 
   /**
@@ -136,7 +128,11 @@ export const claimApi = {
       totalClaimedAmount: number;
     }>
   > {
-    return apiClient.get('/api/claims/statistics', { retries: 1, ...config });
+    const response = await apiClient.get<unknown>('/api/claims/statistics', { retries: 1, ...config });
+    return {
+      ...response,
+      data: claimStatsSchema.parse(response.data),
+    };
   },
 
   /**

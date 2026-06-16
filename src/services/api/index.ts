@@ -12,16 +12,20 @@ export { daoApi } from './daoApi';
 
 // Re-export useful types
 export type { PolicyListParams } from './policyApi';
+export type { ClaimListParams } from './claimApi';
+export type { ProposalListParams, CastVoteRequest, CreateProposalRequest } from './daoApi';
+
 export type {
+  Policy,
+  PolicyCreationRequest,
+  PolicyUpdateRequest,
+  PolicyStatus,
+  PolicyType,
   Claim,
   ClaimCreationRequest,
   ClaimUpdateRequest,
-  ClaimListParams,
   ClaimStatus,
-} from './claimApi';
-export type {
-  ProposalListParams,
+  Proposal,
   ProposalStatus,
-  CastVoteRequest,
-  CreateProposalRequest,
-} from './daoApi';
+  VoteType,
+} from '@/types/api';

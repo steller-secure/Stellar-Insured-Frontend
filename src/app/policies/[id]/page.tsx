@@ -75,7 +75,7 @@ export default function PolicyDetailPage() {
           <div>
             <h1 className="text-4xl font-bold mb-2">{policy.name}</h1>
             <p className="text-brand-text-muted flex items-center gap-2">
-              <span className="font-mono">{policy.policyId}</span>
+              <span className="font-mono">{policy.policyNumber}</span>
               <span className="opacity-50">|</span>
               <span
                 className={`capitalize font-bold ${
@@ -111,7 +111,7 @@ export default function PolicyDetailPage() {
               Total Coverage
             </p>
             <p className="text-3xl font-black">
-              ${policy.coverage.toLocaleString()}
+              ${policy.coverageLimit.toLocaleString()}
             </p>
           </div>
           <div className="bg-brand-card p-6 rounded-xl border border-brand-border">
@@ -142,7 +142,7 @@ export default function PolicyDetailPage() {
 
           <h3 className="text-2xl font-bold mb-4">Terms & Conditions</h3>
           <ul className="space-y-4">
-            {policy.terms.map((term, index) => (
+            {policy.terms?.map((term, index) => (
               <li key={index} className="flex gap-4 items-start">
                 <div className="mt-1.5 w-2 h-2 rounded-full bg-brand-primary shrink-0" />
                 <p className="text-brand-text-muted">{term}</p>

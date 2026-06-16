@@ -48,7 +48,17 @@ describe('claimApi', () => {
 
   describe('getById', () => {
     it('calls GET /api/claims/:id', async () => {
-      const claim = { id: 'CLM-001', policyId: 'p1', status: 'Active' };
+      const claim = {
+        id: 'CLM-001',
+        policyId: 'p1',
+        policyName: 'Test Policy',
+        incidentType: 'wallet-hack',
+        amount: 5000,
+        amountFormatted: '$5,000',
+        dateFiled: '2026-06-16',
+        status: 'Active' as const,
+        description: 'Mocked claim description here',
+      };
       mockedClient.get.mockResolvedValue({ data: claim, status: 200, headers: new Headers() });
 
       const result = await claimApi.getById('CLM-001');
@@ -65,12 +75,23 @@ describe('claimApi', () => {
     it('calls POST /api/claims with body', async () => {
       const payload = {
         policyId: 'p1',
-        incidentType: 'Wallet Hack',
+        incidentType: 'wallet-hack',
         amount: 5000,
-        description: 'Lost funds',
+        description: 'Lost funds from my wallet during defi swap',
+      };
+      const createdClaim = {
+        id: 'CLM-NEW',
+        policyId: 'p1',
+        policyName: 'Test Policy',
+        incidentType: 'wallet-hack',
+        amount: 5000,
+        amountFormatted: '$5,000',
+        dateFiled: '2026-06-16',
+        status: 'Pending' as const,
+        description: 'Lost funds from my wallet during defi swap',
       };
       mockedClient.post.mockResolvedValue({
-        data: { id: 'CLM-NEW', ...payload, status: 'Pending' },
+        data: createdClaim,
         status: 201,
         headers: new Headers(),
       });
@@ -84,8 +105,19 @@ describe('claimApi', () => {
 
   describe('update', () => {
     it('calls PATCH /api/claims/:id with body', async () => {
+      const updatedClaim = {
+        id: 'CLM-001',
+        policyId: 'p1',
+        policyName: 'Test Policy',
+        incidentType: 'wallet-hack',
+        amount: 5000,
+        amountFormatted: '$5,000',
+        dateFiled: '2026-06-16',
+        status: 'Approved' as const,
+        description: 'Mocked claim description here',
+      };
       mockedClient.patch.mockResolvedValue({
-        data: { id: 'CLM-001', status: 'Approved' },
+        data: updatedClaim,
         status: 200,
         headers: new Headers(),
       });

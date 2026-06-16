@@ -4,35 +4,15 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "@stellar/stellar-sdk"],
   },
-  webpack: (config, { isServer, dev }) => {
-    if (!isServer && !dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          ...config.optimization?.splitChunks,
-          chunks: "all",
-          cacheGroups: {
-            ...config.optimization?.splitChunks?.cacheGroups,
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              priority: 20,
-              chunks: "all",
-            },
-            common: {
-              name: "common",
-              minChunks: 2,
-              priority: 10,
-              reuseExistingChunk: true,
-              chunks: "all",
-            },
-          },
-        },
-      };
-    }
-
-    return config;
-  },
+  // As of Next.js 16, Turbopack is the default bundler for `next dev` and
+  // `next build`. The previous custom webpack `splitChunks` configuration was
+  // only used to tune vendor/common chunk splitting for production builds —
+  // behaviour that Turbopack handles automatically with its own optimized
+  // chunking strategy. The webpack config has therefore been removed to resolve
+  // the Turbopack/webpack mismatch build error. This empty `turbopack` block
+  // opts into Turbopack explicitly; add options here if custom bundling is
+  // needed in the future.
+  turbopack: {},
 };
 
 export default nextConfig;

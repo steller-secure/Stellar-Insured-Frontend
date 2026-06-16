@@ -268,6 +268,14 @@ npm run test:watch
 npm run build
 ```
 
+> **Build system:** This project uses **Turbopack**, the default bundler in
+> Next.js 16, for both `next dev` and `next build`. No custom webpack
+> configuration is required — production chunk splitting is handled
+> automatically by Turbopack. Turbopack is opted into explicitly via the
+> `turbopack: {}` block in [`next.config.ts`](./next.config.ts). If you ever
+> need to fall back to webpack, add the `--webpack` flag to the `dev`/`build`
+> scripts in `package.json`.
+
 ### Linting
 
 ```bash

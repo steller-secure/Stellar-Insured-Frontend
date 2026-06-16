@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
@@ -9,9 +8,15 @@ import { LoadingProvider } from "@/contexts/LoadingContext";
 import GlobalLoader from "@/components/loaders/GlobalLoader";
 import { ToastProvider } from "@/components/ui/toast";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { JsonLd } from "@/components/JsonLd";
 import { assertEnv } from "@/config/env";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { WebVitals } from "@/components/web-vitals";
+import {
+  createOrganizationSchema,
+  createRootMetadata,
+  createWebSiteSchema,
+} from "@/lib/metadata";
 
 assertEnv();
 
@@ -30,10 +35,7 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Stellar Insured",
-  description: "Decentralized insurance platform built on Stellar",
-};
+export const metadata = createRootMetadata();
 
 export default function RootLayout({
   children,
@@ -42,10 +44,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
+        <JsonLd
+          data={[createOrganizationSchema(), createWebSiteSchema()]}
+        />
         <ThemeProvider>
           <Suspense fallback={null}>
             <ErrorBoundary>

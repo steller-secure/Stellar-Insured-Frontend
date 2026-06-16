@@ -1,4 +1,7 @@
-"use client";
+
+'use client';
+
+
 /**
  * React Error Boundary Component
  * Catches JavaScript errors anywhere in child component tree,

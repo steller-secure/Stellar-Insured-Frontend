@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { useWalletStore } from '@/store';
 import { connectFreighter, signFreighterMessage, createAuthMessage } from '@/lib/freighter';
 import { useWalletErrorHandler } from '@/hooks/useErrorHandler';
+import { errorHandler } from '@/lib/errorHandler';
 
 /**
  * Enhanced wallet hook that integrates with centralized state management
@@ -42,13 +43,23 @@ export function useWallet() {
       const now = Date.now();
       if (session.expiresAt <= now) {
         signOut();
-        showErrorNotification?.('Session expired. Please sign in again.');
+        const appError = errorHandler.createError(
+          'AUTHENTICATION',
+          'SESSION_EXPIRED',
+          new Error('Session expired')
+        );
+        showErrorNotification?.(appError);
         return;
       }
       // Set timer to auto sign out at expiration
       const timeout = setTimeout(() => {
         signOut();
-        showErrorNotification?.('Session expired. Please sign in again.');
+        const appError = errorHandler.createError(
+          'AUTHENTICATION',
+          'SESSION_EXPIRED',
+          new Error('Session expired')
+        );
+        showErrorNotification?.(appError);
       }, session.expiresAt - now);
       return () => clearTimeout(timeout);
     }, [session, signOut, showErrorNotification]);

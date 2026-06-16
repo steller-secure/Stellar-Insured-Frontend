@@ -48,7 +48,11 @@ describe('policyApi', () => {
     });
 
     it('creates a cancel token for list requests', async () => {
-      mockedClient.get.mockResolvedValue({ data: {}, status: 200, headers: new Headers() });
+      mockedClient.get.mockResolvedValue({
+        data: { items: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 },
+        status: 200,
+        headers: new Headers(),
+      });
 
       await policyApi.list();
 

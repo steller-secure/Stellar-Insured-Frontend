@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { PolicyCard } from '@/components/policies/PolicyCard';
-import { Policy } from '@/types/policy';
+import { Policy } from '@/types/api';
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -12,11 +12,13 @@ describe('PolicyCard', () => {
   const mockPolicy: Policy = {
     id: '1',
     name: 'Test Policy',
+    type: 'Health',
     status: 'active',
-    coverage: 50000,
+    coverageLimit: 50000,
+    coverageLimitFormatted: '50,000',
     premium: 100,
     expiryDate: 'Dec 31, 2026',
-    policyId: 'POL-2026-001',
+    policyNumber: 'POL-2026-001',
     description: 'Test policy description',
     terms: ['Term 1', 'Term 2'],
   };

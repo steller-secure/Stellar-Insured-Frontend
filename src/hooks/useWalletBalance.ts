@@ -79,6 +79,7 @@ export function useWalletBalance(): UseWalletBalanceReturn {
         xlm: xlmBalance,
         assets,
         loading: false,
+        refreshing: false,
         error: null,
         lastUpdated: Date.now(),
       });

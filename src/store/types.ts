@@ -21,7 +21,7 @@ export type FormStatus = 'idle' | 'loading' | 'success' | 'error';
 export interface FormState {
   status: FormStatus;
   error?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface FilterState {
@@ -35,7 +35,7 @@ export interface FilterState {
 export interface ModalState {
   isOpen: boolean;
   type?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface PaginationState {

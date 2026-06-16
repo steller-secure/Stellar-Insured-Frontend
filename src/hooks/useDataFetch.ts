@@ -15,13 +15,13 @@ export interface DataFetchState<T> {
   error: Error | null;
 }
 
-interface UseDateFetchOptions {
+interface UseDateFetchOptions<T> {
   // Cache data for this duration (ms). Set to 0 to disable caching
   cacheDuration?: number;
   // Automatically fetch on mount
   autoFetch?: boolean;
   // Callback when data is loaded
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   // Callback on error
   onError?: (error: Error) => void;
 }
@@ -32,7 +32,7 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-const dataCache = new Map<string, CacheEntry<any>>();
+const dataCache = new Map<string, CacheEntry<unknown>>();
 
 /**
  * Generic data fetch hook with loading states
@@ -45,7 +45,7 @@ const dataCache = new Map<string, CacheEntry<any>>();
  */
 export function useDataFetch<T>(
   fetchFn: () => Promise<T>,
-  options: UseDateFetchOptions = {}
+  options: UseDateFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void> } {
   const [state, setState] = useState<DataFetchState<T>>({
     data: null,
@@ -87,7 +87,7 @@ export function useDataFetch<T>(
     if (cacheDuration > 0) {
       const cached = dataCache.get(cacheKeyRef.current);
       if (cached && Date.now() - cached.timestamp < cacheDuration) {
-        setState({ data: cached.data, loading: false, error: null });
+        setState({ data: cached.data as T, loading: false, error: null });
         return;
       }
     }
@@ -103,7 +103,7 @@ export function useDataFetch<T>(
  */
 export function useDataFetchList<T>(
   fetchFn: () => Promise<T[]>,
-  options: UseDateFetchOptions = {}
+  options: UseDateFetchOptions<T[]> = {}
 ) {
   const result = useDataFetch(fetchFn, options);
   
@@ -119,7 +119,7 @@ export function useDataFetchList<T>(
  */
 export function useDataFetchOne<T>(
   fetchFn: () => Promise<T | undefined>,
-  options: UseDateFetchOptions = {}
+  options: UseDateFetchOptions<T | undefined> = {}
 ) {
   const result = useDataFetch(fetchFn, options);
   
@@ -135,9 +135,9 @@ export function useDataFetchOne<T>(
  * Useful for fetching by ID or other parameters
  */
 export function useDataFetchDependency<T>(
-  fetchFn: (deps: any[]) => Promise<T>,
-  dependencies: any[] = [],
-  options: UseDateFetchOptions = {}
+  fetchFn: (deps: unknown[]) => Promise<T>,
+  dependencies: unknown[] = [],
+  options: UseDateFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void> } {
   const [state, setState] = useState<DataFetchState<T>>({
     data: null,

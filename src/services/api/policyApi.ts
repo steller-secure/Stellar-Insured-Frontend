@@ -5,16 +5,19 @@
 
 import apiClient, { type ApiResponse, type RequestConfig } from '@/lib/api-client';
 import type { PaginatedResponse, PaginationParams, SortParams } from '@/lib/types/api.types';
-import type {
-  Policy,
-  PolicyCreationRequest,
-  PolicyUpdateRequest,
-  PolicyFilterOptions,
-  PremiumCalculationRequest,
-  PremiumCalculationResult,
-  PolicyStatus,
-  PolicyType,
-} from '@/services/types/policy.types';
+import {
+  paginatedPolicySchema,
+  policySchema,
+  premiumCalculationResultSchema,
+  policyStatsSchema,
+  type Policy,
+  type PolicyCreationRequest,
+  type PolicyUpdateRequest,
+  type PremiumCalculationRequest,
+  type PremiumCalculationResult,
+  type PolicyStatus,
+  type PolicyType,
+} from '@/types/api';
 
 // ─── Query types ─────────────────────────────────────────────────────────────
 
@@ -43,12 +46,16 @@ export const policyApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<PaginatedResponse<Policy>>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.list);
-    return apiClient.get<PaginatedResponse<Policy>>('/api/policies', {
+    const response = await apiClient.get<unknown>('/api/policies', {
       params: params as Record<string, string | number | boolean | undefined>,
       signal: controller.signal,
       retries: 1,
       ...config,
     });
+    return {
+      ...response,
+      data: paginatedPolicySchema.parse(response.data),
+    };
   },
 
   /**
@@ -59,10 +66,14 @@ export const policyApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<Policy>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.detail);
-    return apiClient.get<Policy>(`/api/policies/${encodeURIComponent(id)}`, {
+    const response = await apiClient.get<unknown>(`/api/policies/${encodeURIComponent(id)}`, {
       signal: controller.signal,
       ...config,
     });
+    return {
+      ...response,
+      data: policySchema.parse(response.data),
+    };
   },
 
   /**
@@ -72,7 +83,11 @@ export const policyApi = {
     data: PolicyCreationRequest,
     config?: RequestConfig
   ): Promise<ApiResponse<Policy>> {
-    return apiClient.post<Policy>('/api/policies', data, config);
+    const response = await apiClient.post<unknown>('/api/policies', data, config);
+    return {
+      ...response,
+      data: policySchema.parse(response.data),
+    };
   },
 
   /**
@@ -83,11 +98,15 @@ export const policyApi = {
     data: PolicyUpdateRequest,
     config?: RequestConfig
   ): Promise<ApiResponse<Policy>> {
-    return apiClient.put<Policy>(
+    const response = await apiClient.put<unknown>(
       `/api/policies/${encodeURIComponent(id)}`,
       data,
       config
     );
+    return {
+      ...response,
+      data: policySchema.parse(response.data),
+    };
   },
 
   /**
@@ -111,11 +130,15 @@ export const policyApi = {
     config?: RequestConfig
   ): Promise<ApiResponse<PremiumCalculationResult>> {
     const controller = apiClient.createCancelToken(CANCEL_KEYS.premium);
-    return apiClient.post<PremiumCalculationResult>(
+    const response = await apiClient.post<unknown>(
       '/api/policies/premium',
       data,
       { signal: controller.signal, ...config }
     );
+    return {
+      ...response,
+      data: premiumCalculationResultSchema.parse(response.data),
+    };
   },
 
   /**
@@ -131,7 +154,11 @@ export const policyApi = {
       averagePremium: number;
     }>
   > {
-    return apiClient.get('/api/policies/statistics', { retries: 1, ...config });
+    const response = await apiClient.get<unknown>('/api/policies/statistics', { retries: 1, ...config });
+    return {
+      ...response,
+      data: policyStatsSchema.parse(response.data),
+    };
   },
 
   /**

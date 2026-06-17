@@ -4,11 +4,6 @@ import { connectFreighter, signFreighterMessage, createAuthMessage } from '@/lib
 import { useWalletErrorHandler } from '@/hooks/useErrorHandler';
 import { errorHandler } from '@/lib/errorHandler';
 
-/**
- * Enhanced wallet hook that integrates with centralized state management
- * Provides wallet connection, authentication, and user management
- * Integrates with error handling system for better user experience
- */
 export function useWallet() {
   const {
     status,
@@ -65,132 +60,29 @@ export function useWallet() {
     }, [session, signOut, showErrorNotification]);
 
   const connectWallet = useCallback(async () => {
-    if (session) return session; // Already connected
-    
-    return executeWithErrorHandling(
-      async () => {
-        startConnection();
-        
-        // Connect to Freighter wallet
-        const address = await connectFreighter();
-        
-        // Auto-register address if not registered (for demo purposes)
-        if (!isAddressRegistered(address)) {
-          registerAddress(address, {
-            createdAt: Date.now(),
-            email: undefined
-          });
-        }
-        
-        // Create and sign authentication message
-        const { message } = createAuthMessage(address);
-        setStatus('signing');
-        
-        const signed = await signFreighterMessage(address, message);
-        
-        const now = Date.now();
-        const newSession = {
-          address,
-          signedMessage: signed.signedMessage,
-          signerAddress: signed.signerAddress,
-          authenticatedAt: now,
-          expiresAt: now + 24 * 60 * 60 * 1000, // 24 hours
-        };
-        
-        completeConnection(newSession);
-        showSuccessNotification('Wallet connected successfully!');
-        return newSession;
-      },
-      'WALLET',
-      'GENERIC_ERROR',
-      { action: 'connectWallet' }
-    );
-  }, [
-    session,
-    executeWithErrorHandling,
-    startConnection,
-    isAddressRegistered,
-    registerAddress,
-    setStatus,
-    completeConnection,
-    showSuccessNotification
-  ]);
+    if (session) return session;
+    return executeWithErrorHandling(async () => {
+      startConnection();
+      const address = await connectFreighter();
+      const { message } = createAuthMessage(address);
+      setStatus('signing');
+      const signed = await signFreighterMessage(address, message);
+      const newSession: AuthSession = {
+        address,
+        signedMessage: signed.signedMessage,
+        signerAddress: signed.signerAddress,
+        authenticatedAt: Date.now(),
+        expiresAt: Date.now() + 86400000,
+      };
+      completeConnection(newSession);
+      return newSession;
+    }, 'WALLET');
+  }, [session, executeWithErrorHandling, startConnection, setStatus, completeConnection]);
 
   const disconnect = useCallback(() => {
     signOut();
+    rateLimiter.reset(); //  Clear queue on logout
   }, [signOut]);
 
-  const reconnectWallet = useCallback(async () => {
-    if (hasError && canRetry) {
-      return retryLastOperation(
-        async () => {
-          startConnection();
-          const address = await connectFreighter();
-          
-          const { message } = createAuthMessage(address);
-          setStatus('signing');
-          
-          const signed = await signFreighterMessage(address, message);
-          
-          const now = Date.now();
-          const newSession = {
-            address,
-            signedMessage: signed.signedMessage,
-            signerAddress: signed.signerAddress,
-            authenticatedAt: now,
-            expiresAt: now + 24 * 60 * 60 * 1000, // 24 hours
-          };
-          
-          completeConnection(newSession);
-          showSuccessNotification('Wallet reconnected successfully!');
-          return newSession;
-        },
-        'WALLET',
-        'GENERIC_ERROR',
-        { action: 'reconnectWallet' }
-      );
-    }
-    return null;
-  }, [
-    hasError,
-    canRetry,
-    retryLastOperation,
-    startConnection,
-    setStatus,
-    completeConnection,
-    showSuccessNotification
-  ]);
-
-  const isConnected = status === 'connected' && !!session;
-  const isConnecting = status === 'connecting' || status === 'signing';
-
-  return {
-    // State
-    status,
-    session,
-    error,
-    isConnected,
-    isConnecting,
-    hasError,
-    canRetry,
-    
-    // Actions
-    connectWallet,
-    disconnect,
-    reconnectWallet,
-    setSession,
-    
-    // Error handling
-    handleError,
-    showErrorNotification,
-    
-    // User management
-    isAddressRegistered,
-    registerAddress,
-    getRegisteredUser,
-    
-    // Computed values
-    address: session?.address,
-    authenticatedAt: session?.authenticatedAt,
-  };
+  return { status, session, connectWallet, disconnect, address: session?.address };
 }

@@ -8,7 +8,8 @@ import ProposalStats from "./ProposalStats";
 import ProposalFilters from "./ProposalFilters";
 import { Proposal, VoteType } from "@/types/dao-types";
 import { getProposalStats } from "@/lib/dao-utils";
-import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { useTransactionHandler } from "@/hooks/useTransactionHandler";
+import { useNotificationContext } from "@/context/NotificationContext";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -21,15 +22,10 @@ export default function DAOVotingClient({
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
-  const { 
-    executeWithErrorHandling, 
-    error: voteError, 
-    clearError,
-    showSuccessNotification 
-  } = useErrorHandler({
-    autoLog: true,
-    showNotifications: true,
+  const { execute: executeTransaction, error: voteError, clearError } = useTransactionHandler({
+    showSuccessToast: false,
   });
+  const { addNotification } = useNotificationContext();
 
   /**
    * Handle vote submission
@@ -42,7 +38,7 @@ export default function DAOVotingClient({
     clearError();
     setVotingProposalId(proposalId);
 
-    await executeWithErrorHandling(
+    const result = await executeTransaction(
       async () => {
         // Simulate blockchain transaction delay
         await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -52,7 +48,6 @@ export default function DAOVotingClient({
             if (proposal.id === proposalId) {
               const voteAmount = proposal.userVotingPower;
 
-              // Update vote counts based on vote type
               const updatedVotes = {
                 votesFor:
                   voteType === "for"
@@ -82,13 +77,11 @@ export default function DAOVotingClient({
 
         return { proposalId, voteType };
       },
-      'SYSTEM',
-      'DAO_VOTE_FAILED',
-      { proposalId, voteType }
+      { action: "dao_vote", proposalId, voteType },
     );
 
-    if (!voteError) {
-      showSuccessNotification(`Vote submitted successfully!`);
+    if (result) {
+      addNotification("Vote submitted successfully!", "success");
     }
 
     setVotingProposalId(null);
@@ -136,10 +129,10 @@ export default function DAOVotingClient({
               <div className="flex gap-3">
                 <AlertCircle className="h-6 w-6 flex-shrink-0 text-red-500" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-red-500">Vote Failed</h3>
+                  <h3 className="font-semibold text-red-500">{voteError.title}</h3>
                   <p className="mt-1 text-sm text-red-400">{voteError.message}</p>
-                  {voteError.recoverySuggestion && (
-                    <p className="mt-2 text-sm text-red-300">{voteError.recoverySuggestion}</p>
+                  {voteError.remediationStep && (
+                    <p className="mt-2 text-sm text-red-300">{voteError.remediationStep}</p>
                   )}
                 </div>
                 <button

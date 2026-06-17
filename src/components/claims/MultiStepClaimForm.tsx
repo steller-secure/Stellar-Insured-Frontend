@@ -3,7 +3,8 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMultiStepForm } from '@/hooks/useMultiStepForm';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useTransactionHandler } from '@/hooks/useTransactionHandler';
+import { useNotificationContext } from '@/context/NotificationContext';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { ProgressStepper, type Step } from '@/components/ui/ProgressStepper';
 import { Button } from '@/components/ui/Button';
@@ -85,15 +86,14 @@ export const MultiStepClaimForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [claimId, setClaimId] = useState<string>('');
-  const { 
-    executeWithErrorHandling, 
-    error: submitError, 
+  const {
+    execute: executeTransaction,
+    error: submitError,
     clearError,
-    showSuccessNotification 
-  } = useErrorHandler({
-    autoLog: true,
-    showNotifications: true,
+  } = useTransactionHandler({
+    showSuccessToast: false, // we show our own success UI
   });
+  const { addNotification: showSuccessNotification } = useNotificationContext();
 
   const {
     currentStep,
@@ -152,7 +152,7 @@ export const MultiStepClaimForm: React.FC = () => {
     clearError();
     setIsSubmitting(true);
 
-    const result = await executeWithErrorHandling(
+    const result = await executeTransaction(
       async () => {
         // Send data to the API for server-side validation and creation
         const response = await claimApi.create({
@@ -169,9 +169,8 @@ export const MultiStepClaimForm: React.FC = () => {
         // Return the claim id from the async operation
         return newClaimId;
       },
-      'SYSTEM',
-      'MULTI_STEP_CLAIM_SUBMISSION_FAILED',
       {
+        action: 'claim_submission',
         policyId: formData.policyId,
         claimAmount: formData.claimAmount,
         documentCount: formData.documents.length,
@@ -184,7 +183,7 @@ export const MultiStepClaimForm: React.FC = () => {
       // Clear draft and show success
       clearDraft();
       setIsSuccess(true);
-      showSuccessNotification('Claim submitted successfully!');
+      showSuccessNotification('Claim submitted successfully!', 'success');
     }
   };
 
@@ -291,10 +290,10 @@ export const MultiStepClaimForm: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="flex-1">
-              <h3 className="font-semibold text-red-500">Submission Failed</h3>
+              <h3 className="font-semibold text-red-500">{submitError.title}</h3>
               <p className="mt-1 text-sm text-red-400">{submitError.message}</p>
-              {submitError.recoverySuggestion && (
-                <p className="mt-2 text-sm text-red-300">{submitError.recoverySuggestion}</p>
+              {submitError.remediationStep && (
+                <p className="mt-2 text-sm text-red-300">{submitError.remediationStep}</p>
               )}
             </div>
             <button

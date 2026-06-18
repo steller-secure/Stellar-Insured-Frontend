@@ -100,7 +100,6 @@ export const useWalletStore = create<WalletState>()(
       {
         name: 'wallet-store',
         partialize: (state) => ({
-          session: state.session,
           registeredUsers: state.registeredUsers,
         }),
       }

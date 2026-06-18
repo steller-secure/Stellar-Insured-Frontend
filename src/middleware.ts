@@ -3,35 +3,54 @@ import type { NextRequest } from 'next/server';
 
 const SESSION_KEY = 'stellar_insured_session';
 
-// Define public routes that don't require authentication
 const PUBLIC_ROUTES = ['/', '/about', '/signin', '/signup'];
-
-// Define routes that should redirect to home if the user is already authenticated
 const AUTH_ROUTES = ['/signin', '/signup'];
+
+/** Validates Stellar public key format (must match G + 55 base32 chars) */
+function isValidStellarAddress(address: string): boolean {
+  return /^G[A-Z2-7]{55}$/.test(address);
+}
+
+/** Validates all required session fields including address format */
+function isValidSession(session: unknown): boolean {
+  if (!session || typeof session !== 'object') return false;
+  const s = session as Record<string, unknown>;
+
+  // Required string fields
+  if (typeof s.address !== 'string' || !isValidStellarAddress(s.address)) return false;
+  if (typeof s.signedMessage !== 'string' || s.signedMessage.length === 0) return false;
+  if (typeof s.signerAddress !== 'string' || !isValidStellarAddress(s.signerAddress)) return false;
+
+  // Required numeric fields
+  if (typeof s.authenticatedAt !== 'number') return false;
+  if (typeof s.expiresAt !== 'number') return false;
+
+  // Not expired
+  if (s.expiresAt <= Date.now()) return false;
+
+  return true;
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Get the session from cookies
+
   const sessionCookie = request.cookies.get(SESSION_KEY);
   let isAuthenticated = false;
 
   if (sessionCookie) {
     try {
       const session = JSON.parse(decodeURIComponent(sessionCookie.value));
-      // Check if session has required fields and is not expired
-      const now = Date.now();
-      if (session.address && session.expiresAt && session.expiresAt > now) {
-        isAuthenticated = true;
-      }
+      isAuthenticated = isValidSession(session);
     } catch (e) {
       console.error('Middleware: Error parsing session cookie', e);
     }
   }
 
-  // Handle protected routes
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || pathname.startsWith('/_next') || pathname.includes('.');
-  
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(pathname) ||
+    pathname.startsWith('/_next') ||
+    pathname.includes('.');
+
   if (!isAuthenticated && !isPublicRoute) {
     const signInUrl = new URL('/signin', request.url);
     signInUrl.searchParams.set('callbackUrl', pathname);
@@ -39,7 +58,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Handle auth routes (prevent authenticated users from seeing signin/signup)
   if (isAuthenticated && AUTH_ROUTES.includes(pathname)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
@@ -49,13 +67,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

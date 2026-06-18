@@ -1,13 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo } from "react";
-import { useWallet } from "@/hooks/useWallet";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { useWalletStore } from "@/store";
 import { AuthSession, RegisteredUser } from "@/store/types";
 import { secureStorage } from "@/lib/security";
 import { isConnected } from "@stellar/freighter-api";
 import { useWalletStore } from "@/store";
+import { validateSessionWallet, isValidStellarAddress } from "@/lib/walletValidation";
 
-// Maintain backward compatibility with existing AuthContext interface
 type AuthContextValue = {
   session: AuthSession | null;
   setSession: (session: AuthSession | null) => void;
@@ -19,10 +19,9 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Enhanced AuthProvider that uses centralized state management
- * Maintains backward compatibility with existing useAuth() hook
- */
+/** Interval (ms) between periodic wallet-match checks while a session is active */
+const WALLET_VALIDATION_INTERVAL_MS = 30_000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const wallet = useWallet();
   const { setSession, signOut } = useWalletStore(); // Get from store directly
@@ -86,8 +85,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession: (session) => {
       if (session) {
         setSession(session);
+  const {
+    session,
+    setSession: storeSetSession,
+    signOut: storeSignOut,
+    isAddressRegistered,
+    registerAddress,
+    getRegisteredUser,
+  } = useWalletStore();
+
+  // ── Cookie sync for middleware ──────────────────────────────────────────────
+  useEffect(() => {
+    if (session) {
+      // Validate address format before writing cookie
+      if (!isValidStellarAddress(session.address)) {
+        storeSignOut();
+        return;
+      }
+      document.cookie = `stellar_insured_session=${encodeURIComponent(JSON.stringify(session))}; path=/; max-age=${7 * 24 * 60 * 60}; samesite=strict`;
+    } else {
+      document.cookie = "stellar_insured_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+  }, [session, storeSignOut]);
+
+  // ── Periodic wallet mismatch detection ─────────────────────────────────────
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  useEffect(() => {
+    if (!session) return;
+
+    const check = async () => {
+      const current = sessionRef.current;
+      if (!current) return;
+
+      const result = await validateSessionWallet(current);
+      if (!result.valid) {
+        console.warn("Wallet validation failed, signing out:", result.error);
+        storeSignOut();
+      }
+    };
+
+    const id = setInterval(check, WALLET_VALIDATION_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [session?.address, storeSignOut]); // restart when address changes
+
+  // ── Context value ───────────────────────────────────────────────────────────
+  const setSession = useCallback(
+    (next: AuthSession | null) => {
+      if (next) {
+        storeSetSession(next);
       } else {
-        wallet.disconnect();
+        storeSignOut();
       }
     },
     signOut: wallet.disconnect,
@@ -108,42 +157,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
+    [storeSetSession, storeSignOut]
   );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      setSession,
+      signOut: storeSignOut,
+      isAddressRegistered,
+      registerAddress,
+      getRegisteredUser,
+    }),
+    [session, setSession, storeSignOut, isAddressRegistered, registerAddress, getRegisteredUser]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/**
- * Backward-compatible useAuth hook
- * Components can continue using this without changes
- */
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
-
-/**
- * Enhanced useAuthState hook that provides additional state information
- * Use this for new components that need more detailed state
- */
-export function useAuthState() {
-  const wallet = useWallet();
-  const auth = useAuth();
-  
-  return {
-    // Backward compatibility
-    ...auth,
-    
-    // Enhanced state
-    status: wallet.status,
-    error: wallet.error,
-    isConnected: wallet.isConnected,
-    isConnecting: wallet.isConnecting,
-    address: wallet.address,
-    authenticatedAt: wallet.authenticatedAt,
-    
-    // Enhanced actions
-    connectWallet: wallet.connectWallet,
-  };
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

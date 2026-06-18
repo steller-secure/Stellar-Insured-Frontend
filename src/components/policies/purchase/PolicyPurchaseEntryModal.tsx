@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { PolicyPlan } from "@/data/policies/listing/policy-plans-mock";
@@ -8,6 +9,7 @@ import {
   PolicyPurchasePayload,
   STELLAR_EXPLORER_TX_URL,
 } from "@/data/policies/listing/policy-purchase-flow-mock";
+import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 
 type PolicyPurchaseEntryModalProps = {
   isOpen: boolean;
@@ -39,16 +41,25 @@ export function PolicyPurchaseEntryModal({
 }: PolicyPurchaseEntryModalProps) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [status, setStatus] = useState<PurchaseStatus>("review");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const timersRef = useRef<number[]>([]);
+
+  const {
+    execute: executeTransaction,
+    error: txError,
+    clearError: clearTxError,
+    isLoading: isTxLoading,
+  } = useTransactionHandler({
+    showSuccessToast: false,
+    maxRetries: 1,
+  });
 
   useEffect(() => {
     if (isOpen) {
       setWalletAddress(null);
       setStatus("review");
-      setErrorMessage(null);
+      clearTxError();
       setTxHash(null);
       setIsCopied(false);
     } else {
@@ -68,7 +79,7 @@ export function PolicyPurchaseEntryModal({
   if (!isOpen || !plan) return null;
   const isWalletConnected = Boolean(walletAddress);
   const isProcessing =
-    status === "signing" || status === "submitting" || status === "confirming";
+    status === "signing" || status === "submitting" || status === "confirming" || isTxLoading;
   const progressStep = status === "submitting" ? 1 : status === "confirming" ? 2 : 0;
   const stepClassName = (step: number) => {
     if (step < progressStep) return "text-emerald-300";
@@ -85,33 +96,38 @@ export function PolicyPurchaseEntryModal({
   const startPurchaseFlow = () => {
     timersRef.current.forEach((timer) => window.clearTimeout(timer));
     timersRef.current = [];
-    setErrorMessage(null);
+    clearTxError();
     setTxHash(null);
     setStatus("signing");
 
-    timersRef.current.push(
-      window.setTimeout(() => {
-        setStatus("submitting");
-      }, 800)
-    );
-
-    timersRef.current.push(
-      window.setTimeout(() => {
-        setStatus("confirming");
-      }, 1600)
-    );
-
-    timersRef.current.push(
-      window.setTimeout(() => {
-        if (SHOULD_SIMULATE_ERROR) {
-          setStatus("error");
-          setErrorMessage("Insufficient XLM balance. Please top up your wallet and try again.");
-        } else {
-          setTxHash(MOCK_TX_HASH);
-          setStatus("success");
-        }
-      }, 2400)
-    );
+    executeTransaction(
+      () =>
+        new Promise<string>((resolve, reject) => {
+          timersRef.current.push(
+            window.setTimeout(() => setStatus("submitting"), 800)
+          );
+          timersRef.current.push(
+            window.setTimeout(() => setStatus("confirming"), 1600)
+          );
+          timersRef.current.push(
+            window.setTimeout(() => {
+              if (SHOULD_SIMULATE_ERROR) {
+                reject(new Error("op_underfunded: Insufficient XLM balance."));
+              } else {
+                resolve(MOCK_TX_HASH);
+              }
+            }, 2400)
+          );
+        }),
+      { action: "policy_purchase", planId: plan?.id }
+    ).then((hash) => {
+      if (hash) {
+        setTxHash(hash);
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    });
   };
 
   const handleCopyTx = () => {
@@ -252,7 +268,7 @@ export function PolicyPurchaseEntryModal({
               </div>
             </div>
           </>
-        ) : status === "error" ? (
+        ) : status === "error" || txError ? (
           <>
             <div className="text-white text-xl font-bold font-['Inter']">Transaction Failed</div>
             <div className="mt-1 text-stone-300 text-sm font-bold font-['Inter']">
@@ -260,10 +276,17 @@ export function PolicyPurchaseEntryModal({
             </div>
 
             <div className="mt-4 rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-              <div className="text-rose-300 text-lg font-bold font-['Inter']">Error</div>
-              <div className="mt-1 text-stone-300 text-sm font-bold font-['Inter']">
-                {errorMessage ?? "Transaction failed. Please try again."}
+              <div className="text-rose-300 text-lg font-bold font-['Inter']">
+                {txError?.title ?? "Error"}
               </div>
+              <div className="mt-1 text-stone-300 text-sm font-bold font-['Inter']">
+                {txError?.message ?? "Transaction failed. Please try again."}
+              </div>
+              {txError?.remediationStep && (
+                <div className="mt-2 text-sky-300 text-xs font-bold font-['Inter']">
+                  💡 {txError.remediationStep}
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex flex-wrap justify-end gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 
 import ProposalCard from "./ProposalCard";
@@ -10,6 +10,7 @@ import { Proposal, VoteType } from "@/types/dao-types";
 import { getProposalStats } from "@/lib/dao-utils";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { useNotificationContext } from "@/context/NotificationContext";
+import { ProposalCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -22,10 +23,24 @@ export default function DAOVotingClient({
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { execute: executeTransaction, error: voteError, clearError } = useTransactionHandler({
     showSuccessToast: false,
   });
   const { addNotification } = useNotificationContext();
+
+  // Simulate initial loading if no proposals provided
+  useEffect(() => {
+    if (initialProposals.length === 0) {
+      setLoading(true);
+      // Simulate data fetch
+      setTimeout(() => {
+        setLoading(false);
+        setError("No proposals available");
+      }, 1000);
+    }
+  }, [initialProposals]);
 
   /**
    * Handle vote submission
@@ -106,6 +121,20 @@ export default function DAOVotingClient({
   // Calculate statistics
   const stats = getProposalStats(proposals);
 
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    // Simulate retry
+    setTimeout(() => {
+      setLoading(false);
+      if (initialProposals.length > 0) {
+        setProposals(initialProposals);
+      } else {
+        setError("Failed to load proposals. Please try again.");
+      }
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0F1F] text-white p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
@@ -166,7 +195,22 @@ export default function DAOVotingClient({
 
         {/* Proposals List */}
         <div className="space-y-6">
-          {filteredProposals.length > 0 ? (
+          {loading ? (
+            // Loading state
+            <div className="space-y-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <ProposalCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : error ? (
+            // Error state
+            <ErrorState
+              title="Failed to load proposals"
+              description={error}
+              onRetry={handleRetry}
+            />
+          ) : filteredProposals.length > 0 ? (
+            // Proposals list
             filteredProposals.map((proposal) => (
               <ProposalCard
                 key={proposal.id}
@@ -175,13 +219,15 @@ export default function DAOVotingClient({
               />
             ))
           ) : (
-            <div className="bg-[#1A1F35] rounded-lg p-12 text-center border border-gray-700/50">
-              <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No proposals found</p>
-              <p className="text-gray-500 text-sm mt-2">
-                Try adjusting your search or filters
-              </p>
-            </div>
+            // Empty state
+            <EmptyState
+              title="No proposals found"
+              description={
+                searchQuery || filter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "There are no active proposals at the moment"
+              }
+            />
           )}
         </div>
       </div>

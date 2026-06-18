@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { validateSessionWallet, validateWalletFunded, validateSessionFields } from "@/lib/walletValidation";
 
 export type AuthSession = {
   address: string;
@@ -16,6 +17,8 @@ export type RegisteredUser = {
   email?: string;
 };
 
+export type WalletWarning = "mismatch" | "unfunded" | null;
+
 type AuthContextValue = {
   session: AuthSession | null;
   setSession: (session: AuthSession | null) => void;
@@ -23,7 +26,10 @@ type AuthContextValue = {
   isAddressRegistered: (address: string) => boolean;
   registerAddress: (address: string, user?: RegisteredUser) => void;
   getRegisteredUser: (address: string) => RegisteredUser | null;
+  walletWarning: WalletWarning;
 };
+
+const VALIDATION_INTERVAL_MS = 60_000; // validate every 60 seconds
 
 const SESSION_KEY = "stellar_insured_session";
 const USERS_KEY = "stellar_insured_users";
@@ -81,18 +87,58 @@ function writeRegisteredUsers(users: Record<string, RegisteredUser>): void {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSessionState] = useState<AuthSession | null>(null);
+  const [walletWarning, setWalletWarning] = useState<WalletWarning>(null);
+  const sessionRef = useRef<AuthSession | null>(null);
 
   useEffect(() => {
     const parsed = safeParseJson<AuthSession>(
       typeof window === "undefined" ? null : window.localStorage.getItem(SESSION_KEY),
     );
-    if (parsed && parsed.address && parsed.signedMessage) {
+    if (parsed && validateSessionFields(parsed)) {
       setSessionState(parsed);
+      sessionRef.current = parsed;
     }
   }, []);
 
+  /** Periodically validate wallet: check session fields, mismatch, and funded status */
+  useEffect(() => {
+    async function runValidation() {
+      const s = sessionRef.current;
+      if (!s) return;
+
+      // Session expired or invalid fields → sign out
+      if (!validateSessionFields(s)) {
+        setSessionState(null);
+        sessionRef.current = null;
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(SESSION_KEY);
+          document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        }
+        return;
+      }
+
+      // Check wallet mismatch
+      const walletResult = await validateSessionWallet(s);
+      if (!walletResult.valid) {
+        setWalletWarning("mismatch");
+        return;
+      }
+
+      // Check funded status
+      const fundedResult = await validateWalletFunded(s.address);
+      setWalletWarning(fundedResult.funded ? null : "unfunded");
+    }
+
+    const id = setInterval(runValidation, VALIDATION_INTERVAL_MS);
+    // Run once on mount if session exists
+    runValidation();
+    return () => clearInterval(id);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const setSession = useCallback((next: AuthSession | null) => {
     setSessionState(next);
+    sessionRef.current = next;
+    if (next) setWalletWarning(null);
     if (typeof window === "undefined") return;
     if (next) {
       window.localStorage.setItem(SESSION_KEY, JSON.stringify(next));
@@ -136,8 +182,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAddressRegistered,
       registerAddress,
       getRegisteredUser,
+      walletWarning,
     }),
-    [session, setSession, signOut, isAddressRegistered, registerAddress, getRegisteredUser],
+    [session, setSession, signOut, isAddressRegistered, registerAddress, getRegisteredUser, walletWarning],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

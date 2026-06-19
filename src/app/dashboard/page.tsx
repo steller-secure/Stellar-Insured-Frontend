@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ProtectedRoute } from "@/components/protected-route";
 import { useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DashboardCardSkeleton } from "@/components/ui/SkeletonLoaders";
 
 export default function Dashboard() {
   const { address, isConnected, isConnecting } = useWallet();
@@ -86,57 +87,64 @@ export default function Dashboard() {
             {/* Balance Overview */}
             {isConnected && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <Card className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        XLM Balance
-                      </h3>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                        {balanceLoading ? (
-                          <span className="text-gray-400">Loading...</span>
-                        ) : (
-                          `${xlm.toFixed(4)} XLM`
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                {balanceLoading ? (
+                  // Loading state for balance cards
+                  <>
+                    <DashboardCardSkeleton />
+                    <DashboardCardSkeleton />
+                    <DashboardCardSkeleton />
+                  </>
+                ) : (
+                  <>
+                    <Card className="p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                        </div>
+                        <div className="ml-4">
+                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            XLM Balance
+                          </h3>
+                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                            {`${xlm.toFixed(4)} XLM`}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
 
-                <Card className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Assets
-                      </h3>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                        {assets.length}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                    <Card className="p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                        </div>
+                        <div className="ml-4">
+                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Assets
+                          </h3>
+                          <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                            {assets.length}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
 
-                <Card className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    </div>
-                    <div className="ml-4">
-                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Status
-                      </h3>
-                      <p className="text-2xl font-semibold text-green-600 dark:text-green-400">
-                        Connected
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                    <Card className="p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div className="ml-4">
+                          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Status
+                          </h3>
+                          <p className="text-2xl font-semibold text-green-600 dark:text-green-400">
+                            Connected
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  </>
+                )}
               </div>
             )}
 

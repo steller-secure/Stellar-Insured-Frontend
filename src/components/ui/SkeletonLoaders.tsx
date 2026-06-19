@@ -195,3 +195,83 @@ export function ErrorState({
     </div>
   );
 }
+
+/**
+ * Proposal Card Skeleton - for DAO proposals
+ */
+export function ProposalCardSkeleton() {
+  return (
+    <div className="border border-gray-700/50 rounded-lg p-6 space-y-4">
+      <div className="flex justify-between items-start">
+        <div className="flex-1 space-y-2">
+          <SkeletonPulse className="h-6 w-3/4" />
+          <SkeletonPulse className="h-4 w-1/2" />
+        </div>
+        <SkeletonPulse className="h-8 w-24" />
+      </div>
+      <SkeletonPulse className="h-20 w-full" />
+      <div className="space-y-2">
+        <SkeletonPulse className="h-4 w-full" />
+        <SkeletonPulse className="h-4 w-full" />
+        <SkeletonPulse className="h-4 w-3/4" />
+      </div>
+      <div className="flex gap-2 pt-2">
+        <SkeletonPulse className="h-10 flex-1" />
+        <SkeletonPulse className="h-10 flex-1" />
+        <SkeletonPulse className="h-10 flex-1" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Stats Card Skeleton - for dashboard statistics
+ */
+export function StatsCardSkeleton() {
+  return (
+    <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-6 space-y-3">
+      <SkeletonPulse className="h-4 w-1/2" />
+      <SkeletonPulse className="h-8 w-3/4" />
+      <SkeletonPulse className="h-3 w-full" />
+    </div>
+  );
+}
+
+/**
+ * Analytics Skeleton - for analytics dashboard
+ */
+export function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-6 space-y-4">
+          <SkeletonPulse className="h-5 w-1/3" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between">
+                  <SkeletonPulse className="h-4 w-1/2" />
+                  <SkeletonPulse className="h-4 w-8" />
+                </div>
+                <SkeletonPulse className="h-2 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-2 bg-gray-800/50 border border-gray-700/50 rounded-lg p-6 space-y-4">
+          <SkeletonPulse className="h-5 w-1/4" />
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonPulse key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

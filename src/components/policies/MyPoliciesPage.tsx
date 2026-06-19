@@ -13,6 +13,7 @@ import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { ProtectedRoute } from "@/components/protected-route";
 import type { Policy } from "@/services/types/policy.types";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PolicyCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
 
 export default function MyPoliciesPage() {
   const { trackAction } = useAnalytics();
@@ -72,6 +73,26 @@ export default function MyPoliciesPage() {
     if (value !== "all") {
       setActiveTab(value);
     }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    const loadPolicies = async () => {
+      try {
+        setLoading(true);
+        const result = await policyService.getPolicies();
+        if (result.success) {
+          setPolicies(result.data.policies);
+        } else {
+          setError(result.error || "Failed to load policies");
+        }
+      } catch {
+        setError("Failed to load policies");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPolicies();
   };
 
   const counts = {
@@ -196,13 +217,37 @@ export default function MyPoliciesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedPolicies.map((policy) => (
-              <PolicyCard key={policy.id} policy={policy} />
-            ))}
-            {paginatedPolicies.length === 0 && (
-              <div className="col-span-full py-20 text-center text-brand-text-muted">
-                No policies found for this status.
+            {loading ? (
+              // Loading state with skeletons
+              Array.from({ length: 6 }).map((_, index) => (
+                <PolicyCardSkeleton key={index} />
+              ))
+            ) : error ? (
+              // Error state
+              <div className="col-span-full">
+                <ErrorState
+                  title="Failed to load policies"
+                  description={error}
+                  onRetry={handleRetry}
+                />
               </div>
+            ) : paginatedPolicies.length === 0 ? (
+              // Empty state
+              <div className="col-span-full">
+                <EmptyState
+                  title={searchQuery || statusFilter !== "all" ? "No policies found" : "No policies yet"}
+                  description={
+                    searchQuery || statusFilter !== "all"
+                      ? "Try adjusting your search or filter criteria"
+                      : "Get started by creating your first insurance policy"
+                  }
+                />
+              </div>
+            ) : (
+              // Policies list
+              paginatedPolicies.map((policy) => (
+                <PolicyCard key={policy.id} policy={policy} />
+              ))
             )}
           </div>
 

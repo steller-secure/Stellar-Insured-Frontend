@@ -5,17 +5,25 @@ import { analytics, AnalyticsEvent } from "@/lib/analytics";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Activity, MousePointerClick, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { useLoading } from "@/contexts/LoadingContext";
+import { AnalyticsSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
 
 export default function AnalyticsDashboard() {
     const [events, setEvents] = useState<AnalyticsEvent[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const { startLoading, stopLoading } = useLoading();
 
     const loadData = () => {
+        setLoading(true);
+        setError(null);
         startLoading();
         try {
             const data = analytics.getAnalyticsData();
             setEvents(data.sort((a, b) => b.timestamp - a.timestamp));
+        } catch (err) {
+            setError("Failed to load analytics data");
         } finally {
+            setLoading(false);
             stopLoading();
         }
     };
@@ -75,10 +83,23 @@ export default function AnalyticsDashboard() {
                     </div>
                 </div>
 
-                {(events.length === 0) ? (
-                    <div className="py-20 text-center text-gray-400">Loading metrics...</div>
-                ) :
-                 (
+                {loading ? (
+                    // Loading state
+                    <AnalyticsSkeleton />
+                ) : error ? (
+                    // Error state
+                    <ErrorState
+                        title="Failed to load analytics"
+                        description={error}
+                        onRetry={loadData}
+                    />
+                ) : events.length === 0 ? (
+                    // Empty state
+                    <EmptyState
+                        title="No analytics data"
+                        description="Start using the application to see analytics data here"
+                    />
+                ) : (
                     <div className="grid gap-6">
                         {/* KPI Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

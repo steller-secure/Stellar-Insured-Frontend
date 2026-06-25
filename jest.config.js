@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+﻿// eslint-disable-next-line @typescript-eslint/no-require-imports
 const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({
@@ -22,6 +22,46 @@ const customJestConfig = {
     '!src/app/**/layout.tsx',
     '!src/middleware.ts',
   ],
+  // Enforce minimum 80% coverage across all metrics (issue #156)
+  coverageThreshold: {
+    global: {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+    // Per-file threshold for core hooks
+    './src/hooks/useDataFetch.ts': {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+    './src/hooks/useForm.ts': {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+    './src/hooks/useNotifications.ts': {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+    './src/hooks/useWallet.ts': {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+    './src/hooks/useErrorHandler.ts': {
+      lines: 80,
+      functions: 80,
+      branches: 80,
+      statements: 80,
+    },
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^uuid$': '<rootDir>/__mocks__/uuid.js',

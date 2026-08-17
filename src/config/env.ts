@@ -40,6 +40,18 @@ const ENV_SCHEMA: EnvVarDef[] = [
     description: 'Custom Stellar Horizon server URL (overrides network default)',
   },
   {
+    key: 'NEXT_PUBLIC_STELLAR_RPC_URL',
+    required: false,
+    defaultValue: 'https://soroban-testnet.stellar.org',
+    description: 'Soroban JSON-RPC endpoint used to query contract events',
+  },
+  {
+    key: 'NEXT_PUBLIC_SOROBAN_CONTRACT_IDS',
+    required: false,
+    defaultValue: '',
+    description: 'Comma-separated policy, claims, and governance contract IDs',
+  },
+  {
     key: 'NEXT_PUBLIC_EXPLORER_URL',
     required: false,
     defaultValue: '',                       // resolved per-network in stellar config

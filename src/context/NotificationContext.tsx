@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast";
-import type { AppError, ErrorCategory } from "@/lib/errorHandler";
+import type { AppError } from "@/lib/errorHandler";
 import { blockchainEvents, type BlockchainEvent } from "@/lib/blockchainEvents";
 import { useWalletStore } from "@/store";
 
@@ -32,6 +32,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { showToast } = useToast();
   const address = useWalletStore((state) => state.session?.address);
+  // Holds the latest polite live-region message; reset after a short delay
+  // so the same message can be re-announced if needed.
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
 
   useEffect(() => {
     if (address) blockchainEvents.start(address);
@@ -49,12 +52,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       'vote.cast': 'New voting results are available.',
     };
     const message = messages[event.type];
-    if (message) showToast(message, event.type.endsWith('purchased') || event.type.endsWith('submitted') ? 'success' : 'info');
+    if (message) {
+      showToast(message, event.type.endsWith('purchased') || event.type.endsWith('submitted') ? 'success' : 'info');
+      setLiveAnnouncement(message);
+    }
   }), [showToast]);
-  // Holds the latest polite live-region message; reset after a short delay
-  // so the same message can be re-announced if needed.
-  const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
-
   /**
    * Push a message into the polite aria-live region so screen readers
    * announce it without interrupting ongoing speech.
@@ -67,7 +69,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const addNotification = useCallback(
-    (message: string, type: NotificationType = "info", severity?: ErrorSeverity) => {
+    (message: string, type: NotificationType = "info", _severity?: ErrorSeverity) => {
       showToast(message, type);
       // Also pipe the message into the live region for non-visual users
       announce(message);

@@ -23,7 +23,6 @@ export default function DAOVotingClient({
   const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { execute: executeTransaction, error: voteError, clearError } = useTransactionHandler({
@@ -35,9 +34,13 @@ export default function DAOVotingClient({
     const incoming = (event.data.proposal ?? event.data) as Partial<Proposal>;
     const id = event.resourceId ?? incoming.id;
     if (!id) return;
-    setProposals(current => current.map(proposal => proposal.id === id
-      ? { ...proposal, ...incoming }
-      : proposal));
+    setProposals(current => {
+      const exists = current.some(proposal => proposal.id === id);
+      if (!exists) return incoming.title ? [{ ...incoming, id } as Proposal, ...current] : current;
+      return current.map(proposal => proposal.id === id
+        ? { ...proposal, ...incoming }
+        : proposal);
+    });
   }, ['proposal.updated', 'vote.cast']), []);
 
   // Simulate initial loading if no proposals provided
@@ -61,7 +64,6 @@ export default function DAOVotingClient({
     voteType: VoteType,
   ): Promise<void> => {
     clearError();
-    setVotingProposalId(proposalId);
 
     const result = await executeTransaction(
       async () => {
@@ -109,7 +111,6 @@ export default function DAOVotingClient({
       addNotification("Vote submitted successfully!", "success");
     }
 
-    setVotingProposalId(null);
   };
 
   /**

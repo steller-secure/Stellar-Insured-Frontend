@@ -12,6 +12,7 @@ import type {
   PolicyStatus
 } from './types/policy.types';
 import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
+import { ApiDataProvider, getActiveDataSource } from '@/config/dataSource';
 
 // Mock data - will be replaced with API calls when available
 const mockPolicies: Policy[] = [
@@ -74,7 +75,9 @@ class PolicyService {
    */
   async getPolicies(options?: PolicyFilterOptions): Promise<PolicyServiceResponse<PolicyListResponse>> {
     try {
-      let filteredPolicies = [...this.policies];
+      let filteredPolicies = getActiveDataSource().useMockData
+        ? [...this.policies]
+        : await ApiDataProvider.getPolicies();
 
       // Apply filters
       if (options) {

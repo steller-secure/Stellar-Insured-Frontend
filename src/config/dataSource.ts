@@ -11,6 +11,9 @@
 import { mockPolicies } from '@/data/mockPolicies';
 import { mockClaims } from '@/data/mockData';
 import { type Policy, type Claim } from '@/types/api';
+import { stellarConfig } from '@/config/stellar';
+import { mockProposals } from '@/data/dao-mockData';
+import type { Proposal } from '@/types/dao-types';
 
 export type DataSourceType = 'mock' | 'api';
 
@@ -18,13 +21,24 @@ export interface BlockchainDataSourceConfig {
   websocketUrl?: string;
   eventSourceUrl?: string;
   pollingUrl?: string;
+  horizonUrl: string;
+  sorobanRpcUrl?: string;
+  contractIds: string[];
 }
 
 export function getBlockchainDataSource(): BlockchainDataSourceConfig {
   return {
     websocketUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_WS_URL,
     eventSourceUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_EVENTS_URL,
-    pollingUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL || '/api/blockchain/events',
+    pollingUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL,
+    horizonUrl: stellarConfig.horizonUrl,
+    sorobanRpcUrl: process.env.NEXT_PUBLIC_STELLAR_RPC_URL || (stellarConfig.networkId === 'mainnet'
+      ? 'https://soroban-rpc.mainnet.stellar.gateway.fm'
+      : 'https://soroban-testnet.stellar.org'),
+    contractIds: (process.env.NEXT_PUBLIC_SOROBAN_CONTRACT_IDS || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean),
   };
 }
 
@@ -95,6 +109,11 @@ export class MockDataProvider {
     await new Promise(resolve => setTimeout(resolve, 300));
     return mockClaims.find(c => c.id === id);
   }
+
+  static async getProposals(): Promise<Proposal[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return mockProposals;
+  }
 }
 
 /**
@@ -125,6 +144,12 @@ export class ApiDataProvider {
   static async getClaim(id: string): Promise<Claim | undefined> {
     const response = await fetch(`${this.baseUrl}/api/claims/${id}`);
     if (!response.ok) throw new Error(`Failed to fetch claim: ${response.statusText}`);
+    return response.json();
+  }
+
+  static async getProposals(): Promise<Proposal[]> {
+    const response = await fetch(`${this.baseUrl}/api/proposals`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Failed to fetch proposals: ${response.statusText}`);
     return response.json();
   }
 }
@@ -164,6 +189,13 @@ export class DataService {
       return MockDataProvider.getClaim(id);
     }
     return ApiDataProvider.getClaim(id);
+  }
+
+  static async getProposals(): Promise<Proposal[]> {
+    const config = getActiveDataSource();
+    return config.useMockData
+      ? MockDataProvider.getProposals()
+      : ApiDataProvider.getProposals();
   }
 }
 

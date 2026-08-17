@@ -19,15 +19,14 @@ export function useWallet() {
     session,
     error,
     setStatus,
-    setError,
     signOut,
     startConnection,
     completeConnection,
-    failConnection,
   } = useWalletStore();
 
   const {
     executeWithErrorHandling,
+    handleError,
     showSuccessNotification,
     showErrorNotification,
     hasError,
@@ -63,7 +62,7 @@ export function useWallet() {
     }, msUntilExpiry);
 
     return () => clearTimeout(timeout);
-  }, [session?.expiresAt, signOut, showErrorNotification]);
+  }, [session, signOut, showErrorNotification]);
 
   // ─── Connect wallet and create session ──────────────────────────────────
   const connectWallet = useCallback(async (): Promise<AuthSession> => {
@@ -72,7 +71,7 @@ export function useWallet() {
       return session;
     }
 
-    return executeWithErrorHandling(async () => {
+    const connectedSession = await executeWithErrorHandling(async () => {
       startConnection();
 
       // Request wallet access
@@ -95,18 +94,13 @@ export function useWallet() {
       completeConnection(newSession);
       
       if (showSuccessNotification) {
-        showSuccessNotification({
-          category: 'WALLET',
-          code: 'CONNECTION_SUCCESS',
-          message: 'Wallet connected successfully',
-          severity: 'info',
-          userMessage: 'Your wallet has been connected',
-          timestamp: Date.now()
-        });
+        showSuccessNotification('Your wallet has been connected');
       }
 
       return newSession;
     }, 'WALLET');
+    if (!connectedSession) throw new Error('Wallet connection failed');
+    return connectedSession;
   }, [
     session,
     executeWithErrorHandling,
@@ -116,20 +110,15 @@ export function useWallet() {
     showSuccessNotification
   ]);
 
+  const reconnectWallet = useCallback(async () => connectWallet(), [connectWallet]);
+
   // ─── Disconnect wallet ───────────────────────────────────────────────────
   const disconnect = useCallback(() => {
     blockchainEvents.stop();
     signOut();
     
     if (showSuccessNotification) {
-      showSuccessNotification({
-        category: 'WALLET',
-        code: 'DISCONNECTION_SUCCESS',
-        message: 'Wallet disconnected',
-        severity: 'info',
-        userMessage: 'Your wallet has been disconnected',
-        timestamp: Date.now()
-      });
+      showSuccessNotification('Your wallet has been disconnected');
     }
   }, [signOut, showSuccessNotification]);
 
@@ -143,10 +132,13 @@ export function useWallet() {
     
     // Actions
     connectWallet,
+    reconnectWallet,
     disconnect,
+    handleError,
+    showErrorNotification,
     
     // Convenience
-    address: session?.address ?? null,
+    address: session?.address,
     isConnected: status === 'connected' && !!session,
     isConnecting: status === 'connecting' || status === 'signing',
   };

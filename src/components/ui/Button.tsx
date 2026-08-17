@@ -44,7 +44,6 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${isLoading ? "cursor-wait" : ""} ${className}`}
       disabled={disabled || isLoading}
       aria-busy={isLoading}
-      role="button"
       {...props}
     >
       <span
@@ -58,6 +57,7 @@ export const Button: React.FC<ButtonProps> = ({
             className="w-5 h-5 animate-spin text-white"
             fill="none"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <circle
               className="opacity-25"

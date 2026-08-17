@@ -36,7 +36,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {/* Label with optional required asterisk */}
-        <label className="mb-2 flex items-center gap-1 text-sm font-medium text-slate-300">
+        <label htmlFor={props.id} className="mb-2 flex items-center gap-1 text-sm font-medium text-slate-300">
           {label}
           {required && (
             <span className="text-rose-400" aria-hidden="true">
@@ -54,6 +54,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               ${hasError || isSuccess ? "pr-11" : ""}
               ${borderState} ${className}`}
             aria-invalid={hasError}
+            aria-describedby={
+              (error || helperText) && props.id ? `${props.id}-description` : undefined
+            }
             {...props}
           />
 
@@ -66,6 +69,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path
@@ -84,6 +88,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -98,6 +103,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {/* Error or helper text */}
         {(error || helperText) && (
           <p
+            id={props.id ? `${props.id}-description` : undefined}
+            role={hasError ? "alert" : undefined}
             className={`mt-1 flex items-center gap-1 text-sm ${
               hasError ? "text-rose-400" : "text-slate-400"
             }`}
@@ -109,6 +116,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path

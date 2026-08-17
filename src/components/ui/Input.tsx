@@ -36,7 +36,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {/* Label with optional required asterisk */}
-        <label className="mb-2 flex items-center gap-1 text-sm font-medium text-text-secondary dark:text-slate-300">
+        <label htmlFor={props.id} className="mb-2 flex items-center gap-1 text-sm font-medium text-text-secondary dark:text-slate-300">
           {label}
           {required && (
             <span className="text-rose-400" aria-hidden="true">
@@ -68,6 +68,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path
@@ -86,6 +87,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -104,6 +106,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={`mt-1 flex items-center gap-1 text-sm ${
               hasError ? "text-rose-400" : "text-slate-400 dark:text-slate-500"
             }`}
+            role={hasError ? "alert" : undefined}
           >
             {hasError && (
               <svg
@@ -112,6 +115,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" />
                 <path

@@ -217,7 +217,7 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
               <div className="space-y-2">
                 {formData.documents.slice(0, 3).map((doc: File, index: number) => (
                   <div key={index} className="flex items-center space-x-3 text-sm">
-                    <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                     </svg>
                     <span className="text-white truncate">{doc.name}</span>
@@ -240,43 +240,71 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
         <Card className="p-6 bg-slate-800/50 border-slate-700">
           <h3 className="text-lg font-semibold text-white mb-4">Terms & Confirmations</h3>
           <div className="space-y-4">
-            <label className="flex items-start space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={data.confirmAccuracy}
-                onChange={(e) => {
-                  setTouched(prev => ({ ...prev, confirmAccuracy: true }));
-                  onDataChange({ confirmAccuracy: e.target.checked });
-                }}
-                className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.confirmAccuracy && errors.confirmAccuracy ? 'border-rose-500' : 'border-slate-600'}`}
-              />
-              <div className="text-sm">
-                <p className={`font-medium ${touched.confirmAccuracy && errors.confirmAccuracy ? 'text-rose-400' : 'text-white'}`}>I confirm the accuracy of this information</p>
-                <p className="text-slate-400 mt-1">
-                  I certify that all information provided in this claim is true and accurate to the best of my knowledge.
-                  I understand that providing false information may result in claim denial and potential legal consequences.
+            {/* Confirm Accuracy checkbox — id wired to label via htmlFor (WCAG 1.3.1) */}
+            <div>
+              <label htmlFor="confirm-accuracy" className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  id="confirm-accuracy"
+                  type="checkbox"
+                  checked={data.confirmAccuracy}
+                  onChange={(e) => {
+                    setTouched(prev => ({ ...prev, confirmAccuracy: true }));
+                    onDataChange({ confirmAccuracy: e.target.checked });
+                  }}
+                  aria-required="true"
+                  aria-invalid={!!(touched.confirmAccuracy && errors.confirmAccuracy)}
+                  aria-describedby={touched.confirmAccuracy && errors.confirmAccuracy ? 'confirm-accuracy-error' : undefined}
+                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.confirmAccuracy && errors.confirmAccuracy ? 'border-rose-500' : 'border-slate-600'}`}
+                />
+                <div className="text-sm">
+                  <p className={`font-medium ${touched.confirmAccuracy && errors.confirmAccuracy ? 'text-rose-400' : 'text-white'}`}>
+                    I confirm the accuracy of this information
+                  </p>
+                  <p className="text-slate-400 mt-1">
+                    I certify that all information provided in this claim is true and accurate to the best of my knowledge.
+                    I understand that providing false information may result in claim denial and potential legal consequences.
+                  </p>
+                </div>
+              </label>
+              {touched.confirmAccuracy && errors.confirmAccuracy && (
+                <p id="confirm-accuracy-error" role="alert" className="mt-1 text-sm text-rose-400 ml-7">
+                  {errors.confirmAccuracy}
                 </p>
-              </div>
-            </label>
+              )}
+            </div>
 
-            <label className="flex items-start space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={data.agreedToTerms}
-                onChange={(e) => {
-                  setTouched(prev => ({ ...prev, agreedToTerms: true }));
-                  onDataChange({ agreedToTerms: e.target.checked });
-                }}
-                className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.agreedToTerms && errors.agreedToTerms ? 'border-rose-500' : 'border-slate-600'}`}
-              />
-              <div className="text-sm">
-                <p className={`font-medium ${touched.agreedToTerms && errors.agreedToTerms ? 'text-rose-400' : 'text-white'}`}>I agree to the terms and conditions</p>
-                <p className="text-slate-400 mt-1">
-                  I agree to the claims processing terms, privacy policy, and understand that this claim will be 
-                  investigated according to policy terms. I authorize the release of relevant information for claim processing.
+            {/* Agree to Terms checkbox */}
+            <div>
+              <label htmlFor="agreed-to-terms" className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  id="agreed-to-terms"
+                  type="checkbox"
+                  checked={data.agreedToTerms}
+                  onChange={(e) => {
+                    setTouched(prev => ({ ...prev, agreedToTerms: true }));
+                    onDataChange({ agreedToTerms: e.target.checked });
+                  }}
+                  aria-required="true"
+                  aria-invalid={!!(touched.agreedToTerms && errors.agreedToTerms)}
+                  aria-describedby={touched.agreedToTerms && errors.agreedToTerms ? 'agreed-to-terms-error' : undefined}
+                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.agreedToTerms && errors.agreedToTerms ? 'border-rose-500' : 'border-slate-600'}`}
+                />
+                <div className="text-sm">
+                  <p className={`font-medium ${touched.agreedToTerms && errors.agreedToTerms ? 'text-rose-400' : 'text-white'}`}>
+                    I agree to the terms and conditions
+                  </p>
+                  <p className="text-slate-400 mt-1">
+                    I agree to the claims processing terms, privacy policy, and understand that this claim will be
+                    investigated according to policy terms. I authorize the release of relevant information for claim processing.
+                  </p>
+                </div>
+              </label>
+              {touched.agreedToTerms && errors.agreedToTerms && (
+                <p id="agreed-to-terms-error" role="alert" className="mt-1 text-sm text-rose-400 ml-7">
+                  {errors.agreedToTerms}
                 </p>
-              </div>
-            </label>
+              )}
+            </div>
           </div>
         </Card>
 
@@ -296,8 +324,8 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
         {/* Submission Info */}
         <Card className="p-4 bg-blue-500/5 border-blue-500/20">
           <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center mt-0.5">
-              <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="flex-shrink-0 w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center mt-0.5" aria-hidden="true">
+              <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>

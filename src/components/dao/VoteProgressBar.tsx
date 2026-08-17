@@ -21,12 +21,20 @@ export default function VoteProgressBar({
     <div className="mb-3">
       <div className="flex items-center justify-between text-sm mb-1">
         <span className={`flex items-center gap-2 ${color}`}>
-          {icon}
+          {/* Icon is decorative; the text label conveys the meaning */}
+          <span aria-hidden="true">{icon}</span>
           {label}
         </span>
-        <span className="text-white font-medium">{percentage}%</span>
+        <span className="text-white font-medium" aria-hidden="true">{percentage}%</span>
       </div>
-      <div className="w-full bg-gray-700 rounded-full h-2">
+      <div
+        className="w-full bg-gray-700 rounded-full h-2"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Number(percentage)}
+        aria-label={`${label} votes: ${percentage}%`}
+      >
         <div
           className={`h-2 rounded-full transition-all duration-500 ${bgColor}`}
           style={{ width: `${percentage}%` }}

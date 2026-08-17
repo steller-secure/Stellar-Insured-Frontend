@@ -10,15 +10,17 @@ type NotificationType = "success" | "error" | "warning" | "info";
 
 type ErrorSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
-interface ErrorInfo {
-  message: string;
-  category: ErrorCategory;
-  severity: ErrorSeverity;
-}
-
 interface NotificationContextType {
   addNotification: (message: string, type: NotificationType, severity?: ErrorSeverity) => void;
   addError: (error: AppError) => void;
+  /**
+   * The most recent announcement text for the polite aria-live region.
+   * Useful for screen readers to announce non-toast status messages
+   * (e.g. claim status updates, voting results) without navigating to them.
+   */
+  liveAnnouncement: string;
+  /** Announce a message via the polite live region (WCAG 4.1.3 Status Messages) */
+  announce: (message: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -49,12 +51,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     const message = messages[event.type];
     if (message) showToast(message, event.type.endsWith('purchased') || event.type.endsWith('submitted') ? 'success' : 'info');
   }), [showToast]);
+  // Holds the latest polite live-region message; reset after a short delay
+  // so the same message can be re-announced if needed.
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
+
+  /**
+   * Push a message into the polite aria-live region so screen readers
+   * announce it without interrupting ongoing speech.
+   * WCAG 4.1.3 – Status Messages
+   */
+  const announce = useCallback((message: string) => {
+    // Briefly clear then set the text so repeated identical messages still fire
+    setLiveAnnouncement("");
+    requestAnimationFrame(() => setLiveAnnouncement(message));
+  }, []);
 
   const addNotification = useCallback(
     (message: string, type: NotificationType = "info", severity?: ErrorSeverity) => {
       showToast(message, type);
+      // Also pipe the message into the live region for non-visual users
+      announce(message);
     },
-    [showToast],
+    [showToast, announce],
   );
 
   const addError = useCallback(
@@ -66,15 +84,48 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      // Non-critical errors are shown as toast
+      // Non-critical errors are shown as toast and announced via live region
       showToast(error.message, 'error');
+      announce(error.message);
     },
-    [showToast],
+    [showToast, announce],
   );
 
   return (
-    <NotificationContext.Provider value={{ addNotification, addError }}>
+    <NotificationContext.Provider value={{ addNotification, addError, liveAnnouncement, announce }}>
       {children}
+      {/*
+        Polite aria-live region for dynamic status announcements.
+        WCAG 4.1.3 – Status Messages: status messages must be
+        programmatically determinable via role or property so they can
+        be announced by assistive technologies without receiving focus.
+
+        - aria-live="polite" waits for the user to finish reading before announcing.
+        - aria-atomic="true" reads the full updated content on each change.
+        - role="status" semantically marks this as a live status region.
+        - The visually-hidden class keeps it out of the visual layout.
+      */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        aria-label="Notification announcements"
+      >
+        {liveAnnouncement}
+      </div>
+      {/*
+        Assertive aria-live region for urgent alerts (errors that need
+        immediate attention). Only used for truly critical messages.
+        WCAG 4.1.3 – interrupts the user's current reading when fired.
+      */}
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+        aria-label="Critical alerts"
+      />
     </NotificationContext.Provider>
   );
 };

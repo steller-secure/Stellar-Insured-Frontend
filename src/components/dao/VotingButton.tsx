@@ -21,7 +21,9 @@ export default function VotingButton({
 }: VotingButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={`py-3 rounded-lg border transition-all ${
         selected
           ? `${activeColor} border-current`
@@ -29,7 +31,7 @@ export default function VotingButton({
       }`}
     >
       <div className="flex flex-col items-center">
-        {icon}
+        <span aria-hidden="true">{icon}</span>
         <span className="text-sm mt-1">{label}</span>
       </div>
     </button>

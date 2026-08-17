@@ -198,8 +198,8 @@ export const MultiStepClaimForm: React.FC = () => {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50">
-            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50" aria-hidden="true">
+            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -267,7 +267,7 @@ export const MultiStepClaimForm: React.FC = () => {
         <Card className="p-4 bg-orange-500/5 border-orange-500/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <div>
@@ -282,11 +282,26 @@ export const MultiStepClaimForm: React.FC = () => {
         </Card>
       )}
 
-      {/* Display submission errors */}
+      {/* Display submission errors
+          role="alert" + aria-live="assertive" ensures screen readers
+          announce the error immediately when it appears.
+          WCAG 4.1.3 – Status Messages; 3.3.1 – Error Identification
+      */}
       {submitError && (
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 md:p-6 shadow-xl">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 md:p-6 shadow-xl"
+        >
           <div className="flex gap-3">
-            <svg className="h-6 w-6 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {/* Decorative icon — text conveys the error state */}
+            <svg
+              className="h-6 w-6 flex-shrink-0 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="flex-1">
@@ -296,12 +311,14 @@ export const MultiStepClaimForm: React.FC = () => {
                 <p className="mt-2 text-sm text-red-300">{submitError.remediationStep}</p>
               )}
             </div>
+            {/* WCAG 4.1.2 – Name, Role, Value: button needs an accessible name */}
             <button
               type="button"
               onClick={clearError}
-              className="flex-shrink-0 text-red-400 hover:text-red-300"
+              aria-label="Dismiss submission error"
+              className="flex-shrink-0 text-red-400 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:rounded"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -417,7 +434,7 @@ export const MultiStepClaimForm: React.FC = () => {
           )}
 
           {/* Progress indicator */}
-          <div className="hidden sm:flex items-center space-x-2 text-sm text-slate-400">
+          <div className="hidden sm:flex items-center space-x-2 text-sm text-slate-400" aria-hidden="true">
             <span>Step {currentStep} of {steps.length}</span>
             <div className="w-24 bg-slate-700 rounded-full h-2">
               <div 

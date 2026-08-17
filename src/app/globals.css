@@ -23,6 +23,62 @@
     --animate-slide-up: slideUp 0.5s ease-out;
 }
 
+/* ─── Accessibility: Focus Ring Tokens ───────────────────────────────────────
+   WCAG 2.1 SC 2.4.7 – Focus Visible
+   A single place to update all keyboard-focus indicators across the UI.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --focus-ring-color: #22BBF9;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --focus-ring-style: solid;
+}
+
+/* Default focus-visible ring applied globally to every interactive element.
+   Components that need a custom ring can override --focus-ring-color locally. */
+:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 4px;
+}
+
+/* ─── Accessibility: Skip-to-content link ────────────────────────────────────
+   Visually hidden until focused; WCAG 2.4.1 Bypass Blocks.
+   ─────────────────────────────────────────────────────────────────────────── */
+.skip-to-content {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  z-index: 99999;
+  padding: 0.75rem 1.5rem;
+  background: var(--focus-ring-color);
+  color: #000;
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.skip-to-content:focus-visible {
+  top: 0;
+  left: 0;
+}
+
+/* ─── Accessibility: Reduced Motion ─────────────────────────────────────────
+   WCAG 2.3.3 (AAA) / widely-expected AA-level respect for prefers-reduced-motion.
+   Disables or slows all CSS animations / transitions when the user requests it.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .dark {
   /* Dark theme - WCAG AA compliant colors */
   --color-bg-primary: #030712;

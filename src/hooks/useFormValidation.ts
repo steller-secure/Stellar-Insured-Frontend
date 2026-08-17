@@ -53,6 +53,14 @@ export interface UseFormValidationReturn<T> {
   reset: () => void;
   /** Manually set an error on a field (e.g. from a server response) */
   setFieldError: (field: keyof T, message: string) => void;
+  /**
+   * Returns the aria-describedby ID for a field's error/helper text element.
+   * Use this to wire up aria-describedby on input elements.
+   * Convention: `${fieldId}-description`
+   *
+   * WCAG 1.3.1, 3.3.1, 3.3.3 – error identification and description.
+   */
+  getFieldDescribedBy: (fieldId: string) => string;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -167,6 +175,19 @@ export function useFormValidation<T extends Record<string, any>>(
     setTouched((prev) => ({ ...prev, [field]: true }));
   }, []);
 
+  /**
+   * Returns a stable ID for a field's error/helper description element.
+   * Follows the pattern used by Input, Textarea, and Select components:
+   * `${fieldId}-description`.
+   *
+   * Usage:
+   *   <input aria-describedby={getFieldDescribedBy('email-input')} />
+   *   <p id="email-input-description">…</p>
+   */
+  const getFieldDescribedBy = useCallback((fieldId: string): string => {
+    return `${fieldId}-description`;
+  }, []);
+
   const isValid =
     Object.keys(rules).length > 0 &&
     Object.keys(errors).filter((k) => errors[k as keyof T]).length === 0;
@@ -181,6 +202,7 @@ export function useFormValidation<T extends Record<string, any>>(
     handleBlur,
     reset,
     setFieldError,
+    getFieldDescribedBy,
   };
 }
 

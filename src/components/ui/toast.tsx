@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
+import { cn, staticSurfaceRecipe } from "@/design-system";
+import type { UIColor } from "@/design-system";
 
 type ToastType = "success" | "error" | "info" | "warning";
 
@@ -27,7 +29,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback((message: string, type: ToastType = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
       hideToast(id);
@@ -39,7 +41,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 w-full max-w-sm">
+      <div
+        className="fixed right-4 bottom-4 z-70 flex w-full max-w-sm flex-col gap-2"
+        role="region"
+        aria-label="Notifications"
+      >
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => hideToast(toast.id)} />
         ))}
@@ -48,30 +54,43 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
-  const icons = {
-    success: <CheckCircle className="h-5 w-5 text-green-400" />,
-    error: <AlertCircle className="h-5 w-5 text-red-400" />,
-    info: <Info className="h-5 w-5 text-sky-400" />,
-    warning: <AlertTriangle className="h-5 w-5 text-yellow-400" />,
-  };
+/** Toast types map onto the shared semantic colours. */
+const TOAST_COLORS: Record<ToastType, UIColor> = {
+  success: "success",
+  error: "error",
+  info: "info",
+  warning: "warning",
+};
 
-  const bgColors = {
-    success: "bg-green-500/10 border-green-500/20",
-    error: "bg-red-500/10 border-red-500/20",
-    info: "bg-sky-500/10 border-sky-500/20",
-    warning: "bg-yellow-500/10 border-yellow-500/20",
-  };
+const icons: Record<ToastType, typeof CheckCircle> = {
+  success: CheckCircle,
+  error: AlertCircle,
+  info: Info,
+  warning: AlertTriangle,
+};
+
+function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
+  const color = TOAST_COLORS[toast.type];
+  const Icon = icons[toast.type];
 
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md animate-in slide-in-from-right fade-in duration-300 ${bgColors[toast.type]}`}>
-      <div className="flex-shrink-0">{icons[toast.type]}</div>
-      <div className="flex-1 text-sm font-medium text-white">{toast.message}</div>
-      <button 
+    <div
+      role={toast.type === "error" ? "alert" : "status"}
+      className={cn(
+        "flex items-center gap-3 rounded-card border border-current/20 p-4",
+        "animate-slide-in-right shadow-elevation-3 backdrop-blur-md motion-reduce:animate-none",
+        staticSurfaceRecipe.soft[color],
+      )}
+    >
+      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+      <div className="flex-1 text-sm font-medium">{toast.message}</div>
+      <button
+        type="button"
         onClick={onClose}
-        className="flex-shrink-0 text-white/50 hover:text-white transition-colors"
+        aria-label="Dismiss notification"
+        className="shrink-0 opacity-70 transition-opacity duration-200 ease-standard hover:opacity-100"
       >
-        <X className="h-4 w-4" />
+        <X className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
   );

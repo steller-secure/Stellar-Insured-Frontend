@@ -58,10 +58,10 @@ const NavBarList = (
   };
 
   const getLinkClassName = (href: string) => {
-    const baseClass = "text-white text-lg font-medium mx-6 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]";
+    const baseClass = "text-lg font-medium mx-6 transition-colors duration-200 ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
     return isActiveLink(href)
-      ? `${baseClass} text-[#22BBF9] border-b-2 border-[#22BBF9]`
-      : `${baseClass} hover:text-[#22BBF9]`;
+      ? `${baseClass} text-primary border-b-2 border-primary`
+      : `${baseClass} text-fg hover:text-primary`;
   };
 
   return (
@@ -81,12 +81,12 @@ const NavBarList = (
         {session ? (
           <ul className='flex gap-5 justify-between items-center'>
             <li>
-              <Link href='/dashboard' className='text-white text-lg font-medium mx-6 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
+              <Link href='/dashboard' className='text-fg text-lg font-medium mx-6 hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'>
                 Dashboard
               </Link>
             </li>
             <li>
-              <Link href='/analytics' className='text-white text-lg font-medium mx-6 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
+              <Link href='/analytics' className='text-fg text-lg font-medium mx-6 hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'>
                 Analytics
               </Link>
             </li>
@@ -95,7 +95,7 @@ const NavBarList = (
                 {isConnected && (
                   <WalletStatus showBalance={false} showAddress={false} compact={true} />
                 )}
-                <WalletConnectButton showBalance={false} className="bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]" />
+                <WalletConnectButton showBalance={false} className="bg-primary rounded-full px-3 py-1 text-primary-fg text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" />
                 <NotificationCenter />
               </div>
             </li>
@@ -103,12 +103,12 @@ const NavBarList = (
         ) : (
           <ul className='flex gap-5 justify-between items-center'>
             <li>
-              <Link href='/signin' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
+              <Link href='/signin' className='text-fg text-lg font-medium mx-3 hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'>
                 Sign In
               </Link>
             </li>
             <li>
-              <Link href='/signup' className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
+              <Link href='/signup' className='bg-primary rounded-full px-3 py-1 text-primary-fg text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'>
                 Sign Up
               </Link>
             </li>
@@ -116,7 +116,7 @@ const NavBarList = (
         )}
       </nav>
       {/* mobile menu */}
-      <nav id="mobile-nav" className={`bg-[#1E2433] border-r-2 border-b-2 border-[#22BBF9] flex lg:hidden flex-col justify-between items-center w-75 h-[80vh] absolute -left-5 -top-6 z-999 p-7 rounded-br-3xl ${isOpen ? 'translate-x-0 transition-transform transform duration-500' : '-translate-x-full'}   ease-in-out`} role="navigation" aria-label="Mobile navigation" data-nav="mobile">
+      <nav id="mobile-nav" className={`bg-surface-raised border-r-2 border-b-2 border-primary flex lg:hidden flex-col justify-between items-center w-75 h-[80vh] absolute -left-5 -top-6 z-999 p-7 rounded-br-3xl ${isOpen ? 'translate-x-0 transition-transform transform duration-500' : '-translate-x-full'}   ease-in-out`} role="navigation" aria-label="Mobile navigation" data-nav="mobile">
         <ul className='flex flex-col mb-3 h-[60%] w-full justify-between items-center'>
           {navLinks.map((link) => (
             <li key={link.id} className='py-1 px-2 w-full'>
@@ -130,12 +130,12 @@ const NavBarList = (
           {session ? (
             <>
               <li className='w-full'>
-                <Link href='/dashboard' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
+                <Link href='/dashboard' className='text-fg text-lg font-medium mx-3 hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface' onClick={() => setIsOpen(false)}>
                   Dashboard
                 </Link>
               </li>
               <li className='w-full'>
-                <Link href='/analytics' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
+                <Link href='/analytics' className='text-fg text-lg font-medium mx-3 hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface' onClick={() => setIsOpen(false)}>
                   Analytics
                 </Link>
               </li>
@@ -145,7 +145,7 @@ const NavBarList = (
                     <WalletStatus showBalance={true} showAddress={true} compact={false} />
                   </div>
                 )}
-                <WalletConnectButton showBalance={true} className="bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]" />
+                <WalletConnectButton showBalance={true} className="bg-primary rounded-full px-3 py-1 text-primary-fg text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" />
                 <div className="w-full flex justify-center">
                   <NotificationCenter />
                 </div>
@@ -154,12 +154,12 @@ const NavBarList = (
           ) : (
             <>
               <li className='w-full'>
-                <Link href='/signin' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 block text-center focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
+                <Link href='/signin' className='text-fg text-lg font-medium mx-3 hover:text-primary transition-colors duration-200 block text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface' onClick={() => setIsOpen(false)}>
                   Sign In
                 </Link>
               </li>
               <li className='w-full'>
-                <Link href='/signup' className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all block text-center focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
+                <Link href='/signup' className='bg-primary rounded-full px-3 py-1 text-primary-fg text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all block text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'>
                   Sign Up
                 </Link>
               </li>
@@ -167,7 +167,7 @@ const NavBarList = (
           )}
         </ul>
         <button type='button' title='Close menu' onClick={() => setIsOpen(false)} aria-label="Close navigation menu">
-          <X className='text-white w-5 h-5 absolute z-999 right-5 top-5' />
+          <X className='text-fg w-5 h-5 absolute z-999 right-5 top-5' />
         </button>
       </nav>
 
@@ -234,7 +234,7 @@ const NavBar = () => {
   }, [isOpen]);
 
   return (
-    <header className='bg-[#1E2433] fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' role="navigation" aria-label="Main navigation">
+    <header className='bg-surface-raised fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-primary flex items-center justify-between px-4 lg:px-8' role="navigation" aria-label="Main navigation">
 
       {/* desktop navbar */}
       <div className='hidden lg:flex w-full'>
@@ -242,7 +242,7 @@ const NavBar = () => {
       </div>
 
       {/* mobile navbar */}
-      <div className='w-full flex lg:hidden justify-between items-center bg-[#1E2433]'>
+      <div className='w-full flex lg:hidden justify-between items-center bg-surface-raised'>
         <img src={logo.src} alt="Stellar Insured Logo" className="w-28" />
         {isOpen ? (
           <button
@@ -253,7 +253,7 @@ const NavBar = () => {
             aria-expanded='true'
             aria-controls='mobile-nav'
           >
-            <Menu className='text-white w-6 h-6' />
+            <Menu className='text-fg w-6 h-6' />
           </button>
         ) : (
           <button
@@ -264,7 +264,7 @@ const NavBar = () => {
             aria-expanded='false'
             aria-controls='mobile-nav'
           >
-            <Menu className='text-white w-6 h-6' />
+            <Menu className='text-fg w-6 h-6' />
           </button>
         )}
         {isOpen && (<NavBarList isOpen={isOpen} setIsOpen={setIsOpen} />)}

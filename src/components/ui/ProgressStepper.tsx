@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { cn, controlMotion, focusRing } from '@/design-system';
+import { Progress } from './Progress';
 
 export interface Step {
   id: number;
@@ -16,6 +18,14 @@ export interface ProgressStepperProps {
   canNavigate?: (step: number) => boolean;
 }
 
+type StepStatus = 'completed' | 'current' | 'upcoming';
+
+const statusClasses: Record<StepStatus, string> = {
+  completed: 'bg-success border-success text-success-fg',
+  current: 'bg-primary border-primary text-primary-fg ring-4 ring-primary/25',
+  upcoming: 'bg-surface-sunken border-border text-fg-subtle',
+};
+
 export const ProgressStepper: React.FC<ProgressStepperProps> = ({
   steps,
   currentStep,
@@ -23,32 +33,11 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
   onStepClick,
   canNavigate = () => true
 }) => {
-  const getStepStatus = (stepNumber: number) => {
+  const getStepStatus = (stepNumber: number): StepStatus => {
     if (completedSteps.includes(stepNumber)) return 'completed';
     if (stepNumber === currentStep) return 'current';
     if (stepNumber < currentStep) return 'completed';
     return 'upcoming';
-  };
-
-  const getStepClasses = (stepNumber: number) => {
-    const status = getStepStatus(stepNumber);
-    const baseClasses = 'flex items-center justify-center w-10 h-10 rounded-full border-2 text-sm font-medium transition-all duration-200';
-    
-    switch (status) {
-      case 'completed':
-        return `${baseClasses} bg-green-500 border-green-500 text-white`;
-      case 'current':
-        return `${baseClasses} bg-cyan-500 border-cyan-500 text-white ring-4 ring-cyan-500/20`;
-      default:
-        return `${baseClasses} bg-slate-800 border-slate-600 text-slate-400`;
-    }
-  };
-
-  const getConnectorClasses = (stepNumber: number) => {
-    const isCompleted = stepNumber < currentStep || completedSteps.includes(stepNumber);
-    return `flex-1 h-0.5 mx-4 transition-colors duration-200 ${
-      isCompleted ? 'bg-green-500' : 'bg-slate-600'
-    }`;
   };
 
   const handleStepClick = (stepNumber: number) => {
@@ -57,75 +46,109 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
     }
   };
 
+  const activeStep = steps.find((s) => s.id === currentStep);
+
   return (
     <div className="w-full">
       {/* Desktop Stepper */}
-      <div className="hidden md:flex items-center justify-between">
-        {steps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => handleStepClick(step.id)}
-                disabled={!canNavigate(step.id)}
-                className={`${getStepClasses(step.id)} ${
-                  canNavigate(step.id) && onStepClick 
-                    ? 'cursor-pointer hover:scale-105' 
-                    : 'cursor-default'
-                } disabled:cursor-not-allowed`}
-              >
-                {getStepStatus(step.id) === 'completed' ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  step.id
-                )}
-              </button>
-              <div className="mt-2 text-center">
-                <div className={`text-sm font-medium ${
-                  step.id === currentStep ? 'text-white' : 'text-slate-400'
-                }`}>
-                  {step.title}
-                </div>
-                {step.description && (
-                  <div className="text-xs text-slate-500 mt-1 max-w-24">
-                    {step.description}
+      <ol className="hidden items-center justify-between md:flex">
+        {steps.map((step, index) => {
+          const status = getStepStatus(step.id);
+          const isConnectorComplete =
+            step.id < currentStep || completedSteps.includes(step.id);
+
+          return (
+            <React.Fragment key={step.id}>
+              <li className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.id)}
+                  disabled={!canNavigate(step.id)}
+                  aria-current={status === 'current' ? 'step' : undefined}
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-pill border-2 text-sm font-medium',
+                    controlMotion,
+                    focusRing,
+                    'focus-visible:ring-primary',
+                    statusClasses[status],
+                    canNavigate(step.id) && onStepClick
+                      ? 'cursor-pointer hover:scale-105 motion-reduce:hover:scale-100'
+                      : 'cursor-default',
+                    'disabled:cursor-not-allowed',
+                  )}
+                >
+                  {status === 'completed' ? (
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    step.id
+                  )}
+                  <span className="sr-only">{step.title}</span>
+                </button>
+                <div className="mt-2 text-center">
+                  <div
+                    className={cn(
+                      'text-sm font-medium',
+                      step.id === currentStep ? 'text-fg' : 'text-fg-muted',
+                    )}
+                  >
+                    {step.title}
                   </div>
-                )}
-              </div>
-            </div>
-            {index < steps.length - 1 && (
-              <div className={getConnectorClasses(step.id)} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+                  {step.description && (
+                    <div className="mt-1 max-w-24 text-xs text-fg-subtle">
+                      {step.description}
+                    </div>
+                  )}
+                </div>
+              </li>
+              {index < steps.length - 1 && (
+                <li
+                  aria-hidden="true"
+                  className={cn(
+                    'mx-4 h-0.5 flex-1 transition-colors duration-200 ease-standard',
+                    isConnectorComplete ? 'bg-success' : 'bg-border',
+                  )}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </ol>
 
       {/* Mobile Progress Bar */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-white">
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-fg">
             Step {currentStep} of {steps.length}
           </span>
-          <span className="text-sm text-slate-400">
+          <span className="text-sm text-fg-muted">
             {Math.round((currentStep / steps.length) * 100)}% Complete
           </span>
         </div>
-        
-        <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
-          <div 
-            className="bg-gradient-to-r from-cyan-500 to-green-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / steps.length) * 100}%` }}
-          />
-        </div>
-        
+
+        <Progress
+          value={currentStep}
+          max={steps.length}
+          label={`Step ${currentStep} of ${steps.length}`}
+          hideLabel
+          className="mb-4"
+        />
+
         <div className="text-center">
-          <h3 className="text-lg font-medium text-white">
-            {steps.find(s => s.id === currentStep)?.title}
-          </h3>
-          {steps.find(s => s.id === currentStep)?.description && (
-            <p className="text-sm text-slate-400 mt-1">
-              {steps.find(s => s.id === currentStep)?.description}
+          <h3 className="text-lg font-medium text-fg">{activeStep?.title}</h3>
+          {activeStep?.description && (
+            <p className="mt-1 text-sm text-fg-muted">
+              {activeStep.description}
             </p>
           )}
         </div>

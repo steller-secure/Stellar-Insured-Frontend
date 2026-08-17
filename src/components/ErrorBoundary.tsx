@@ -108,13 +108,13 @@ class ErrorBoundaryClass extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
-          <Card className="max-w-2xl w-full bg-slate-800 border-slate-700">
+        <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+          <Card variant="solid" elevation={2} className="max-w-2xl w-full">
             <div className="p-8 text-center">
               <div className="mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-red-500/10 border border-red-500/20">
+                <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-pill bg-error-soft text-error-on-soft">
                   <svg 
-                    className="w-8 h-8 text-red-400" 
+                    className="w-8 h-8" 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -127,38 +127,37 @@ class ErrorBoundaryClass extends Component<Props, State> {
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="text-2xl font-bold text-fg mb-2">
                   Something went wrong
                 </h2>
-                <p className="text-slate-300 mb-6">
+                <p className="text-fg-muted mb-6">
                   We're sorry, but something unexpected happened. Our team has been notified.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <Button 
-                  variant="primary" 
                   onClick={this.handleRetry}
-                  className="w-full"
+                  fullWidth
                 >
                   Try Again
                 </Button>
                 
                 <Button 
-                  variant="outline" 
+                  variant="outline"
                   onClick={() => window.location.reload()}
-                  className="w-full"
+                  fullWidth
                 >
                   Refresh Page
                 </Button>
               </div>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="mt-8 bg-slate-900/50 rounded-lg p-4 text-left">
-                  <summary className="text-slate-300 font-medium cursor-pointer">
+                <details className="mt-8 bg-surface-sunken rounded-card p-4 text-left">
+                  <summary className="text-fg-muted font-medium cursor-pointer">
                     Error Details (Development Only)
                   </summary>
-                  <div className="mt-2 text-sm text-slate-400">
+                  <div className="mt-2 text-sm text-fg-subtle">
                     <p className="font-mono mb-2">{this.state.error.toString()}</p>
                     {this.state.errorInfo?.componentStack && (
                       <pre className="whitespace-pre-wrap overflow-x-auto">
@@ -195,14 +194,14 @@ export function useErrorBoundary() {
   const ErrorFallback = React.useCallback(({ children }: { children: ReactNode }) => {
     if (error) {
       return (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="p-4 bg-error-soft text-error-on-soft border border-current/20 rounded-card">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div>
-              <h4 className="font-medium text-red-100 mb-1">Component Error</h4>
-              <p className="text-sm text-red-200 mb-3">
+              <h4 className="font-medium mb-1">Component Error</h4>
+              <p className="text-sm mb-3">
                 {error.message}
               </p>
               <Button 

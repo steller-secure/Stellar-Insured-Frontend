@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
+import { cn, controlMotion, focusRing } from '@/design-system';
 
 const navItems = [
     {
@@ -42,19 +43,30 @@ const navItems = [
     },
 ];
 
+const navLinkClasses = (isActive: boolean) =>
+    cn(
+        'group flex items-center gap-3 rounded-control px-4 py-3.5 text-base font-semibold',
+        controlMotion,
+        focusRing,
+        'focus-visible:ring-primary',
+        isActive
+            ? 'bg-primary-soft text-primary-on-soft shadow-elevation-1'
+            : 'text-fg-muted hover:bg-neutral/10 hover:text-fg',
+    );
+
 export const Sidebar = () => {
     const pathname = usePathname();
 
     return (
-        <aside className="fixed left-4 top-4 bottom-4 z-40 w-64 rounded-3xl border-2 border-white/60 bg-slate-950 px-4 py-6 shadow-2xl">
+        <aside className="fixed top-4 bottom-4 left-4 z-40 w-64 rounded-surface border border-border bg-surface-raised px-4 py-6 shadow-elevation-3">
             <div className="mb-10 flex items-center justify-center gap-2 px-2">
                 {/* Logo - Matching the design text style */}
-                <div className="text-xl font-bold text-white">
-                    Stellar<span className="text-cyan-500">Insured</span>
+                <div className="text-xl font-bold text-fg">
+                    Stellar<span className="text-primary">Insured</span>
                 </div>
             </div>
 
-            <nav className="flex flex-col h-[calc(100%-4rem)] justify-between">
+            <nav className="flex h-[calc(100%-4rem)] flex-col justify-between">
                 <div className="space-y-1">
                     {navItems.slice(0, 5).map((item) => {
                         const isActive = pathname.startsWith(item.href);
@@ -62,17 +74,10 @@ export const Sidebar = () => {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`
-                    group flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-bold transition-all
-                    ${isActive
-                                        ? 'bg-slate-800 text-white shadow-lg'
-                                        : 'text-white hover:bg-slate-800/50 hover:text-white'
-                                    }
-                  `}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={navLinkClasses(isActive)}
                             >
-                                <div className={`${isActive ? 'text-white' : 'text-white group-hover:text-white'}`}>
-                                    {item.icon}
-                                </div>
+                                {item.icon}
                                 {item.name}
                             </Link>
                         );
@@ -86,17 +91,10 @@ export const Sidebar = () => {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`
-                     group flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-bold transition-all
-                     ${isActive
-                                        ? 'bg-slate-800 text-white shadow-lg'
-                                        : 'text-white hover:bg-slate-800/50 hover:text-white'
-                                    }
-                   `}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={navLinkClasses(isActive)}
                             >
-                                <div className={`${isActive ? 'text-white' : 'text-white group-hover:text-white'}`}>
-                                    {item.icon}
-                                </div>
+                                {item.icon}
                                 {item.name}
                             </Link>
                         );

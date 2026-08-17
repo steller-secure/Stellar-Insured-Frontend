@@ -36,10 +36,10 @@ const CategoryCard = ({
                     }}
                 />
             </div>
-            <h3 className="text-white font-bold text-xl leading-none font-inter mb-3">
+            <h3 className="text-white font-bold text-xl leading-none font-display mb-3">
                 {title}
             </h3>
-            <p className="text-slate-300 font-bold text-[15px] leading-relaxed font-inter mb-6">
+            <p className="text-slate-300 font-bold text-[15px] leading-relaxed font-display mb-6">
                 {description}
             </p>
             <button className="bg-white border border-[#000000] text-[#22BBF9] px-4 py-2 rounded-md text-sm font-medium hover:bg-cyan-400 hover:text-slate-900 transition-colors duration-300">
@@ -97,7 +97,7 @@ const InsuranceCategoriesSection = () => {
                         Insurance Categories
                     </h2>
                     <div className="max-w-4xl mx-auto">
-                        <p className="text-slate-300 font-bold text-xl leading-relaxed text-center font-inter">
+                        <p className="text-slate-300 font-bold text-xl leading-relaxed text-center font-display">
                             We offer a wide range of insurance products to
                             protect what matters most to you, all powered by
                             blockchain technology.

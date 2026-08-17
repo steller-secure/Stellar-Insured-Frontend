@@ -9,14 +9,14 @@ interface FormStoreState {
   // Actions
   setFormStatus: (formId: string, status: FormStatus) => void;
   setFormError: (formId: string, error: string | undefined) => void;
-  setFormData: (formId: string, data: any) => void;
+  setFormData: (formId: string, data: unknown) => void;
   setFormState: (formId: string, state: Partial<FormState>) => void;
   getFormState: (formId: string) => FormState;
   resetForm: (formId: string) => void;
   
   // Common form flow helpers
   startSubmission: (formId: string) => void;
-  completeSubmission: (formId: string, data?: any) => void;
+  completeSubmission: (formId: string, data?: unknown) => void;
   failSubmission: (formId: string, error: string) => void;
   
   // Bulk operations

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMultiStepForm } from '@/hooks/useMultiStepForm';
+import { useMultiStepForm, type StepValidation } from '@/hooks/useMultiStepForm';
 import { useTransactionHandler } from '@/hooks/useTransactionHandler';
 import { useNotificationContext } from '@/context/NotificationContext';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
@@ -136,7 +136,7 @@ export const MultiStepClaimForm: React.FC = () => {
     return `Saved ${new Date(timestamp).toLocaleTimeString()}`;
   };
 
-  const handleStepValidation = (stepNumber: number, validation: any) => {
+  const handleStepValidation = (stepNumber: number, validation: StepValidation) => {
     validateStep(stepNumber, validation);
   };
 

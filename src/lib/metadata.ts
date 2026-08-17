@@ -243,10 +243,11 @@ export const pageMetadata = {
 /** Build dynamic metadata for an individual policy detail page. */
 export function createPolicyMetadata(policy: Policy): Metadata {
   const title = policy.name;
+  const rawDescription = policy.description ?? "";
   const description =
-    policy.description.length > 160
-      ? `${policy.description.slice(0, 157)}...`
-      : policy.description;
+    rawDescription.length > 160
+      ? `${rawDescription.slice(0, 157)}...`
+      : rawDescription;
 
   return createPageMetadata({
     title,
@@ -336,13 +337,13 @@ export function createInsuranceProductSchema(policy: Policy) {
       {
         "@type": "PropertyValue",
         name: "Coverage Amount",
-        value: policy.coverage,
+        value: policy.coverageLimit,
         unitText: "USD",
       },
       {
         "@type": "PropertyValue",
         name: "Policy ID",
-        value: policy.policyId,
+        value: policy.policyNumber,
       },
       {
         "@type": "PropertyValue",

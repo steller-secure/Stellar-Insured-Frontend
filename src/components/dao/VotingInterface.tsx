@@ -2,7 +2,11 @@
 
 import React, { useState } from "react";
 import { ThumbsUp, ThumbsDown, MinusCircle } from "lucide-react";
+<<<<<<< HEAD
 import { VoteType } from "@/types/api";
+=======
+import { VoteType } from "@/types/proposal";
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 import VotingButton from "./VotingButton";
 
 interface VotingInterfaceProps {

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Proposal } from "@/types/api";
+=======
+import type { Proposal, DaoStats } from "@/types/proposal";
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 /**
  * Calculate vote percentage for a specific vote type
@@ -32,7 +36,7 @@ export const calculateDaysRemaining = (endDate: string): number => {
 /**
  * Get proposal statistics
  */
-export const getProposalStats = (proposals: Proposal[]) => {
+export const getProposalStats = (proposals: Proposal[]): DaoStats => {
   return {
     activeProposals: proposals.filter((p) => p.status === "active").length,
     votedProposals: proposals.filter((p) => p.hasVoted).length,

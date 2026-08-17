@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { rateLimiter } from '../lib/rateLimiter';
+<<<<<<< HEAD
 import { errorHandler, ErrorCategory, ErrorSeverity } from '@/lib/errorHandler';
+=======
+import { errorHandler, ErrorCategory, ErrorSeverity, AppError } from '@/lib/errorHandler';
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 import { useErrorHandler } from './useErrorHandler';
 import { blockchainEvents, type BlockchainEventType } from '@/lib/blockchainEvents';
 
@@ -12,6 +16,7 @@ export interface DataFetchState<T> {
   error: Error | null;
   category: ErrorCategory;
   severity: ErrorSeverity;
+  retryCount: number;
 }
 
 interface UseDataFetchOptions<T = unknown> {
@@ -83,6 +88,7 @@ export function useDataFetch<T>(
     error: null,
     category: 'NETWORK',
     severity: 'MEDIUM',
+    retryCount: 0,
   });
 
   const refetch = useCallback(async () => {
@@ -96,6 +102,7 @@ export function useDataFetch<T>(
         error: null,
         category: 'NETWORK',
         severity: 'LOW',
+        retryCount: 0,
       });
       successRef.current?.(result);
     } catch (err) {
@@ -109,23 +116,34 @@ export function useDataFetch<T>(
           ? handlerRef.current.error.severity
           : 'MEDIUM';
 
-      setState({
+      setState(prev => ({
         data: null,
         loading: false,
         error,
         category,
         severity,
-      });
+        retryCount: prev.retryCount + 1,
+      }));
 
+<<<<<<< HEAD
       errorRef.current?.(error as Error & { category: ErrorCategory; severity: ErrorSeverity });
       handlerRef.current.showErrorNotification(handlerRef.current.error ?? errorHandler.createError(category, 'GENERIC_ERROR'));
+=======
+      const errorWithMeta = Object.assign(error, { category, severity });
+      onError?.(errorWithMeta);
+      errorHandlerHook.showErrorNotification(errorHandlerHook.error ?? errorHandler.createError(category, 'GENERIC_ERROR'));
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
     }
   }, []);
 
   useEffect(() => {
     if (!autoFetch) return;
+<<<<<<< HEAD
 
     void refetch();
+=======
+    refetch();
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
   }, [refetch, autoFetch]);
 
   const eventKey = eventTypes?.join(',');
@@ -160,8 +178,11 @@ export function useDataFetchOne<T>(
   severity: ErrorSeverity;
   notFound: boolean;
   refetch: () => Promise<void>;
+  hasError: boolean;
+  isRecoverable: boolean;
+  canRetry: boolean;
 } {
-  const result = useDataFetch(fetchFn, options);
+  const result = useDataFetch<T | undefined>(fetchFn, options);
 
   return {
     ...result,
@@ -178,7 +199,7 @@ export function useDataFetchList<T>(
   fetchFn: () => Promise<T[]>,
   options: UseDataFetchOptions<T[]> = {}
 ) {
-  const result = useDataFetch(fetchFn, options);
+  const result = useDataFetch<T[]>(fetchFn, options);
 
   return {
     ...result,
@@ -196,6 +217,7 @@ export function useDataFetchDependency<T>(
   dependencies: unknown[] = [],
   options: UseDataFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void>; hasError: boolean; isRecoverable: boolean; canRetry: boolean } {
+<<<<<<< HEAD
   const dependencyKey = JSON.stringify(dependencies);
   const dependencyFetch = useCallback(() => fetchFn(dependencies), [fetchFn, dependencyKey]);
   const result = useDataFetch(dependencyFetch, { ...options, autoFetch: false });
@@ -205,6 +227,10 @@ export function useDataFetchDependency<T>(
     // dependencyKey captures changes to dependency values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dependencyKey, options.autoFetch, result.refetch]);
+=======
+  const wrappedFetch = useCallback(() => fetchFn(dependencies), [fetchFn, ...dependencies]);
+  const result = useDataFetch(wrappedFetch, options);
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
   return {
     ...result,

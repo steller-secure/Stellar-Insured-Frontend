@@ -1,6 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import ProposalCard from '@/components/dao/ProposalCard';
+<<<<<<< HEAD
 import { Proposal } from '@/types/api';
+=======
+import { Proposal } from '@/types/proposal';
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 describe('ProposalCard', () => {
   const mockProposal: Proposal = {

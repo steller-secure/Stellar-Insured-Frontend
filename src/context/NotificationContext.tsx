@@ -2,16 +2,24 @@
 
 import React, { createContext, useContext, useCallback, useEffect } from "react";
 import { useToast } from "@/components/ui/toast";
+<<<<<<< HEAD
 import type { AppError, ErrorCategory } from "@/lib/errorHandler";
 import { blockchainEvents, type BlockchainEvent } from "@/lib/blockchainEvents";
 import { useWalletStore } from "@/store";
+=======
+import { errorHandler, ErrorCategory, AppError } from "@/lib/errorHandler";
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 type NotificationType = "success" | "error" | "warning" | "info";
 
 type ErrorSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 interface NotificationContextType {
-  addNotification: (message: string, type: NotificationType, severity?: ErrorSeverity) => void;
+  addNotification: (
+    message: string,
+    type: NotificationType,
+    severity?: ErrorSeverity,
+  ) => void;
   addError: (error: AppError) => void;
   /**
    * The most recent announcement text for the polite aria-live region.
@@ -67,7 +75,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const addNotification = useCallback(
-    (message: string, type: NotificationType = "info", severity?: ErrorSeverity) => {
+    (
+      message: string,
+      type: NotificationType = "info",
+      severity?: ErrorSeverity,
+    ) => {
       showToast(message, type);
       // Also pipe the message into the live region for non-visual users
       announce(message);
@@ -78,6 +90,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   const addError = useCallback(
     (error: AppError) => {
       // Critical errors are logged, not shown as toast
+<<<<<<< HEAD
       if (error.severity === 'CRITICAL') {
         // Send to monitoring endpoint
         console.error('[Critical application error]', error);
@@ -87,6 +100,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       // Non-critical errors are shown as toast and announced via live region
       showToast(error.message, 'error');
       announce(error.message);
+=======
+      if (error.severity === "CRITICAL") {
+        // Log critical errors to console
+        console.error("[Critical Error]", error);
+        return;
+      }
+
+      // Non-critical errors are shown as toast
+      showToast(error.message, "error");
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
     },
     [showToast, announce],
   );

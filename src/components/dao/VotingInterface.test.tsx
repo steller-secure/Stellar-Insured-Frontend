@@ -1,7 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import VotingInterface from './VotingInterface';
+<<<<<<< HEAD
 import { VoteType } from '@/types/api';
+=======
+import { VoteType } from '@/types/proposal';
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 describe('VotingInterface', () => {
   const mockOnVote = jest.fn();

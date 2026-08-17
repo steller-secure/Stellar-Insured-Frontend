@@ -53,7 +53,7 @@ describe("metadata", () => {
         template: "%s | Stellar Insured",
       });
       expect(metadata.openGraph?.siteName).toBe("Stellar Insured");
-      expect(metadata.twitter?.card).toBe("summary_large_image");
+      expect(metadata.twitter?.title).toBe("Stellar Insured");
       expect(metadata.alternates?.canonical).toBe("https://stellar-insured.com");
     });
   });
@@ -94,11 +94,13 @@ describe("metadata", () => {
       const metadata = createPolicyMetadata({
         id: "1",
         name: "Crypto Asset Protection",
+        type: "Health",
         status: "active",
-        coverage: 75000,
+        coverageLimit: 75000,
+        coverageLimitFormatted: "$75,000",
+        policyNumber: "POL-2025-001",
         premium: 120,
         expiryDate: "Apr 15, 2026",
-        policyId: "POL-2025-001",
         description: "Comprehensive coverage for digital assets.",
         terms: [],
       });
@@ -124,11 +126,13 @@ describe("metadata", () => {
       const schema = createInsuranceProductSchema({
         id: "1",
         name: "Crypto Asset Protection",
+        type: "Health",
         status: "active",
-        coverage: 75000,
+        coverageLimit: 75000,
+        coverageLimitFormatted: "$75,000",
+        policyNumber: "POL-2025-001",
         premium: 120,
         expiryDate: "Apr 15, 2026",
-        policyId: "POL-2025-001",
         description: "Comprehensive coverage for digital assets.",
         terms: [],
       });

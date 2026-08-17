@@ -1,13 +1,8 @@
 // Common types for state management
 
-export interface AuthSession {
-  address: string;
-  signedMessage: string;
-  signerAddress: string;
-  authenticatedAt: number;
-  expiresAt: number;
-  refreshToken?: string;
-}
+// AuthSession is defined once as a Zod-derived type in @/types/api and re-exported
+// here so existing `@/store/types` importers keep pointing at the single source of truth.
+export type { AuthSession } from "@/types/api";
 
 export interface RegisteredUser {
   createdAt: number;

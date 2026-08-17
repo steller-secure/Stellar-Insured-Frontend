@@ -81,10 +81,10 @@ describe('PolicyService', () => {
       const result = await policyService.createPolicy(validRequest);
       
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe(validRequest.name);
-      expect(result.data.type).toBe(validRequest.type);
-      expect(result.data.status).toBe('pending');
-      expect(result.data.policyNumber).toMatch(/^HEL-\w{4}-XX$/);
+      expect(result.data?.name).toBe(validRequest.name);
+      expect(result.data?.type).toBe(validRequest.type);
+      expect(result.data?.status).toBe('pending');
+      expect(result.data?.policyNumber).toMatch(/^HEL-\w{4}-XX$/);
     });
 
     it('should reject policy with short name', async () => {
@@ -130,8 +130,8 @@ describe('PolicyService', () => {
       const result = await policyService.updatePolicy('p1', updateRequest);
       
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe(updateRequest.name);
-      expect(result.data.status).toBe(updateRequest.status);
+      expect(result.data?.name).toBe(updateRequest.name);
+      expect(result.data?.status).toBe(updateRequest.status);
     });
 
     it('should return error for non-existent policy', async () => {
@@ -147,8 +147,8 @@ describe('PolicyService', () => {
       const result = await policyService.updatePolicy('p1', updateRequest);
       
       expect(result.success).toBe(true);
-      expect(result.data.coverageLimit).toBe(75000);
-      expect(result.data.coverageLimitFormatted).toBe('$75,000.00');
+      expect(result.data?.coverageLimit).toBe(75000);
+      expect(result.data?.coverageLimitFormatted).toBe('$75,000.00');
     });
   });
 

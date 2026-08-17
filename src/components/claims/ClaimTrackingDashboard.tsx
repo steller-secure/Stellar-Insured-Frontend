@@ -5,7 +5,11 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+<<<<<<< HEAD
 import { type Claim } from '@/types/api';
+=======
+import type { Claim } from '@/types/claim';
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 import { useDataFetchList } from '@/hooks/useDataFetch';
 import { DataService } from '@/config/dataSource';
 import { ClaimsSkeleton, EmptyState, ErrorState } from '@/components/ui/SkeletonLoaders';

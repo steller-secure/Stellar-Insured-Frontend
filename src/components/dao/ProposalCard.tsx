@@ -16,7 +16,11 @@ import {
 } from "@/lib/dao-utils";
 import VoteProgressBar from "./VoteProgressBar";
 import VotingInterface from "./VotingInterface";
+<<<<<<< HEAD
 import { Proposal, VoteType } from "@/types/api";
+=======
+import { Proposal, VoteType } from "@/types/proposal";
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 interface ProposalCardProps {
   proposal: Proposal;

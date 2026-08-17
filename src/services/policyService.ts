@@ -8,6 +8,7 @@ import type {
   PolicyFilterOptions,
   PolicyServiceResponse,
   PolicyListResponse,
+  PolicyStatistics,
   PolicyType,
   PolicyStatus
 } from './types/policy.types';
@@ -109,13 +110,13 @@ class PolicyService {
   /**
    * Create a new policy
    */
-  async createPolicy(request: PolicyCreationRequest): Promise<PolicyServiceResponse<Policy>> {
+  async createPolicy(request: PolicyCreationRequest): Promise<PolicyServiceResponse<Policy | null>> {
     try {
       // Validate the request
       const validation = this.validatePolicyCreationRequest(request);
       if (!validation.isValid) {
         return {
-          data: {} as Policy,
+          data: null,
           success: false,
           error: validation.errors.join(', ')
         };
@@ -149,7 +150,7 @@ class PolicyService {
       };
     } catch (error) {
       return {
-        data: {} as Policy,
+        data: null,
         success: false,
         error: 'Failed to create policy'
       };
@@ -159,13 +160,19 @@ class PolicyService {
   /**
    * Update an existing policy
    */
-  async updatePolicy(id: string, request: PolicyUpdateRequest): Promise<PolicyServiceResponse<Policy>> {
+  async updatePolicy(id: string, request: PolicyUpdateRequest): Promise<PolicyServiceResponse<Policy | null>> {
     try {
+<<<<<<< HEAD
       const currentPolicy = await DataService.getPolicy(id);
       
       if (!currentPolicy) {
+=======
+      const policyIndex = this.policies.findIndex(p => p.id === id);
+
+      if (policyIndex === -1) {
+>>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
         return {
-          data: {} as Policy,
+          data: null,
           success: false,
           error: 'Policy not found'
         };
@@ -199,7 +206,7 @@ class PolicyService {
       };
     } catch (error) {
       return {
-        data: {} as Policy,
+        data: null,
         success: false,
         error: 'Failed to update policy'
       };
@@ -264,7 +271,8 @@ class PolicyService {
       errors.push('Policy name must be at least 3 characters long');
     }
 
-    if (!Object.values(['Health', 'Auto', 'Home', 'Travel'] as PolicyType[]).includes(request.type)) {
+    const validTypes: PolicyType[] = ['Health', 'Auto', 'Home', 'Travel'];
+    if (!validTypes.includes(request.type)) {
       errors.push('Invalid policy type');
     }
 
@@ -285,14 +293,7 @@ class PolicyService {
   /**
    * Get policy statistics
    */
-  async getPolicyStatistics(): Promise<PolicyServiceResponse<{
-    totalPolicies: number;
-    activePolicies: number;
-    pendingPolicies: number;
-    expiredPolicies: number;
-    totalCoverage: number;
-    averagePremium: number;
-  }>> {
+  async getPolicyStatistics(): Promise<PolicyServiceResponse<PolicyStatistics>> {
     try {
       let policiesToStat = await DataService.getPolicies();
 

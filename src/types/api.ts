@@ -190,3 +190,91 @@ export type ProposalStats = DaoStats;
 
 export const paginatedProposalSchema = createPaginatedResponseSchema(proposalSchema);
 export type PaginatedProposalResponse = z.infer<typeof paginatedProposalSchema>;
+
+// ─── Auth Schemas & Types ────────────────────────────────────────────────────
+
+export const authSessionSchema = z.object({
+  address: z.string(),
+  signedMessage: z.string(),
+  signerAddress: z.string(),
+  authenticatedAt: z.number(),
+  expiresAt: z.number(),
+  refreshToken: z.string().optional(),
+});
+export type AuthSession = z.infer<typeof authSessionSchema>;
+
+export const authRequestSchema = z.object({
+  address: z.string(),
+  signedMessage: z.string(),
+  signerAddress: z.string(),
+});
+export type AuthRequest = z.infer<typeof authRequestSchema>;
+
+export const authResponseSchema = z.object({
+  session: authSessionSchema,
+  token: z.string(),
+});
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// ─── Wallet Balance Schemas & Types ──────────────────────────────────────────
+
+export const walletBalanceAssetSchema = z.object({
+  code: z.string(),
+  issuer: z.string(),
+  balance: z.number(),
+});
+export type WalletBalanceAsset = z.infer<typeof walletBalanceAssetSchema>;
+
+export const walletBalanceSchema = z.object({
+  xlm: z.number(),
+  assets: z.array(walletBalanceAssetSchema),
+  loading: z.boolean(),
+  refreshing: z.boolean(),
+  error: z.string().nullable(),
+  lastUpdated: z.number().nullable(),
+});
+export type WalletBalance = z.infer<typeof walletBalanceSchema>;
+
+export const walletBalanceResponseSchema = z.object({
+  xlm: z.number(),
+  assets: z.array(walletBalanceAssetSchema),
+});
+export type WalletBalanceResponse = z.infer<typeof walletBalanceResponseSchema>;
+
+// ─── Analytics Schemas & Types ───────────────────────────────────────────────
+
+export const analyticsEventTypeSchema = z.enum(["PAGE_VIEW", "ACTION", "ERROR"]);
+export type AnalyticsEventType = z.infer<typeof analyticsEventTypeSchema>;
+
+export const analyticsEventCategorySchema = z.enum(["AUTH", "POLICY", "CLAIM", "NAVIGATION", "SYSTEM"]);
+export type AnalyticsEventCategory = z.infer<typeof analyticsEventCategorySchema>;
+
+export const analyticsEventSchema = z.object({
+  id: z.string(),
+  type: analyticsEventTypeSchema,
+  category: analyticsEventCategorySchema,
+  name: z.string(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  userId: z.string().optional(),
+  timestamp: z.number(),
+  path: z.string(),
+});
+export type AnalyticsEvent = z.infer<typeof analyticsEventSchema>;
+
+export const analyticsEventRequestSchema = z.object({
+  type: analyticsEventTypeSchema,
+  category: analyticsEventCategorySchema,
+  name: z.string(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  userId: z.string().optional(),
+  path: z.string(),
+});
+export type AnalyticsEventRequest = z.infer<typeof analyticsEventRequestSchema>;
+
+export const analyticsStatsSchema = z.object({
+  totalEvents: z.number(),
+  pageViews: z.number(),
+  actions: z.number(),
+  errors: z.number(),
+});
+export type AnalyticsStats = z.infer<typeof analyticsStatsSchema>;

@@ -52,7 +52,12 @@ export interface PageMetadataOptions {
 }
 
 /** Create metadata for the root layout with title template and social defaults. */
-export function createRootMetadata(): Metadata {
+export interface RootMetadataI18nOptions {
+  description?: string;
+  ogAlt?: string;
+}
+
+export function createRootMetadata(options: RootMetadataI18nOptions = {}): Metadata {
   const siteUrl = getSiteUrl();
 
   return {
@@ -61,7 +66,7 @@ export function createRootMetadata(): Metadata {
       default: siteConfig.name,
       template: `%s | ${siteConfig.name}`,
     },
-    description: siteConfig.description,
+    description: options.description ?? siteConfig.description,
     keywords: DEFAULT_KEYWORDS,
     authors: [{ name: siteConfig.name, url: siteUrl }],
     creator: siteConfig.name,
@@ -80,26 +85,26 @@ export function createRootMetadata(): Metadata {
       url: siteUrl,
       siteName: siteConfig.name,
       title: siteConfig.name,
-      description: siteConfig.description,
+      description: options.description ?? siteConfig.description,
       images: [
         {
           url: "/opengraph-image",
           width: 1200,
           height: 630,
-          alt: `${siteConfig.name} – Decentralized Insurance on Stellar`,
+          alt: options.ogAlt ?? `${siteConfig.name} – Decentralized Insurance on Stellar`,
         },
         {
           url: "/og/default.svg",
           width: 1200,
           height: 630,
-          alt: `${siteConfig.name} – Decentralized Insurance on Stellar`,
+          alt: options.ogAlt ?? `${siteConfig.name} – Decentralized Insurance on Stellar`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
       title: siteConfig.name,
-      description: siteConfig.description,
+      description: options.description ?? siteConfig.description,
       creator: siteConfig.twitterHandle,
       images: ["/twitter-image"],
     },

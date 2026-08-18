@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "defaultTitle": "Stellar Insured",
+    "rootDescription": "Plataforma de seguros descentralizada construida en Stellar. Compra pólizas transparentes, presenta reclamos y participa en la gobernanza DAO con contratos inteligentes.",
+    "homeTitle": "Seguro descentralizado en Stellar",
+    "homeDescription": "Protege tus activos digitales con seguros transparentes impulsados por blockchain. Explora pólizas, presenta reclamos y gobierna la plataforma mediante votación DAO.",
+    "aboutTitle": "Acerca de nosotros",
+    "aboutDescription": "Learn how Stellar Insured delivers tamper-proof, transparent, and automated insurance solutions powered by Stellar blockchain smart contracts.",
+    "policiesTitle": "Mis pólizas",
+    "policiesDescription": "View and manage your decentralized insurance policies. Track coverage, premiums, and policy status in one dashboard.",
+    "policyListingTitle": "Explorar pólizas de seguro",
+    "policyListingDescription": "Explore decentralized insurance plans for crypto, property, travel, health, and more. Compare coverage and purchase on the Stellar blockchain.",
+    "claimsTitle": "Panel de reclamos",
+    "claimsDescription": "Track and manage your insurance claims. Monitor claim status, upload documents, and receive settlements through smart contracts.",
+    "newClaimTitle": "Presentar un reclamo",
+    "newClaimDescription": "Submit a new insurance claim with our guided multi-step process. Upload evidence and track your claim on the blockchain.",
+    "daoTitle": "Gobernanza DAO",
+    "daoDescription": "Participate in Stellar Insured governance. Review proposals, cast votes, and help shape the future of decentralized insurance.",
+    "dashboardTitle": "Panel",
+    "dashboardDescription": "Your Stellar Insured dashboard. Monitor wallet balance, policies, claims, and platform activity at a glance.",
+    "signInTitle": "Iniciar sesión",
+    "signInDescription": "Sign in to Stellar Insured with your Stellar wallet to manage policies, file claims, and participate in governance.",
+    "signUpTitle": "Registrarse",
+    "signUpDescription": "Create your Stellar Insured account. Connect your Stellar wallet and start protecting your assets with decentralized insurance.",
+    "policyNotFoundTitle": "Póliza no encontrada",
+    "policyNotFoundDescription": "No se pudo encontrar la póliza solicitada.",
+    "ogAlt": "{appName} – Decentralized Insurance on Stellar"
+  },
+  "common": {
+    "skipToMain": "Saltar al contenido principal",
+    "loading": "Cargando...",
+    "language": {
+      "label": "Seleccionar idioma",
+      "options": {
+        "en": "Inglés",
+        "es": "Español"
+      }
+    },
+    "actions": {
+      "connectWallet": "Conectar billetera",
+      "connecting": "Conectando...",
+      "signUp": "Registrarse",
+      "signIn": "Iniciar sesión",
+      "getStarted": "Comenzar",
+      "learnMore": "Más información",
+      "fileClaim": "Presentar reclamo",
+      "browsePolicies": "Ver pólizas"
+    }
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "dashboard": "Panel",
+    "policies": "Pólizas",
+    "claims": "Reclamos",
+    "dao": "Votación DAO",
+    "analytics": "Analítica",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse"
+  },
+  "home": {
+    "heroTitle": "Seguro descentralizado en Stellar",
+    "heroSubtitle": "Protege activos digitales con pólizas transparentes, reclamos rápidos y gobernanza DAO.",
+    "featuresTitle": "Seguros creados para Web3",
+    "readyTitle": "¿Listo para proteger tus activos?"
+  },
+  "auth": {
+    "signupTitle": "Únete a Stellar Insured",
+    "signupSubtitle": "Crea tu cuenta y comienza a proteger tus activos digitales hoy",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
+    "signatureRequired": "Firma requerida",
+    "signatureHelp": "Confirma este mensaje en tu billetera Stellar para finalizar la creación de la cuenta.",
+    "success": "¡Registro completado!",
+    "walletExists": "Esta billetera ya tiene una cuenta. Inicia sesión.",
+    "errors": {
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Ingresa un correo electrónico válido",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordLength": "La contraseña debe tener al menos 8 caracteres",
+      "passwordNumber": "La contraseña debe contener al menos un número",
+      "passwordUpper": "La contraseña debe contener al menos una letra mayúscula",
+      "confirmRequired": "Confirma tu contraseña",
+      "passwordMismatch": "Las contraseñas no coinciden"
+    }
+  },
+  "claims": {
+    "dashboardTitle": "Panel de reclamos",
+    "dashboardSubtitle": "Rastrea reclamos existentes, conecta tu billetera o inicia un nuevo reclamo.",
+    "newTitle": "Presentar un reclamo"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Ingresa un correo electrónico válido",
+    "minLength": "Debe tener al menos {min} caracteres",
+    "maxLength": "No debe tener más de {max} caracteres"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "wallet": "Falló la conexión de la billetera. Inténtalo de nuevo."
+  }
+}

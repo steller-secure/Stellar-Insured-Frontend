@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "defaultTitle": "Stellar Insured",
+    "rootDescription": "Decentralized insurance platform built on Stellar. Buy transparent policies, file claims, and participate in DAO governance with blockchain-powered smart contracts.",
+    "homeTitle": "Decentralized Insurance on Stellar",
+    "homeDescription": "Protect your digital assets with transparent, blockchain-powered insurance. Browse policies, file claims, and govern the platform through DAO voting.",
+    "aboutTitle": "About Us",
+    "aboutDescription": "Learn how Stellar Insured delivers tamper-proof, transparent, and automated insurance solutions powered by Stellar blockchain smart contracts.",
+    "policiesTitle": "My Policies",
+    "policiesDescription": "View and manage your decentralized insurance policies. Track coverage, premiums, and policy status in one dashboard.",
+    "policyListingTitle": "Browse Insurance Policies",
+    "policyListingDescription": "Explore decentralized insurance plans for crypto, property, travel, health, and more. Compare coverage and purchase on the Stellar blockchain.",
+    "claimsTitle": "Claims Dashboard",
+    "claimsDescription": "Track and manage your insurance claims. Monitor claim status, upload documents, and receive settlements through smart contracts.",
+    "newClaimTitle": "File a Claim",
+    "newClaimDescription": "Submit a new insurance claim with our guided multi-step process. Upload evidence and track your claim on the blockchain.",
+    "daoTitle": "DAO Governance",
+    "daoDescription": "Participate in Stellar Insured governance. Review proposals, cast votes, and help shape the future of decentralized insurance.",
+    "dashboardTitle": "Dashboard",
+    "dashboardDescription": "Your Stellar Insured dashboard. Monitor wallet balance, policies, claims, and platform activity at a glance.",
+    "signInTitle": "Sign In",
+    "signInDescription": "Sign in to Stellar Insured with your Stellar wallet to manage policies, file claims, and participate in governance.",
+    "signUpTitle": "Sign Up",
+    "signUpDescription": "Create your Stellar Insured account. Connect your Stellar wallet and start protecting your assets with decentralized insurance.",
+    "policyNotFoundTitle": "Policy Not Found",
+    "policyNotFoundDescription": "The requested insurance policy could not be found.",
+    "ogAlt": "{appName} \u2013 Decentralized Insurance on Stellar"
+  },
+  "common": {
+    "skipToMain": "Skip to main content",
+    "loading": "Loading...",
+    "language": {
+      "label": "Select language",
+      "options": {
+        "en": "English",
+        "es": "Spanish"
+      }
+    },
+    "actions": {
+      "connectWallet": "Connect Wallet",
+      "connecting": "Connecting...",
+      "signUp": "Sign up",
+      "signIn": "Sign in",
+      "getStarted": "Get started",
+      "learnMore": "Learn more",
+      "fileClaim": "File claim",
+      "browsePolicies": "Browse policies"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "dashboard": "Dashboard",
+    "policies": "Policies",
+    "claims": "Claims",
+    "dao": "DAO Voting",
+    "analytics": "Analytics",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
+  "home": {
+    "heroTitle": "Decentralized Insurance on Stellar",
+    "heroSubtitle": "Protect digital assets with transparent policies, fast claims, and DAO-powered governance.",
+    "featuresTitle": "Insurance built for Web3",
+    "readyTitle": "Ready to secure your assets?"
+  },
+  "auth": {
+    "signupTitle": "Join Stellar Insured",
+    "signupSubtitle": "Create your account and start protecting your digital assets today",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "signatureRequired": "Signature Required",
+    "signatureHelp": "Confirm this message in your Stellar wallet to finish account creation.",
+    "success": "Signed up successfully!",
+    "walletExists": "This wallet already has an account. Please sign in.",
+    "errors": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordNumber": "Password must contain at least one number",
+      "passwordUpper": "Password must contain at least one uppercase letter",
+      "confirmRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "claims": {
+    "dashboardTitle": "Claims Dashboard",
+    "dashboardSubtitle": "Track existing claims, connect your wallet, or start a new claim.",
+    "newTitle": "File a Claim"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be no more than {max} characters"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "wallet": "Wallet connection failed. Please try again."
+  }
+}

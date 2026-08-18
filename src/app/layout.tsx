@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Suspense } from "react";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -35,26 +37,37 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata = createRootMetadata();
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return createRootMetadata({
+    description: t("rootDescription"),
+    ogAlt: t("ogAlt", { appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Stellar Insured" }),
+  });
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const t = await getTranslations("common");
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
         {/* Skip-to-main-content link – WCAG 2.4.1 Bypass Blocks */}
         <a href="#main-content" className="skip-to-content">
-          Skip to main content
+          {t("skipToMain")}
         </a>
 
         <JsonLd
           data={[createOrganizationSchema(), createWebSiteSchema()]}
         />
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <ThemeProvider>
           <Suspense fallback={null}>
             <ErrorBoundary>
@@ -78,6 +91,7 @@ export default function RootLayout({
             </ErrorBoundary>
           </Suspense>
         </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

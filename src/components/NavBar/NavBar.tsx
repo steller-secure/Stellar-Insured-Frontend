@@ -9,33 +9,35 @@ import { Menu, X } from 'lucide-react';
 import { WalletConnectButton } from '../WalletConnectButton';
 import { WalletStatus } from '../WalletStatus';
 import { NotificationCenter } from '../NotificationCenter';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 
 interface NavLink {
   id: number;
-  name: string;
+  labelKey: 'home' | 'about' | 'policies' | 'claims' | 'dao';
   href: string;
 }
 
 const navLinks: NavLink[] = [{
   id: 1,
-  name: 'Home',
+  labelKey: 'home',
   href: '/'
 }, {
   id: 2,
-  name: 'About',
+  labelKey: 'about',
   href: '/about'
 }, {
   id: 3,
-  name: 'Features',
-  href: '/#features'
+  labelKey: 'policies',
+  href: '/policies/listing'
 }, {
   id: 4,
-  name: 'Insurance',
-  href: '/insurance'
+  labelKey: 'claims',
+  href: '/claims'
 }, {
   id: 5,
-  name: 'Contact',
-  href: '/contact'
+  labelKey: 'dao',
+  href: '/dao/voting'
 }];
 
 const NavBarList = (
@@ -46,7 +48,8 @@ const NavBarList = (
   }
 ) => {
 
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
+  const t = useTranslations('nav');
   const { isConnected } = useWallet();
   const pathname = usePathname();
 
@@ -70,8 +73,8 @@ const NavBarList = (
   return (
     <>
       {/* desktop menu */}
-      <nav className='hidden lg:flex justify-between items-center w-full h-full m-auto' data-nav="desktop" aria-label="Main navigation">
-        <img src={logo.src} alt="Stellar Insured Logo" className="block" />
+      <nav className='hidden lg:flex justify-between items-center w-full h-full m-auto' data-nav="desktop" aria-label={t("home")}>
+        <img src={logo.src} alt={t("home")} className="block" />
         <ul className='flex flex-row mb-3' role="list">
           {navLinks.map((link) => (
             <li key={link.id}>
@@ -80,21 +83,22 @@ const NavBarList = (
                 className={getLinkClassName(link.href)}
                 aria-current={getLinkAriaCurrent(link.href)}
               >
-                {link.name}
+                {t(link.labelKey)}
               </Link>
             </li>
           ))}
         </ul>
         {session ? (
           <ul className='flex gap-5 justify-between items-center'>
+            <li><LanguageSwitcher /></li>
             <li>
               <Link href='/dashboard' className='text-white text-lg font-medium mx-6 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
-                Dashboard
+                {t("dashboard")}
               </Link>
             </li>
             <li>
               <Link href='/analytics' className='text-white text-lg font-medium mx-6 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
-                Analytics
+                {t("analytics")}
               </Link>
             </li>
             <li>
@@ -104,6 +108,7 @@ const NavBarList = (
                 )}
                 <WalletConnectButton showBalance={false} className="bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]" />
                 <NotificationCenter />
+                  <LanguageSwitcher />
               </div>
             </li>
           </ul>
@@ -111,12 +116,12 @@ const NavBarList = (
           <ul className='flex gap-5 justify-between items-center'>
             <li>
               <Link href='/signin' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
-                Sign In
+                {t("signIn")}
               </Link>
             </li>
             <li>
               <Link href='/signup' className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
-                Sign Up
+                {t("signUp")}
               </Link>
             </li>
           </ul>
@@ -133,7 +138,7 @@ const NavBarList = (
                 aria-current={getLinkAriaCurrent(link.href)}
                 onClick={() => setIsOpen(false)}
               >
-                {link.name}
+                {t(link.labelKey)}
               </Link>
             </li>
           ))}
@@ -143,12 +148,12 @@ const NavBarList = (
             <>
               <li className='w-full'>
                 <Link href='/dashboard' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
-                  Dashboard
+                  {t("dashboard")}
                 </Link>
               </li>
               <li className='w-full'>
                 <Link href='/analytics' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
-                  Analytics
+                  {t("analytics")}
                 </Link>
               </li>
               <li className='w-full flex flex-col gap-3'>
@@ -167,18 +172,18 @@ const NavBarList = (
             <>
               <li className='w-full'>
                 <Link href='/signin' className='text-white text-lg font-medium mx-3 hover:text-[#22BBF9] transition-colors duration-200 block text-center focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]' onClick={() => setIsOpen(false)}>
-                  Sign In
+                  {t("signIn")}
                 </Link>
               </li>
               <li className='w-full'>
                 <Link href='/signup' className='bg-[#22BBF9] rounded-full px-3 py-1 text-black text-lg font-medium whitespace-nowrap w-full hover:brightness-110 transition-all block text-center focus:outline-none focus:ring-2 focus:ring-[#22BBF9] focus:ring-offset-2 focus:ring-offset-[#1E2433]'>
-                  Sign Up
+                  {t("signUp")}
                 </Link>
               </li>
             </>
           )}
         </ul>
-        <button type='button' title='Close menu' onClick={() => setIsOpen(false)} aria-label="Close navigation menu">
+        <button type='button' title={t('home')} onClick={() => setIsOpen(false)} aria-label={t("home")}>
           <X className='text-white w-5 h-5 absolute z-999 right-5 top-5' />
         </button>
       </nav>
@@ -189,6 +194,7 @@ const NavBarList = (
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const t = useTranslations('nav');
 
   // Keyboard navigation for desktop + mobile
   useEffect(() => {
@@ -246,7 +252,7 @@ const NavBar = () => {
   }, [isOpen]);
 
   return (
-    <header className='bg-[#1E2433] fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' aria-label="Site header">
+    <header className='bg-[#1E2433] fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' aria-label={t("home")}>
 
       {/* desktop navbar */}
       <div className='hidden lg:flex w-full'>
@@ -255,12 +261,12 @@ const NavBar = () => {
 
       {/* mobile navbar */}
       <div className='w-full flex lg:hidden justify-between items-center bg-[#1E2433]'>
-        <img src={logo.src} alt="Stellar Insured Logo" className="w-28" />
+        <img src={logo.src} alt={t("home")} className="w-28" />
         <button
           type='button'
-          title={isOpen ? 'Close menu' : 'Open menu'}
+          title={isOpen ? t('home') : t('home')}
           onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-label={isOpen ? t('home') : t('home')}
           aria-expanded={isOpen}
           aria-controls='mobile-nav'
           className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22BBF9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1E2433] rounded"

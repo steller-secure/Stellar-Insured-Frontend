@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { type Claim } from '@/data/mockData';
+import { type Claim } from '@/types/api';
 import { useDataFetchList } from '@/hooks/useDataFetch';
 import { DataService } from '@/config/dataSource';
 import { ClaimsSkeleton, EmptyState, ErrorState } from '@/components/ui/SkeletonLoaders';

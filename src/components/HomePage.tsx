@@ -16,7 +16,6 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950 relative">
       <NavBar />
       <RealtimeStatus className="absolute right-4 top-20 z-10" />
-      <main className="flex flex-col">
       {/* id="main-content" is the skip-link target from layout.tsx */}
       <main id="main-content" className="flex flex-col" tabIndex={-1}>
         <HeroSection />

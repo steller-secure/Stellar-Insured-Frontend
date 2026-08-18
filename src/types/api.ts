@@ -136,14 +136,18 @@ export type PaginatedClaimResponse = z.infer<typeof paginatedClaimSchema>;
 
 // ─── DAO Governance Schemas & Types ──────────────────────────────────────────
 
-export const proposalStatusSchema = z.enum(["active", "pending", "expired"]);
+export const proposalStatusSchema = z.enum(["active", "pending", "expired", "PENDING", "ACTIVE", "APPROVED", "REJECTED"]);
 export type ProposalStatus = z.infer<typeof proposalStatusSchema>;
 
 export const voteTypeSchema = z.enum(["for", "against", "abstain"]);
 export type VoteType = z.infer<typeof voteTypeSchema>;
 
+export const proposalTypeSchema = z.enum(["UPGRADE", "FUNDING", "PARAMETER_CHANGE"]);
+export type ProposalType = z.infer<typeof proposalTypeSchema>;
+
 export const proposalSchema = z.object({
   id: z.string(),
+  type: proposalTypeSchema.optional(),
   title: z.string(),
   description: z.string(),
   proposer: z.string(),
@@ -182,6 +186,7 @@ export const daoStatsSchema = z.object({
   totalVotingPower: z.number(),
 });
 export type DaoStats = z.infer<typeof daoStatsSchema>;
+export type ProposalStats = DaoStats;
 
 export const paginatedProposalSchema = createPaginatedResponseSchema(proposalSchema);
 export type PaginatedProposalResponse = z.infer<typeof paginatedProposalSchema>;

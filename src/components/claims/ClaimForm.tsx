@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { type Policy } from '@/data/mockData';
+import { type Policy } from '@/types/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFormValidation } from '@/hooks/useFormValidation';

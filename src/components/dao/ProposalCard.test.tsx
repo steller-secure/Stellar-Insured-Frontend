@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import ProposalCard from '@/components/dao/ProposalCard';
-import { Proposal } from '@/types/dao-types';
+import { Proposal } from '@/types/api';
 
 describe('ProposalCard', () => {
   const mockProposal: Proposal = {

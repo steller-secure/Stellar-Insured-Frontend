@@ -1,5 +1,5 @@
 import DAOVotingClient from "@/components/dao/DAOVotingClient";
-import { mockProposals } from "@/data/dao-mockData";
+import { DataService } from "@/config/dataSource";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { JsonLd } from "@/components/JsonLd";
 import {
@@ -17,7 +17,7 @@ export default async function DAOVotingPage() {
   // TODO: Replace with actual data fetching from blockchain/API
   // const proposals = await fetchProposalsFromBlockchain();
 
-  const proposals = mockProposals;
+  const proposals = await DataService.getProposals();
 
   return (
     /*

@@ -22,7 +22,8 @@ type StepStatus = 'completed' | 'current' | 'upcoming';
 
 const statusClasses: Record<StepStatus, string> = {
   completed: 'bg-success border-success text-success-fg',
-  current: 'bg-primary border-primary text-primary-fg ring-4 ring-primary/25',
+  current:
+    'bg-primary border-primary text-primary-fg ring-4 ring-primary/25',
   upcoming: 'bg-surface-sunken border-border text-fg-subtle',
 };
 
@@ -31,7 +32,7 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
   currentStep,
   completedSteps = [],
   onStepClick,
-  canNavigate = () => true
+  canNavigate = () => true,
 }) => {
   const getStepStatus = (stepNumber: number): StepStatus => {
     if (completedSteps.includes(stepNumber)) return 'completed';
@@ -46,38 +47,64 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
     }
   };
 
-  const activeStep = steps.find((s) => s.id === currentStep);
+  const activeStep = steps.find((step) => step.id === currentStep);
+
+  const mobileProgressPercent =
+    steps.length > 0
+      ? Math.round((currentStep / steps.length) * 100)
+      : 0;
 
   return (
     <div className="w-full">
       {/* Desktop Stepper */}
-      <ol className="hidden items-center justify-between md:flex">
+      <nav
+        className="hidden items-center justify-between md:flex"
+        aria-label="Form progress"
+      >
         {steps.map((step, index) => {
           const status = getStepStatus(step.id);
+
           const isConnectorComplete =
-            step.id < currentStep || completedSteps.includes(step.id);
+            step.id < currentStep ||
+            completedSteps.includes(step.id);
+
+          const isNavigable =
+            !!onStepClick && canNavigate(step.id);
+
+          const isCompleted = status === 'completed';
+          const isCurrent = status === 'current';
+
+          const stepLabel = isCompleted
+            ? `Step ${step.id}: ${step.title} — completed`
+            : isCurrent
+              ? `Step ${step.id}: ${step.title} — current step`
+              : `Step ${step.id}: ${step.title} — not yet reached`;
 
           return (
             <React.Fragment key={step.id}>
-              <li className="flex flex-col items-center">
+              <div className="flex flex-col items-center">
                 <button
                   type="button"
                   onClick={() => handleStepClick(step.id)}
-                  disabled={!canNavigate(step.id)}
-                  aria-current={status === 'current' ? 'step' : undefined}
+                  disabled={!isNavigable}
+                  aria-label={stepLabel}
+                  aria-current={
+                    isCurrent ? 'step' : undefined
+                  }
+                  aria-disabled={!isNavigable}
                   className={cn(
                     'flex h-10 w-10 items-center justify-center rounded-pill border-2 text-sm font-medium',
                     controlMotion,
                     focusRing,
                     'focus-visible:ring-primary',
                     statusClasses[status],
-                    canNavigate(step.id) && onStepClick
+                    isNavigable
                       ? 'cursor-pointer hover:scale-105 motion-reduce:hover:scale-100'
                       : 'cursor-default',
                     'disabled:cursor-not-allowed',
                   )}
                 >
-                  {status === 'completed' ? (
+                  {isCompleted ? (
                     <svg
                       className="h-5 w-5"
                       fill="currentColor"
@@ -91,48 +118,65 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
                       />
                     </svg>
                   ) : (
-                    step.id
+                    <span aria-hidden="true">{step.id}</span>
                   )}
+
                   <span className="sr-only">{step.title}</span>
                 </button>
-                <div className="mt-2 text-center">
+
+                <div className="mt-2 text-center" aria-hidden="true">
                   <div
                     className={cn(
                       'text-sm font-medium',
-                      step.id === currentStep ? 'text-fg' : 'text-fg-muted',
+                      isCurrent
+                        ? 'text-fg'
+                        : 'text-fg-muted',
                     )}
                   >
                     {step.title}
                   </div>
+
                   {step.description && (
                     <div className="mt-1 max-w-24 text-xs text-fg-subtle">
                       {step.description}
                     </div>
                   )}
                 </div>
-              </li>
+              </div>
+
               {index < steps.length - 1 && (
-                <li
+                <div
                   aria-hidden="true"
                   className={cn(
                     'mx-4 h-0.5 flex-1 transition-colors duration-200 ease-standard',
-                    isConnectorComplete ? 'bg-success' : 'bg-border',
+                    isConnectorComplete
+                      ? 'bg-success'
+                      : 'bg-border',
                   )}
                 />
               )}
             </React.Fragment>
           );
         })}
-      </ol>
+      </nav>
 
       {/* Mobile Progress Bar */}
       <div className="md:hidden">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-fg">
+          <span
+            className="text-sm font-medium text-fg"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className="sr-only">Form progress: </span>
             Step {currentStep} of {steps.length}
           </span>
-          <span className="text-sm text-fg-muted">
-            {Math.round((currentStep / steps.length) * 100)}% Complete
+
+          <span
+            className="text-sm text-fg-muted"
+            aria-hidden="true"
+          >
+            {mobileProgressPercent}% Complete
           </span>
         </div>
 
@@ -144,12 +188,23 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
           className="mb-4"
         />
 
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-fg">{activeStep?.title}</h3>
-          {activeStep?.description && (
-            <p className="mt-1 text-sm text-fg-muted">
-              {activeStep.description}
-            </p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="text-center"
+        >
+          {activeStep && (
+            <>
+              <h3 className="text-lg font-medium text-fg">
+                {activeStep.title}
+              </h3>
+
+              {activeStep.description && (
+                <p className="mt-1 text-sm text-fg-muted">
+                  {activeStep.description}
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

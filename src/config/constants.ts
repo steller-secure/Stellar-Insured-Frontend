@@ -23,6 +23,12 @@ export const NETWORK_POLL_INTERVAL = 5_000;
  */
 export const BALANCE_POLL_INTERVAL = 30_000;
 
+/** Real-time transport retry and polling fallback configuration. */
+export const BLOCKCHAIN_EVENT_POLL_INTERVAL = 15_000;
+export const BLOCKCHAIN_EVENT_RECONNECT_BASE_DELAY = 1_000;
+export const BLOCKCHAIN_EVENT_RECONNECT_MAX_DELAY = 30_000;
+export const BLOCKCHAIN_EVENT_DEDUP_TTL = 10 * 60_000;
+
 /**
  * Debounce delay for search and filter inputs.
  * Prevents excessive filtering operations while users are typing.

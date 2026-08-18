@@ -79,7 +79,17 @@ export default function ClaimsShell({
           </div>
         </header>
 
-        <main className="flex-1 p-8">{children}</main>
+        {/*
+          id="main-content" is the skip-link target declared in layout.tsx.
+          aria-labelledby points to the visually-hidden heading in the
+          sticky header above, giving screen-reader users a meaningful
+          landmark label (WCAG 1.3.1, 2.4.1, 4.1.2).
+          tabIndex={-1} allows the skip link to programmatically focus the
+          landmark without making it part of the natural tab order.
+        */}
+        <main id="main-content" className="flex-1 p-8" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

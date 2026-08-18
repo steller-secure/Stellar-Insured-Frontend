@@ -82,7 +82,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/static') ||
     pathname.includes('.')
   ) {
-    return NextResponse.next();
+    return withRealtimeHeaders(NextResponse.next());
   }
 
   const isAuthenticated = getSessionFromCookie(request);
@@ -96,7 +96,7 @@ export function middleware(request: NextRequest) {
 
   // Allow access to public routes
   if (isPublicRoute) {
-    return NextResponse.next();
+    return withRealtimeHeaders(NextResponse.next());
   }
 
   // Require authentication for protected routes
@@ -107,7 +107,23 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow access to protected route
-  return NextResponse.next();
+  return withRealtimeHeaders(NextResponse.next());
+}
+
+function withRealtimeHeaders(response: NextResponse) {
+  const configuredOrigins = [
+    process.env.NEXT_PUBLIC_BLOCKCHAIN_WS_URL,
+    process.env.NEXT_PUBLIC_BLOCKCHAIN_EVENTS_URL,
+    process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL,
+  ].flatMap(value => {
+    if (!value) return [];
+    try { return [new URL(value).origin]; } catch { return []; }
+  });
+  response.headers.set(
+    'Content-Security-Policy',
+    `connect-src 'self' https://horizon-testnet.stellar.org https://soroban-testnet.stellar.org ${configuredOrigins.join(' ')}`.trim(),
+  );
+  return response;
 }
 
 export const config = {

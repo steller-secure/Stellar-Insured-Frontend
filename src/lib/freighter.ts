@@ -1,5 +1,6 @@
 import { isConnected, requestAccess, signMessage } from "@stellar/freighter-api";
 import { errorHandler } from "@/lib/errorHandler";
+import { blockchainEvents } from "@/lib/blockchainEvents";
 
 function errorToMessage(error: unknown): string {
   if (!error) return "Unknown error";
@@ -96,6 +97,8 @@ export async function connectFreighter(): Promise<string> {
       throw new Error(appError.message);
     }
 
+    // Scope subsequent Horizon/Soroban events to the authenticated account.
+    blockchainEvents.start(access.address);
     return access.address;
   } catch (error) {
     // If it's already an AppError message, rethrow it

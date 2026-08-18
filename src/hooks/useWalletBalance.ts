@@ -5,6 +5,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { subscribeToNetworkChanges } from '@/lib/stellar';
 import { type WalletBalance, type WalletBalanceAsset, type UseWalletBalanceReturn } from '@/types/wallet';
 import { type StellarAccountBalance } from '@/types/stellar';
+import { blockchainEvents } from '@/lib/blockchainEvents';
 
 // Configuration constants
 const POLLING_INTERVAL_MS = 30000; // 30 seconds
@@ -146,7 +147,8 @@ export function useWalletBalance(): UseWalletBalanceReturn {
     await fetchBalance(true);
   }, [fetchBalance]);
 
-  // Poll for balance updates with adaptive interval
+  // Account events are the primary refresh trigger. Polling remains as a
+  // low-frequency safety net when no real-time transport is connected.
   useEffect(() => {
     if (!isConnected || !address) {
       if (pollingIntervalRef.current) {
@@ -164,14 +166,19 @@ export function useWalletBalance(): UseWalletBalanceReturn {
       clearInterval(pollingIntervalRef.current);
     }
 
-    // Set up polling interval based on activity level
-    const interval = isHighActivityRef.current 
-      ? OPTIMIZED_POLLING_INTERVAL_MS 
-      : POLLING_INTERVAL_MS;
-    
-    pollingIntervalRef.current = setInterval(fetchBalance, interval);
+    const unsubscribeEvents = blockchainEvents.subscribe(() => { void fetchBalance(); }, ['account.updated']);
+    const unsubscribeState = blockchainEvents.subscribeToState((connection) => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+      if (!connection.connected || connection.mode === 'polling') {
+        const interval = isHighActivityRef.current ? OPTIMIZED_POLLING_INTERVAL_MS : POLLING_INTERVAL_MS;
+        pollingIntervalRef.current = setInterval(fetchBalance, interval);
+      }
+    });
 
     return () => {
+      unsubscribeEvents();
+      unsubscribeState();
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;

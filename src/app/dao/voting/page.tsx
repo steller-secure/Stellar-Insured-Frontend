@@ -20,14 +20,22 @@ export default async function DAOVotingPage() {
   const proposals = mockProposals;
 
   return (
-    <ErrorBoundary>
-      <JsonLd
-        data={createBreadcrumbSchema([
-          { name: "Home", path: "/" },
-          { name: "DAO Governance", path: "/dao/voting" },
-        ])}
-      />
-      <DAOVotingClient initialProposals={proposals} />
-    </ErrorBoundary>
+    /*
+      id="main-content" is the skip-link target declared in layout.tsx.
+      tabIndex={-1} lets the skip link programmatically focus this landmark
+      without including it in the natural tab order.
+      WCAG 2.4.1 – Bypass Blocks.
+    */
+    <main id="main-content" tabIndex={-1}>
+      <ErrorBoundary>
+        <JsonLd
+          data={createBreadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "DAO Governance", path: "/dao/voting" },
+          ])}
+        />
+        <DAOVotingClient initialProposals={proposals} />
+      </ErrorBoundary>
+    </main>
   );
 }

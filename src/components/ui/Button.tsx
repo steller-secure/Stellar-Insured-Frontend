@@ -20,13 +20,17 @@ export interface ButtonProps
    * `variant` + `color` pair.
    */
   variant?: AnyVariant;
+
   /** Meaning of the button. Defaults to `primary`. */
   color?: UIColor;
+
   size?: UISize;
   isLoading?: boolean;
   fullWidth?: boolean;
+
   /** Renders a square button sized for a single icon. */
   iconOnly?: boolean;
+
   leadingIcon?: React.ReactNode;
   trailingIcon?: React.ReactNode;
 }
@@ -67,8 +71,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           disabledControl,
           surfaceRecipe[resolved.variant][resolved.color],
           ringRecipe[resolved.color],
-          iconOnly ? iconControlSizeRecipe[size] : controlSizeRecipe[size],
-          resolved.variant === "link" && "h-auto px-0 underline-offset-4",
+          iconOnly
+            ? iconControlSizeRecipe[size]
+            : controlSizeRecipe[size],
+          resolved.variant === "link" &&
+            "h-auto px-0 underline-offset-4",
           fullWidth && "w-full",
           isLoading && "cursor-wait",
           className,
@@ -110,6 +117,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
+
             <span className="sr-only">Loading</span>
           </span>
         )}

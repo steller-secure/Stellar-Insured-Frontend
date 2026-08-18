@@ -161,7 +161,7 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
             </select>
             {touched.currency && errors.currency && (
               <p className="mt-1 flex items-center gap-1 text-sm text-rose-400">
-                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <circle cx="12" cy="12" r="10" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
                 </svg>
@@ -260,7 +260,7 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                         onClick={() => removeBreakdownItem(item.id)}
                         className="p-2 text-slate-400 hover:text-red-400 transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       </button>

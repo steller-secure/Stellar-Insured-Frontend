@@ -11,6 +11,7 @@ import { getProposalStats } from "@/lib/dao-utils";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { useNotificationContext } from "@/context/NotificationContext";
 import { ProposalCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import { blockchainEvents } from "@/lib/blockchainEvents";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -29,6 +30,15 @@ export default function DAOVotingClient({
     showSuccessToast: false,
   });
   const { addNotification } = useNotificationContext();
+
+  useEffect(() => blockchainEvents.subscribe((event) => {
+    const incoming = (event.data.proposal ?? event.data) as Partial<Proposal>;
+    const id = event.resourceId ?? incoming.id;
+    if (!id) return;
+    setProposals(current => current.map(proposal => proposal.id === id
+      ? { ...proposal, ...incoming }
+      : proposal));
+  }, ['proposal.updated', 'vote.cast']), []);
 
   // Simulate initial loading if no proposals provided
   useEffect(() => {
@@ -142,21 +152,41 @@ export default function DAOVotingClient({
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
+              {/* h1 provides page-level heading for screen readers */}
               <h1 className="text-3xl font-bold mb-2">DAO Governance</h1>
               <p className="text-gray-400">
                 Participate in governance decisions and shape the future
               </p>
             </div>
-            <button className="bg-[#22BBF9] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#22BBF9]/90 transition-all w-full sm:w-auto">
-              + New Proposal
+            {/*
+              WCAG 4.1.2 – Name, Role, Value:
+              Button must have an accessible name. "New Proposal" text alone
+              is sufficient; aria-label is added here to be explicit about the
+              action in case the "+" prefix is misread by some screen readers.
+            */}
+            <button
+              type="button"
+              aria-label="Create a new governance proposal"
+              className="bg-[#22BBF9] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#22BBF9]/90 transition-all w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22BBF9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F1F]"
+            >
+              {/* The "+" is decorative; keep it visible but screen readers will use aria-label */}
+              <span aria-hidden="true">+ </span>New Proposal
             </button>
           </div>
 
           {/* Display vote errors */}
           {voteError && (
-            <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+            <div
+              className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-4"
+              role="alert"
+              aria-live="assertive"
+            >
               <div className="flex gap-3">
-                <AlertCircle className="h-6 w-6 flex-shrink-0 text-red-500" />
+                {/* AlertCircle is decorative alongside the visible text */}
+                <AlertCircle
+                  className="h-6 w-6 flex-shrink-0 text-red-500"
+                  aria-hidden="true"
+                />
                 <div className="flex-1">
                   <h3 className="font-semibold text-red-500">{voteError.title}</h3>
                   <p className="mt-1 text-sm text-red-400">{voteError.message}</p>
@@ -164,13 +194,29 @@ export default function DAOVotingClient({
                     <p className="mt-2 text-sm text-red-300">{voteError.remediationStep}</p>
                   )}
                 </div>
+                {/*
+                  WCAG 4.1.2 – Name, Role, Value:
+                  Dismiss button needs an accessible name so AT users know what it does.
+                */}
                 <button
                   type="button"
                   onClick={clearError}
-                  className="flex-shrink-0 text-red-400 hover:text-red-300"
+                  aria-label="Dismiss vote error"
+                  className="flex-shrink-0 text-red-400 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:rounded"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -193,11 +239,21 @@ export default function DAOVotingClient({
           />
         </div>
 
-        {/* Proposals List */}
-        <div className="space-y-6">
+        {/*
+          Proposals List
+          aria-live="polite" so that changes (loading → loaded, filtered results)
+          are announced without interrupting speech.
+          WCAG 4.1.3 – Status Messages
+        */}
+        <div
+          className="space-y-6"
+          aria-live="polite"
+          aria-busy={loading}
+          aria-atomic="false"
+        >
           {loading ? (
-            // Loading state
-            <div className="space-y-6">
+            // Loading state — announce to AT
+            <div className="space-y-6" aria-label="Loading proposals">
               {Array.from({ length: 3 }).map((_, index) => (
                 <ProposalCardSkeleton key={index} />
               ))}

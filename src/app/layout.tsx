@@ -52,6 +52,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
+        {/* Skip-to-main-content link – WCAG 2.4.1 Bypass Blocks */}
+        <a href="#main-content" className="skip-to-content">
+          Skip to main content
+        </a>
+
         <JsonLd
           data={[createOrganizationSchema(), createWebSiteSchema()]}
         />
@@ -65,6 +70,10 @@ export default function RootLayout({
                     <AuthProvider>
                       <LoadingProvider>
                         <GlobalLoader />
+                        {/* The #main-content anchor is the skip-link target.
+                            Individual page layouts or page components must
+                            render a <main id="main-content"> element so this
+                            link lands in the right place. */}
                         {children}
                       </LoadingProvider>
                     </AuthProvider>

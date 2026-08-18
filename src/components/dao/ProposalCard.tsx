@@ -40,7 +40,10 @@ export default function ProposalCard({ proposal, onVote }: ProposalCardProps) {
   const daysRemaining = calculateDaysRemaining(proposal.endDate);
 
   return (
-    <div className="bg-[#1A1F35] rounded-lg p-6 border border-gray-700/50 hover:border-[#22BBF9]/30 transition-all">
+    <article
+      className="bg-[#1A1F35] rounded-lg p-6 border border-gray-700/50 hover:border-[#22BBF9]/30 transition-all"
+      aria-label={`Proposal: ${proposal.title}`}
+    >
       {/* Proposal Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -49,8 +52,8 @@ export default function ProposalCard({ proposal, onVote }: ProposalCardProps) {
               {proposal.title}
             </h3>
             {proposal.hasVoted && (
-              <span className="flex items-center gap-1 text-xs bg-[#B6FA9E]/20 text-[#B6FA9E] px-2 py-1 rounded">
-                <CheckCircle2 className="w-3 h-3" />
+              <span className="flex items-center gap-1 text-xs bg-[#B6FA9E]/20 text-[#B6FA9E] px-2 py-1 rounded" aria-label="You have voted on this proposal">
+                <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
                 Voted
               </span>
             )}
@@ -59,16 +62,20 @@ export default function ProposalCard({ proposal, onVote }: ProposalCardProps) {
           <p className="text-gray-400 text-sm mb-3">{proposal.description}</p>
 
           {/* Metadata */}
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-gray-500" aria-label="Proposal metadata">
             <span className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
+              <Users className="w-3 h-3" aria-hidden="true" />
+              <span className="sr-only">Proposed by: </span>
               {proposal.proposerName}
             </span>
             <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="w-3 h-3" aria-hidden="true" />
+              <span className="sr-only">Time remaining: </span>
               {daysRemaining} days left
             </span>
-            <span className="text-gray-600">ID: {proposal.id}</span>
+            <span className="text-gray-600">
+              <span className="sr-only">Proposal </span>ID: {proposal.id}
+            </span>
           </div>
         </div>
       </div>
@@ -125,6 +132,6 @@ export default function ProposalCard({ proposal, onVote }: ProposalCardProps) {
         userVote={proposal.userVote}
         onVote={onVote}
       />
-    </div>
+    </article>
   );
 }

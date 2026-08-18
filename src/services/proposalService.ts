@@ -1,9 +1,12 @@
 import { Proposal, ProposalStatus } from '../types/proposal';
 import { v4 as uuidv4 } from 'uuid';
+import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 
-let proposals: Proposal[] = [];
+const proposals: Proposal[] = [];
 
 export const proposalService = {
+  subscribe: (listener: (event: BlockchainEvent) => void) =>
+    blockchainEvents.subscribe(listener, ['proposal.updated', 'vote.cast']),
   createProposal: (data: Omit<Proposal, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Proposal => {
     const proposal: Proposal = {
       ...data,

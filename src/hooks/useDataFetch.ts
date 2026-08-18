@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { rateLimiter } from '../lib/rateLimiter';
-import { errorHandler, ErrorCategory, AppError } from '@/lib/errorHandler';
+import { errorHandler, ErrorCategory, ErrorSeverity } from '@/lib/errorHandler';
 import { useErrorHandler } from './useErrorHandler';
+import { blockchainEvents, type BlockchainEventType } from '@/lib/blockchainEvents';
 
 export interface DataFetchState<T> {
   data: T | null;
@@ -13,7 +14,7 @@ export interface DataFetchState<T> {
   severity: ErrorSeverity;
 }
 
-interface UseDataFetchOptions {
+interface UseDataFetchOptions<T = unknown> {
   cacheDuration?: number;
   autoFetch?: boolean;
   // Callback when data is loaded
@@ -22,6 +23,8 @@ interface UseDataFetchOptions {
   onError?: (error: Error & { category: ErrorCategory; severity: ErrorSeverity }) => void;
   // Retry policy override
   retryPolicy?: ErrorCategory;
+  /** Refetch when any matching normalized on-chain event is received. */
+  eventTypes?: BlockchainEventType[];
 }
 
 export interface UseDataFetchReturn<T> extends DataFetchState<T> {
@@ -42,14 +45,21 @@ export interface UseDataFetchReturn<T> extends DataFetchState<T> {
  */
 export function useDataFetch<T>(
   fetchFn: () => Promise<T>,
-  options: UseDataFetchOptions = {}
+  options: UseDataFetchOptions<T> = {}
 ): UseDataFetchReturn<T> {
   const {
     autoFetch = true,
     onSuccess,
     onError,
     retryPolicy,
+    eventTypes,
   } = options;
+  const fetchRef = useRef(fetchFn);
+  const successRef = useRef(onSuccess);
+  const errorRef = useRef(onError);
+  fetchRef.current = fetchFn;
+  successRef.current = onSuccess;
+  errorRef.current = onError;
 
   const errorHandlerHook = useErrorHandler({
     autoLog: false,
@@ -64,6 +74,8 @@ export function useDataFetch<T>(
         }
       : undefined,
   });
+  const handlerRef = useRef(errorHandlerHook);
+  handlerRef.current = errorHandlerHook;
 
   const [state, setState] = useState<DataFetchState<T>>({
     data: null,
@@ -77,7 +89,7 @@ export function useDataFetch<T>(
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      const result = await rateLimiter.execute(() => fetchFn());
+      const result = await rateLimiter.execute(() => fetchRef.current());
       setState({
         data: result,
         loading: false,
@@ -85,17 +97,16 @@ export function useDataFetch<T>(
         category: 'NETWORK',
         severity: 'LOW',
       });
-      onSuccess?.(result);
-      errorHandlerHook.showSuccessNotification(`Data loaded successfully`);
+      successRef.current?.(result);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       const category: ErrorCategory =
-        errorHandlerHook.hasError && errorHandlerHook.error
-          ? errorHandlerHook.error.category
+        handlerRef.current.hasError && handlerRef.current.error
+          ? handlerRef.current.error.category
           : 'NETWORK';
       const severity: ErrorSeverity =
-        errorHandlerHook.hasError && errorHandlerHook.error
-          ? errorHandlerHook.error.severity
+        handlerRef.current.hasError && handlerRef.current.error
+          ? handlerRef.current.error.severity
           : 'MEDIUM';
 
       setState({
@@ -106,25 +117,32 @@ export function useDataFetch<T>(
         severity,
       });
 
-      onError?.(error);
-      errorHandlerHook.showErrorNotification(errorHandlerHook.error ?? errorHandler.createError(category, 'GENERIC_ERROR'));
+      errorRef.current?.(error as Error & { category: ErrorCategory; severity: ErrorSeverity });
+      handlerRef.current.showErrorNotification(handlerRef.current.error ?? errorHandler.createError(category, 'GENERIC_ERROR'));
     }
-  }, [fetchFn, onSuccess, onError, retryPolicy]);
+  }, []);
 
   useEffect(() => {
     if (!autoFetch) return;
 
-    // Check cache first
-    // Cache logic removed for brevity - can be added back if needed
+    void refetch();
   }, [refetch, autoFetch]);
+
+  const eventKey = eventTypes?.join(',');
+  useEffect(() => {
+    if (!eventTypes?.length) return;
+    return blockchainEvents.subscribe(() => { void refetch(); }, eventTypes);
+    // The string key intentionally makes equivalent inline arrays stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refetch, eventKey]);
 
   return {
     ...state,
     refetch,
     hasError: state.error !== null,
-    isRecoverable: state.error?.category !== 'VALIDATION' && state.error?.category !== 'AUTHENTICATION',
+    isRecoverable: state.category !== 'VALIDATION' && state.category !== 'AUTHENTICATION',
     canRetry:
-      state.error !== null && state.retryCount < (errorHandlerHook.canRetry ? 3 : 0),
+      state.error !== null && errorHandlerHook.canRetry,
   };
 }
 
@@ -133,7 +151,7 @@ export function useDataFetch<T>(
  */
 export function useDataFetchOne<T>(
   fetchFn: () => Promise<T | undefined>,
-  options: UseDataFetchOptions = {}
+  options: UseDataFetchOptions<T | undefined> = {}
 ): {
   item: T | null;
   loading: boolean;
@@ -147,7 +165,7 @@ export function useDataFetchOne<T>(
 
   return {
     ...result,
-    item: result.data,
+    item: result.data ?? null,
     notFound: !result.loading && !result.error && !result.data,
     refetch: result.refetch,
   };
@@ -158,7 +176,7 @@ export function useDataFetchOne<T>(
  */
 export function useDataFetchList<T>(
   fetchFn: () => Promise<T[]>,
-  options: UseDataFetchOptions = {}
+  options: UseDataFetchOptions<T[]> = {}
 ) {
   const result = useDataFetch(fetchFn, options);
 
@@ -176,9 +194,17 @@ export function useDataFetchList<T>(
 export function useDataFetchDependency<T>(
   fetchFn: (deps: unknown[]) => Promise<T>,
   dependencies: unknown[] = [],
-  options: UseDataFetchOptions = {}
+  options: UseDataFetchOptions<T> = {}
 ): DataFetchState<T> & { refetch: () => Promise<void>; hasError: boolean; isRecoverable: boolean; canRetry: boolean } {
-  const result = useDataFetch(fetchFn, options);
+  const dependencyKey = JSON.stringify(dependencies);
+  const dependencyFetch = useCallback(() => fetchFn(dependencies), [fetchFn, dependencyKey]);
+  const result = useDataFetch(dependencyFetch, { ...options, autoFetch: false });
+  useEffect(() => {
+    if (options.autoFetch === false) return;
+    void result.refetch();
+    // dependencyKey captures changes to dependency values.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dependencyKey, options.autoFetch, result.refetch]);
 
   return {
     ...result,

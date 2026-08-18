@@ -14,6 +14,7 @@ import { ProtectedRoute } from "@/components/protected-route";
 import type { Policy } from "@/services/types/policy.types";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PolicyCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function MyPoliciesPage() {
   const { trackAction } = useAnalytics();
@@ -28,10 +29,9 @@ export default function MyPoliciesPage() {
 
   const itemsPerPage = 9;
 
-  useEffect(() => {
-    const loadPolicies = async () => {
+  const loadPolicies = React.useCallback(async (background = false) => {
       try {
-        setLoading(true);
+        if (!background) setLoading(true);
         const result = await policyService.getPolicies();
         if (result.success) {
           setPolicies(result.data.policies);
@@ -41,12 +41,14 @@ export default function MyPoliciesPage() {
       } catch {
         setError("Failed to load policies");
       } finally {
-        setLoading(false);
+        if (!background) setLoading(false);
       }
-    };
+    }, []);
 
-    loadPolicies();
-  }, []);
+  useEffect(() => { void loadPolicies(); }, [loadPolicies]);
+  useEffect(() => blockchainEvents.subscribe(() => { void loadPolicies(true); }, [
+    'policy.purchased', 'policy.updated',
+  ]), [loadPolicies]);
 
   const filteredPolicies = useMemo(() => {
     return policies.filter((policy) => {
@@ -77,22 +79,7 @@ export default function MyPoliciesPage() {
 
   const handleRetry = () => {
     setError(null);
-    const loadPolicies = async () => {
-      try {
-        setLoading(true);
-        const result = await policyService.getPolicies();
-        if (result.success) {
-          setPolicies(result.data.policies);
-        } else {
-          setError(result.error || "Failed to load policies");
-        }
-      } catch {
-        setError("Failed to load policies");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPolicies();
+    void loadPolicies();
   };
 
   const counts = {
@@ -124,8 +111,13 @@ export default function MyPoliciesPage() {
                 className="flex items-center gap-2 bg-brand-primary text-brand-bg px-4 py-2 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => trackAction("POLICY", "POLICY_CREATION_STARTED")}
                 disabled={!isConnected}
+                aria-label={
+                  isConnected
+                    ? "Create a new insurance policy"
+                    : "Create a new insurance policy (requires wallet connection)"
+                }
               >
-                <Plus size={20} />
+                <Plus size={20} aria-hidden="true" />
                 New Policy
               </button>
               <FilterDropdown
@@ -184,11 +176,17 @@ export default function MyPoliciesPage() {
           )}
 
           <div className="relative">
+            {/* WCAG 2.4.6 / 1.3.1 – visually hidden label associates with the input */}
+            <label htmlFor="policy-search" className="sr-only">
+              Search policies by name or policy number
+            </label>
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted"
               size={20}
+              aria-hidden="true"
             />
             <input
+              id="policy-search"
               type="text"
               placeholder="Search"
               value={searchQuery}
@@ -196,14 +194,27 @@ export default function MyPoliciesPage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
+              aria-label="Search policies by name or policy number"
               className="w-full bg-transparent border border-brand-border rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border-brand-primary"
             />
           </div>
 
-          <div className="flex gap-4 border-b border-brand-border pb-4">
+          {/*
+            WCAG 4.1.2 – Name, Role, Value: tab widget requires role="tablist" on
+            the container and role="tab" + aria-selected on each tab button.
+          */}
+          <div
+            role="tablist"
+            aria-label="Filter policies by status"
+            className="flex gap-4 border-b border-brand-border pb-4"
+          >
             {(["all", "active", "pending", "expired"] as const).map((tab) => (
               <button
                 key={tab}
+                role="tab"
+                aria-selected={activeTab === tab}
+                aria-controls="policies-grid"
+                id={`tab-${tab}`}
                 onClick={() => handleTabChange(tab)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
                   activeTab === tab
@@ -216,7 +227,7 @@ export default function MyPoliciesPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div id="policies-grid" role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               // Loading state with skeletons
               Array.from({ length: 6 }).map((_, index) => (

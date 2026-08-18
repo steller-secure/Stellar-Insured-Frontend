@@ -19,11 +19,16 @@ export function PolicyListingGrid({
 }: PolicyListingGridProps) {
   return (
     <div className="relative z-10 mx-auto w-full max-w-[1200px] px-6 pt-[260px] sm:px-8 sm:pt-[280px] lg:px-0 lg:pt-[300px]">
-      {/* Results count indicator */}
+      {/* Results count indicator – announced to screen readers when filters change */}
       {isFiltered &&
         filteredCount !== undefined &&
         totalCount !== undefined && (
-          <div className="mb-4 px-2 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+          <div
+            className="mb-4 px-2 py-2 bg-slate-800/50 rounded-lg border border-slate-700"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <p className="text-sm text-slate-300">
               Showing{" "}
               <span className="font-semibold text-cyan-400">
@@ -42,23 +47,33 @@ export function PolicyListingGrid({
         )}
 
       {items.length > 0 ? (
-        <div className="grid grid-cols-1 place-items-center gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-8">
+        <div
+          className="grid grid-cols-1 place-items-center gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-8"
+          role="list"
+          aria-label="Insurance policy categories"
+        >
           {items.map((item) => (
-            <PolicyListingCard
-              key={item.id}
-              item={item}
-              onLearnMore={onLearnMore}
-            />
+            <div key={item.id} role="listitem">
+              <PolicyListingCard
+                item={item}
+                onLearnMore={onLearnMore}
+              />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 mb-4 rounded-full bg-slate-800 flex items-center justify-center">
+        <div
+          className="flex flex-col items-center justify-center py-16 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="w-16 h-16 mb-4 rounded-full bg-slate-800 flex items-center justify-center" aria-hidden="true">
             <svg
               className="w-8 h-8 text-slate-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"

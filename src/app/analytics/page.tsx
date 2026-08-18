@@ -6,6 +6,7 @@ import { ProtectedRoute } from "@/components/protected-route";
 import { Activity, MousePointerClick, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { AnalyticsSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function AnalyticsDashboard() {
     const [events, setEvents] = useState<AnalyticsEvent[]>([]);
@@ -29,6 +30,7 @@ export default function AnalyticsDashboard() {
     };
     useEffect(() => {
         loadData();
+        return blockchainEvents.subscribe(() => loadData());
     }, []);
 
     const clearData = () => {

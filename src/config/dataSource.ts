@@ -14,6 +14,20 @@ import { type Policy, type Claim } from '@/types/api';
 
 export type DataSourceType = 'mock' | 'api';
 
+export interface BlockchainDataSourceConfig {
+  websocketUrl?: string;
+  eventSourceUrl?: string;
+  pollingUrl?: string;
+}
+
+export function getBlockchainDataSource(): BlockchainDataSourceConfig {
+  return {
+    websocketUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_WS_URL,
+    eventSourceUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_EVENTS_URL,
+    pollingUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL || '/api/blockchain/events',
+  };
+}
+
 interface DataSourceConfig {
   type: DataSourceType;
   useMockData: boolean;

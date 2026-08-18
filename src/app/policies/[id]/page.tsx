@@ -15,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { LoadingState } from "@/components/ui/SkeletonLoaders";
+import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function PolicyDetailPage() {
   const params = useParams();
@@ -41,6 +42,12 @@ export default function PolicyDetailPage() {
 
     fetchPolicy();
   }, [params.id]);
+
+  useEffect(() => blockchainEvents.subscribe((event) => {
+    if (!event.resourceId || event.resourceId === params.id) {
+      void DataService.getPolicy(params.id as string).then((next) => next && setPolicy(next));
+    }
+  }, ['policy.purchased', 'policy.updated']), [params.id]);
 
   if (loading) {
     return <LoadingState message="Loading policy details..." />;

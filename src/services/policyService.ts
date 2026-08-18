@@ -11,6 +11,7 @@ import type {
   PolicyType,
   PolicyStatus
 } from './types/policy.types';
+import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 
 // Mock data - will be replaced with API calls when available
 const mockPolicies: Policy[] = [
@@ -63,6 +64,10 @@ const mockPolicies: Policy[] = [
 
 class PolicyService {
   private policies: Policy[] = [...mockPolicies];
+
+  subscribe(listener: (event: BlockchainEvent) => void) {
+    return blockchainEvents.subscribe(listener, ['policy.purchased', 'policy.updated']);
+  }
 
   /**
    * Get all policies with optional filtering

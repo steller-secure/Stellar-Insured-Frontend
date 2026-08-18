@@ -164,8 +164,8 @@ export const ClaimForm = () => {
   if (isSuccess) {
     return (
       <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50">
-          <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50" aria-hidden="true">
+          <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -205,7 +205,7 @@ export const ClaimForm = () => {
       {submitError && (
         <div role="alert" aria-live="polite" className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 md:p-6 shadow-xl">
           <div className="flex gap-3">
-            <svg className="h-6 w-6 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-6 w-6 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="flex-1">
@@ -218,9 +218,10 @@ export const ClaimForm = () => {
             <button
               type="button"
               onClick={clearError}
+              aria-label="Dismiss error"
               className="flex-shrink-0 text-red-400 hover:text-red-300"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -240,6 +241,7 @@ export const ClaimForm = () => {
 
           {/* Policy Selection */}
           <Select
+            id="claim-policy"
             label="Select Policy"
             placeholder="Choose a policy..."
             required
@@ -263,6 +265,7 @@ export const ClaimForm = () => {
         {/* Claim Amount */}
         <div className="relative">
           <Input
+            id="claim-amount"
             label="Claim Amount (USD)"
             type="number"
             placeholder="0.00"
@@ -288,6 +291,7 @@ export const ClaimForm = () => {
 
         {/* Incident Description */}
         <Textarea
+          id="claim-description"
           label="Incident Description"
           placeholder="Please describe what happened, when, and where..."
           required

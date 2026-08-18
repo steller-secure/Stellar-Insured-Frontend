@@ -4,6 +4,7 @@ import { AuthSession } from '@/store/types';
 import { connectFreighter, signFreighterMessage, createAuthMessage } from '@/lib/freighter';
 import { useWalletErrorHandler } from '@/hooks/useErrorHandler';
 import { errorHandler } from '@/lib/errorHandler';
+import { blockchainEvents } from '@/lib/blockchainEvents';
 
 /**
  * Wallet Connection Hook
@@ -117,6 +118,7 @@ export function useWallet() {
 
   // ─── Disconnect wallet ───────────────────────────────────────────────────
   const disconnect = useCallback(() => {
+    blockchainEvents.stop();
     signOut();
     
     if (showSuccessNotification) {

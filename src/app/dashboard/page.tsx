@@ -8,14 +8,21 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ProtectedRoute } from "@/components/protected-route";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardCardSkeleton } from "@/components/ui/SkeletonLoaders";
+import { RealtimeStatus } from "@/components/RealtimeStatus";
+import { useBlockchainEvents } from "@/hooks/useBlockchainEvents";
+import type { BlockchainEvent } from "@/lib/blockchainEvents";
 
 export default function Dashboard() {
   const { address, isConnected, isConnecting } = useWallet();
   const { xlm, assets, loading: balanceLoading } = useWalletBalance();
   const [showFullStatus, setShowFullStatus] = useState(false);
+  const [recentEvents, setRecentEvents] = useState<BlockchainEvent[]>([]);
+  useBlockchainEvents(useCallback((event: BlockchainEvent) => {
+    setRecentEvents(current => [event, ...current].slice(0, 5));
+  }, []));
 
   return (
     <ProtectedRoute>
@@ -32,6 +39,7 @@ export default function Dashboard() {
                   <p className="mt-2 text-gray-600 dark:text-gray-400">
                     Manage your wallet and insurance policies
                   </p>
+                  <RealtimeStatus className="mt-2" />
                 </div>
                 <div className="flex items-center gap-3">
                   <NotificationCenter />
@@ -174,6 +182,15 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   {isConnected ? (
                     <>
+                      {recentEvents.map(event => (
+                        <div key={event.id} className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{event.type.replace('.', ' ')}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(event.timestamp).toLocaleTimeString()}</p>
+                          </div>
+                          <span className="text-xs text-green-600">On-chain</span>
+                        </div>
+                      ))}
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">

@@ -64,15 +64,22 @@ const NavBarList = (
       : `${baseClass} text-fg hover:text-primary`;
   };
 
+  const getLinkAriaCurrent = (href: string): "page" | undefined =>
+    isActiveLink(href) ? "page" : undefined;
+
   return (
     <>
       {/* desktop menu */}
-      <nav className='hidden lg:flex justify-between items-center w-full h-full m-auto' data-nav="desktop">
+      <nav className='hidden lg:flex justify-between items-center w-full h-full m-auto' data-nav="desktop" aria-label="Main navigation">
         <img src={logo.src} alt="Stellar Insured Logo" className="block" />
-        <ul className='flex flex-row mb-3'>
+        <ul className='flex flex-row mb-3' role="list">
           {navLinks.map((link) => (
             <li key={link.id}>
-              <Link href={link.href} className={getLinkClassName(link.href)}>
+              <Link
+                href={link.href}
+                className={getLinkClassName(link.href)}
+                aria-current={getLinkAriaCurrent(link.href)}
+              >
                 {link.name}
               </Link>
             </li>
@@ -120,7 +127,12 @@ const NavBarList = (
         <ul className='flex flex-col mb-3 h-[60%] w-full justify-between items-center'>
           {navLinks.map((link) => (
             <li key={link.id} className='py-1 px-2 w-full'>
-              <Link href={link.href} className={getLinkClassName(link.href)} onClick={() => setIsOpen(false)}>
+              <Link
+                href={link.href}
+                className={getLinkClassName(link.href)}
+                aria-current={getLinkAriaCurrent(link.href)}
+                onClick={() => setIsOpen(false)}
+              >
                 {link.name}
               </Link>
             </li>
@@ -235,6 +247,7 @@ const NavBar = () => {
 
   return (
     <header className='bg-surface-raised fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-primary flex items-center justify-between px-4 lg:px-8' role="navigation" aria-label="Main navigation">
+    <header className='bg-[#1E2433] fixed z-999 h-[75px] w-[95%] max-w-[1288px] top-[28px] left-1/2 -translate-x-1/2 rounded-[50px] border-2 border-[#22BBF9] flex items-center justify-between px-4 lg:px-8' aria-label="Site header">
 
       {/* desktop navbar */}
       <div className='hidden lg:flex w-full'>
@@ -267,6 +280,20 @@ const NavBar = () => {
             <Menu className='text-fg w-6 h-6' />
           </button>
         )}
+        <button
+          type='button'
+          title={isOpen ? 'Close menu' : 'Open menu'}
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isOpen}
+          aria-controls='mobile-nav'
+          className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22BBF9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1E2433] rounded"
+        >
+          {isOpen
+            ? <X className='text-white w-6 h-6' aria-hidden="true" />
+            : <Menu className='text-white w-6 h-6' aria-hidden="true" />
+          }
+        </button>
         {isOpen && (<NavBarList isOpen={isOpen} setIsOpen={setIsOpen} />)}
 
       </div>

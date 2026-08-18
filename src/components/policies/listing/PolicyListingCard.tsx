@@ -56,7 +56,7 @@ export function PolicyListingCard({ item, onLearnMore }: PolicyListingCardProps)
         ))}
       </div>
 
-      <button type="button" onClick={() => onLearnMore(item)} className={ui.ctaButtonClassName}>
+      <button type="button" onClick={() => onLearnMore(item)} className={ui.ctaButtonClassName} aria-label={`Learn more about ${item.title} insurance`}>
         <span className={ui.ctaTextClassName}>Learn More</span>
       </button>
 

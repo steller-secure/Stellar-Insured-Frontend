@@ -94,8 +94,15 @@ export default function VotingInterface({
 
       {/* Submit Button */}
       <button
+        type="button"
         onClick={handleVoteSubmit}
         disabled={!selectedVote || isVoting}
+        aria-label={
+          selectedVote
+            ? `Cast vote: ${selectedVote}`
+            : "Cast vote — select an option above first"
+        }
+        aria-busy={isVoting}
         className={`w-full py-3 rounded-lg font-medium transition-all ${
           selectedVote && !isVoting
             ? "bg-[#22BBF9] text-white hover:bg-[#22BBF9]/90"

@@ -1,62 +1,33 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataService } from '@/config/dataSource';
 import { useDataFetchOne } from '@/hooks/useDataFetch';
-import type { StepValidation } from '@/hooks/useMultiStepForm';
-
-export interface ReviewSubmitData {
-  agreedToTerms: boolean;
-  confirmAccuracy: boolean;
-}
+import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
 export interface ReviewSubmitStepProps {
-  data: ReviewSubmitData;
-  formData: any; // Full form data from all steps
-  onDataChange: (data: Partial<ReviewSubmitData>) => void;
-  onValidation: (validation: StepValidation) => void;
-  onSubmit: () => void;
   isSubmitting: boolean;
 }
 
-export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
-  data,
-  formData,
-  onDataChange,
-  onValidation,
-  onSubmit,
-  isSubmitting
-}) => {
+export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ isSubmitting }) => {
+  const { watch, setValue, formState: { errors } } =
+    useFormContext<MultiStepClaimFormValues>();
   const [showFullBreakdown, setShowFullBreakdown] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  
+
+  const values = watch();
+
   // Fetch the selected policy with caching
   const { item: selectedPolicy } = useDataFetchOne(
-    () => DataService.getPolicy(formData.policyId),
+    () => DataService.getPolicy(values.policyId),
     { cacheDuration: 10 * 60 * 1000 }
   );
 
-  // Validate step
-  const errors = React.useMemo(() => {
-    const errs: Record<string, string> = {};
-    
-    if (!data.agreedToTerms) {
-      errs.agreedToTerms = 'You must agree to the terms and conditions';
-    }
-    
-    if (!data.confirmAccuracy) {
-      errs.confirmAccuracy = 'You must confirm the accuracy of the information';
-    }
-
-    return errs;
-  }, [data]);
-
-  React.useEffect(() => {
-    const isValid = Object.keys(errors).length === 0;
-    onValidation({ isValid, errors });
-  }, [errors, onValidation]);
+  const confirmAccuracyError = (errors.confirmAccuracy as { message?: string } | undefined)?.message;
+  const agreedToTermsError = (errors.agreedToTerms as { message?: string } | undefined)?.message;
 
   const formatCurrency = (amount: string | number, currency: string = 'USD') => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -88,6 +59,16 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
     return types[type as keyof typeof types] || type;
   };
 
+  const handleConfirmAccuracyChange = (checked: boolean) => {
+    setTouched(prev => ({ ...prev, confirmAccuracy: true }));
+    setValue('confirmAccuracy', checked, { shouldDirty: true, shouldValidate: true });
+  };
+
+  const handleAgreedToTermsChange = (checked: boolean) => {
+    setTouched(prev => ({ ...prev, agreedToTerms: true }));
+    setValue('agreedToTerms', checked, { shouldDirty: true, shouldValidate: true });
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
@@ -110,20 +91,20 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
               </div>
               <div>
                 <p className="text-sm text-slate-400">Incident Type</p>
-                <p className="text-white">{getIncidentTypeLabel(formData.incidentType)}</p>
+                <p className="text-white">{getIncidentTypeLabel(values.incidentType)}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-400">Incident Date</p>
-                <p className="text-white">{formatDate(formData.incidentDate)}</p>
-                {formData.incidentTime && (
-                  <p className="text-xs text-slate-500">at {formData.incidentTime}</p>
+                <p className="text-white">{formatDate(values.incidentDate)}</p>
+                {values.incidentTime && (
+                  <p className="text-xs text-slate-500">at {values.incidentTime}</p>
                 )}
               </div>
             </div>
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-slate-400">Location</p>
-                <p className="text-white">{formData.location || 'Not specified'}</p>
+                <p className="text-white">{values.location || 'Not specified'}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-400">Coverage Limit</p>
@@ -140,20 +121,20 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Claim Amount:</span>
               <span className="text-xl font-bold text-cyan-400">
-                {formatCurrency(formData.claimAmount, formData.currency)}
+                {formatCurrency(values.claimAmount, values.currency)}
               </span>
             </div>
-            {formData.estimatedLoss && (
+            {values.estimatedLoss && (
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Total Estimated Loss:</span>
                 <span className="text-white font-medium">
-                  {formatCurrency(formData.estimatedLoss, formData.currency)}
+                  {formatCurrency(values.estimatedLoss, values.currency)}
                 </span>
               </div>
             )}
-            
+
             {/* Loss Breakdown */}
-            {formData.breakdown && formData.breakdown.length > 0 && (
+            {values.breakdown && values.breakdown.length > 0 && (
               <div className="border-t border-slate-600 pt-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-white">Loss Breakdown</span>
@@ -166,14 +147,14 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                     {showFullBreakdown ? 'Hide' : 'Show'} Details
                   </Button>
                 </div>
-                
+
                 {showFullBreakdown && (
                   <div className="space-y-2">
-                    {formData.breakdown.map((item: any, index: number) => (
+                    {values.breakdown.map((item) => (
                       <div key={item.id} className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">{item.description}</span>
                         <span className="text-white">
-                          {formatCurrency(item.amount, formData.currency)}
+                          {formatCurrency(item.amount, values.currency)}
                         </span>
                       </div>
                     ))}
@@ -191,14 +172,14 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
             <div>
               <p className="text-sm text-slate-400 mb-2">What happened:</p>
               <div className="bg-slate-900/50 p-3 rounded-lg">
-                <p className="text-white text-sm leading-relaxed">{formData.description}</p>
+                <p className="text-white text-sm leading-relaxed">{values.description}</p>
               </div>
             </div>
-            {formData.immediateActions && (
+            {values.immediateActions && (
               <div>
                 <p className="text-sm text-slate-400 mb-2">Immediate actions taken:</p>
                 <div className="bg-slate-900/50 p-3 rounded-lg">
-                  <p className="text-white text-sm leading-relaxed">{formData.immediateActions}</p>
+                  <p className="text-white text-sm leading-relaxed">{values.immediateActions}</p>
                 </div>
               </div>
             )}
@@ -211,11 +192,11 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Total Documents:</span>
-              <span className="text-white font-medium">{formData.documents?.length || 0} files</span>
+              <span className="text-white font-medium">{values.documents?.length || 0} files</span>
             </div>
-            {formData.documents && formData.documents.length > 0 && (
+            {values.documents && values.documents.length > 0 && (
               <div className="space-y-2">
-                {formData.documents.slice(0, 3).map((doc: File, index: number) => (
+                {values.documents.slice(0, 3).map((doc, index) => (
                   <div key={index} className="flex items-center space-x-3 text-sm">
                     <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
@@ -226,9 +207,9 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                     </span>
                   </div>
                 ))}
-                {formData.documents.length > 3 && (
+                {values.documents.length > 3 && (
                   <p className="text-xs text-slate-400">
-                    +{formData.documents.length - 3} more files
+                    +{values.documents.length - 3} more files
                   </p>
                 )}
               </div>
@@ -246,18 +227,15 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                 <input
                   id="confirm-accuracy"
                   type="checkbox"
-                  checked={data.confirmAccuracy}
-                  onChange={(e) => {
-                    setTouched(prev => ({ ...prev, confirmAccuracy: true }));
-                    onDataChange({ confirmAccuracy: e.target.checked });
-                  }}
+                  checked={values.confirmAccuracy}
+                  onChange={(e) => handleConfirmAccuracyChange(e.target.checked)}
                   aria-required="true"
-                  aria-invalid={!!(touched.confirmAccuracy && errors.confirmAccuracy)}
-                  aria-describedby={touched.confirmAccuracy && errors.confirmAccuracy ? 'confirm-accuracy-error' : undefined}
-                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.confirmAccuracy && errors.confirmAccuracy ? 'border-rose-500' : 'border-slate-600'}`}
+                  aria-invalid={!!(touched.confirmAccuracy && confirmAccuracyError)}
+                  aria-describedby={touched.confirmAccuracy && confirmAccuracyError ? 'confirm-accuracy-error' : undefined}
+                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.confirmAccuracy && confirmAccuracyError ? 'border-rose-500' : 'border-slate-600'}`}
                 />
                 <div className="text-sm">
-                  <p className={`font-medium ${touched.confirmAccuracy && errors.confirmAccuracy ? 'text-rose-400' : 'text-white'}`}>
+                  <p className={`font-medium ${touched.confirmAccuracy && confirmAccuracyError ? 'text-rose-400' : 'text-white'}`}>
                     I confirm the accuracy of this information
                   </p>
                   <p className="text-slate-400 mt-1">
@@ -266,9 +244,9 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                   </p>
                 </div>
               </label>
-              {touched.confirmAccuracy && errors.confirmAccuracy && (
+              {touched.confirmAccuracy && confirmAccuracyError && (
                 <p id="confirm-accuracy-error" role="alert" className="mt-1 text-sm text-rose-400 ml-7">
-                  {errors.confirmAccuracy}
+                  {confirmAccuracyError}
                 </p>
               )}
             </div>
@@ -279,18 +257,15 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                 <input
                   id="agreed-to-terms"
                   type="checkbox"
-                  checked={data.agreedToTerms}
-                  onChange={(e) => {
-                    setTouched(prev => ({ ...prev, agreedToTerms: true }));
-                    onDataChange({ agreedToTerms: e.target.checked });
-                  }}
+                  checked={values.agreedToTerms}
+                  onChange={(e) => handleAgreedToTermsChange(e.target.checked)}
                   aria-required="true"
-                  aria-invalid={!!(touched.agreedToTerms && errors.agreedToTerms)}
-                  aria-describedby={touched.agreedToTerms && errors.agreedToTerms ? 'agreed-to-terms-error' : undefined}
-                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.agreedToTerms && errors.agreedToTerms ? 'border-rose-500' : 'border-slate-600'}`}
+                  aria-invalid={!!(touched.agreedToTerms && agreedToTermsError)}
+                  aria-describedby={touched.agreedToTerms && agreedToTermsError ? 'agreed-to-terms-error' : undefined}
+                  className={`mt-1 w-4 h-4 text-cyan-500 bg-slate-800 rounded focus:ring-cyan-500 ${touched.agreedToTerms && agreedToTermsError ? 'border-rose-500' : 'border-slate-600'}`}
                 />
                 <div className="text-sm">
-                  <p className={`font-medium ${touched.agreedToTerms && errors.agreedToTerms ? 'text-rose-400' : 'text-white'}`}>
+                  <p className={`font-medium ${touched.agreedToTerms && agreedToTermsError ? 'text-rose-400' : 'text-white'}`}>
                     I agree to the terms and conditions
                   </p>
                   <p className="text-slate-400 mt-1">
@@ -299,9 +274,9 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                   </p>
                 </div>
               </label>
-              {touched.agreedToTerms && errors.agreedToTerms && (
+              {touched.agreedToTerms && agreedToTermsError && (
                 <p id="agreed-to-terms-error" role="alert" className="mt-1 text-sm text-rose-400 ml-7">
-                  {errors.agreedToTerms}
+                  {agreedToTermsError}
                 </p>
               )}
             </div>
@@ -311,9 +286,9 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
         {/* Submit Button */}
         <div className="flex justify-center pt-4">
           <Button
-            onClick={onSubmit}
+            type="submit"
             isLoading={isSubmitting}
-            disabled={!data.agreedToTerms || !data.confirmAccuracy}
+            disabled={!values.agreedToTerms || !values.confirmAccuracy}
             size="lg"
             className="min-w-[200px]"
           >
@@ -332,7 +307,7 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
             <div>
               <h4 className="text-sm font-medium text-blue-400">What happens next?</h4>
               <ul className="text-sm text-slate-400 mt-1 space-y-1">
-                <li>• You'll receive a confirmation email with your claim reference number</li>
+                <li>• You&apos;ll receive a confirmation email with your claim reference number</li>
                 <li>• Our claims team will review your submission within 2-3 business days</li>
                 <li>• You may be contacted for additional information or clarification</li>
                 <li>• You can track your claim status in your dashboard</li>

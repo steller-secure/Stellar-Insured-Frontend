@@ -1,20 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { FileUploadWithPreview } from '@/components/ui/FileUploadWithPreview';
 import { Card } from '@/components/ui/Card';
-import type { StepValidation } from '@/hooks/useMultiStepForm';
-
-export interface DocumentUploadData {
-  documents: File[];
-  documentTypes: Record<string, boolean>;
-}
-
-export interface DocumentUploadStepProps {
-  data: DocumentUploadData;
-  onDataChange: (data: Partial<DocumentUploadData>) => void;
-  onValidation: (validation: StepValidation) => void;
-}
+import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
 const requiredDocumentTypes = [
   {
@@ -64,39 +54,26 @@ const optionalDocumentTypes = [
   }
 ];
 
-export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
-  data,
-  onDataChange,
-  onValidation
-}) => {
-  // Validate step
-  React.useEffect(() => {
-    const errors: Record<string, string> = {};
-    
-    if (data.documents.length === 0) {
-      errors.documents = 'Please upload at least one supporting document';
-    }
+export const DocumentUploadStep: React.FC = () => {
+  const { watch, setValue, formState: { errors } } =
+    useFormContext<MultiStepClaimFormValues>();
+  const documents = watch('documents');
+  const documentTypes = watch('documentTypes');
 
-    // Check if required document types are acknowledged
-    const requiredTypesChecked = requiredDocumentTypes.every(type => 
-      data.documentTypes[type.id] === true
-    );
+  const documentsError = (errors.documents as { message?: string } | undefined)?.message;
+  const docTypesError = (errors.documentTypes as { message?: string } | undefined)?.message;
 
-    if (!requiredTypesChecked) {
-      errors.documentTypes = 'Please confirm you have the required document types';
-    }
-
-    const isValid = Object.keys(errors).length === 0;
-    onValidation({ isValid, errors });
-  }, [data, onValidation]);
+  const handleFilesChange = useCallback((files: File[]) => {
+    const hasFiles = files.length > 0;
+    setValue('documents', files, { shouldDirty: hasFiles, shouldValidate: hasFiles });
+  }, [setValue]);
 
   const handleDocumentTypeChange = (typeId: string, checked: boolean) => {
-    onDataChange({
-      documentTypes: {
-        ...data.documentTypes,
-        [typeId]: checked
-      }
-    });
+    setValue(
+      'documentTypes',
+      { ...documentTypes, [typeId]: checked },
+      { shouldDirty: true, shouldValidate: true }
+    );
   };
 
   const getDocumentTypeIcon = (type: string) => {
@@ -153,7 +130,7 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
                 <label key={docType.id} className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={data.documentTypes[docType.id] || false}
+                    checked={documentTypes[docType.id] || false}
                     onChange={(e) => handleDocumentTypeChange(docType.id, e.target.checked)}
                     className="mt-1 w-4 h-4 text-red-500 bg-slate-800 border-slate-600 rounded focus:ring-red-500"
                   />
@@ -168,6 +145,11 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
                 </label>
               ))}
             </div>
+            {docTypesError && (
+              <p className="text-sm text-rose-400" role="alert">
+                {docTypesError}
+              </p>
+            )}
           </div>
         </Card>
 
@@ -186,7 +168,7 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
                 <label key={docType.id} className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={data.documentTypes[docType.id] || false}
+                    checked={documentTypes[docType.id] || false}
                     onChange={(e) => handleDocumentTypeChange(docType.id, e.target.checked)}
                     className="mt-1 w-4 h-4 text-cyan-500 bg-slate-800 border-slate-600 rounded focus:ring-cyan-500"
                   />
@@ -208,10 +190,11 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
         <FileUploadWithPreview
           label="Upload Documents"
           maxFiles={10}
-          maxFileSize={25 * 1024 * 1024} // 25MB
+          maxFileSize={25 * 1024 * 1024}
           acceptedTypes={['.pdf', '.png', '.jpg', '.jpeg', '.doc', '.docx', '.txt']}
           generatePreview={true}
-          onFilesChange={(files) => onDataChange({ documents: files })}
+          onFilesChange={handleFilesChange}
+          error={documentsError}
           helperText="Accepted formats: PDF, Images (PNG, JPG), Word documents, Text files. Maximum 25MB per file."
         />
 
@@ -229,7 +212,7 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
                 <li>• Ensure all documents are clear and readable</li>
                 <li>• Include transaction IDs, wallet addresses, and timestamps when possible</li>
                 <li>• Screenshots should show full context (browser URL, timestamps, etc.)</li>
-                <li>• Redact sensitive personal information except what's necessary for the claim</li>
+                <li>• Redact sensitive personal information except what&apos;s necessary for the claim</li>
                 <li>• Organize documents by type for easier review</li>
               </ul>
             </div>
@@ -237,7 +220,7 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
         </Card>
 
         {/* Upload Status */}
-        {data.documents.length > 0 && (
+        {documents.length > 0 && (
           <Card className="p-4 bg-green-500/5 border-green-500/20">
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0 w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -247,7 +230,7 @@ export const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
               </div>
               <div>
                 <h4 className="text-sm font-medium text-green-400">
-                  {data.documents.length} Document{data.documents.length !== 1 ? 's' : ''} Uploaded
+                  {documents.length} Document{documents.length !== 1 ? 's' : ''} Uploaded
                 </h4>
                 <p className="text-xs text-slate-400">
                   Your documents are ready for submission. You can add more or proceed to review.

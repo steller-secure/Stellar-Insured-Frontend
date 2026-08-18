@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { VoteType } from "@/types/dao-types";
+import { VoteType } from "@/types/api";
 
 interface VotingButtonProps {
   voteType: VoteType;

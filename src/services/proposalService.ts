@@ -1,39 +1,43 @@
-import { Proposal, ProposalStatus } from '../types/proposal';
+import { Proposal, ProposalStatus } from '@/types/api';
 import { v4 as uuidv4 } from 'uuid';
 import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
-
-const proposals: Proposal[] = [];
+import { DataService } from '@/config/dataSource';
 
 export const proposalService = {
   subscribe: (listener: (event: BlockchainEvent) => void) =>
     blockchainEvents.subscribe(listener, ['proposal.updated', 'vote.cast']),
-  createProposal: (data: Omit<Proposal, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Proposal => {
+
+  createProposal: async (data: Omit<Proposal, 'id' | 'status' | 'startDate' | 'endDate' | 'votesFor' | 'votesAgainst' | 'votesAbstain' | 'totalVotes' | 'quorum' | 'userVotingPower' | 'hasVoted' | 'userVote'>): Promise<Proposal> => {
     const proposal: Proposal = {
       ...data,
       id: uuidv4(),
-      status: 'PENDING',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      status: 'pending',
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+      votesFor: 0,
+      votesAgainst: 0,
+      votesAbstain: 0,
+      totalVotes: 0,
+      quorum: 10000,
+      userVotingPower: 250,
+      hasVoted: false,
+      userVote: null,
     };
-    proposals.push(proposal);
+    await DataService.createProposal(proposal);
     return proposal;
   },
 
-  updateProposal: (id: string, updates: Partial<Proposal>): Proposal | null => {
-    const index = proposals.findIndex(p => p.id === id);
-    if (index === -1) return null;
-    proposals[index] = { ...proposals[index], ...updates, updatedAt: new Date() };
-    return proposals[index];
+  updateProposal: async (id: string, updates: Partial<Proposal>): Promise<Proposal | null> => {
+    const updated = await DataService.updateProposal(id, updates);
+    return updated || null;
   },
 
-  deleteProposal: (id: string): boolean => {
-    const index = proposals.findIndex(p => p.id === id);
-    if (index === -1) return false;
-    proposals.splice(index, 1);
-    return true;
+  deleteProposal: async (id: string): Promise<boolean> => {
+    return DataService.deleteProposal(id);
   },
 
-  listProposals: (filter?: ProposalStatus): Proposal[] => {
+  listProposals: async (filter?: ProposalStatus): Promise<Proposal[]> => {
+    const proposals = await DataService.getProposals();
     return filter ? proposals.filter(p => p.status === filter) : proposals;
   },
 };

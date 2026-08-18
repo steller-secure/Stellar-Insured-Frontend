@@ -1,19 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DAOVotingClient from '@/components/dao/DAOVotingClient';
-import { mockProposals } from '@/data/dao-mockData';
+import { mockDb } from '@/mocks/db';
 
 describe('DAOVotingClient', () => {
   it('renders proposals list', () => {
-    render(<DAOVotingClient initialProposals={mockProposals} />);
+    render(<DAOVotingClient initialProposals={mockDb.getProposals()} />);
     
     expect(screen.getByText('DAO Governance')).toBeInTheDocument();
   });
 
   it('renders proposal titles', () => {
-    render(<DAOVotingClient initialProposals={mockProposals} />);
+    render(<DAOVotingClient initialProposals={mockDb.getProposals()} />);
     
-    const firstProposal = mockProposals[0];
+    const firstProposal = mockDb.getProposals()[0];
     expect(screen.getByText(firstProposal.title)).toBeInTheDocument();
   });
 
@@ -35,5 +35,7 @@ describe('DAOVotingClient', () => {
 
     expect(screen.getByText('Create Proposal')).toBeInTheDocument();
     expect(screen.getByLabelText(/proposal title/i)).toBeInTheDocument();
+    render(<DAOVotingClient initialProposals={mockDb.getProposals()} />);
+    expect(screen.getByRole('button', { name: /create a new governance proposal/i })).toBeInTheDocument();
   });
 });

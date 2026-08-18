@@ -1,4 +1,7 @@
 "use client";
+import React, { useState } from 'react';
+import { proposalService } from '../services/proposalService';
+import { ProposalType } from '@/types/api';
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -59,6 +62,12 @@ export const CreateProposalModal: React.FC<CreateProposalModalProps> = ({
         description: data.description,
         type: data.type,
         author: "currentUser",
+      await proposalService.createProposal({ 
+        title, 
+        description, 
+        type, 
+        proposer: 'currentUser',
+        proposerName: 'Current User'
       });
       onCreated(proposal);
       onClose();

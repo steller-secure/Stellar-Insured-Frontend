@@ -16,7 +16,7 @@ import {
 } from "@/lib/dao-utils";
 import VoteProgressBar from "./VoteProgressBar";
 import VotingInterface from "./VotingInterface";
-import { Proposal, VoteType } from "@/types/dao-types";
+import { Proposal, VoteType } from "@/types/api";
 
 interface ProposalCardProps {
   proposal: Proposal;

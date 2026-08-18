@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { proposalService } from '../services/proposalService';
-import { ProposalType } from '../types/proposal';
+import { ProposalType } from '@/types/api';
 
 interface Props {
   onClose: () => void;
@@ -28,7 +28,8 @@ export const CreateProposalModal: React.FC<Props> = ({ onClose, onCreated }) => 
         title, 
         description, 
         type, 
-        author: 'currentUser' 
+        proposer: 'currentUser',
+        proposerName: 'Current User'
       });
       onCreated();
       onClose();

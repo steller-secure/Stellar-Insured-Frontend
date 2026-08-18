@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import VotingInterface from './VotingInterface';
-import { VoteType } from '@/types/dao-types';
+import { VoteType } from '@/types/api';
 
 describe('VotingInterface', () => {
   const mockOnVote = jest.fn();

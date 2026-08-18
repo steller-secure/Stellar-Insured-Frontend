@@ -1,0 +1,29 @@
+src/components/ErrorBoundary.tsx(22,13): error TS2304: Cannot find name 'ErrorCategory'.
+src/components/ErrorBoundary.tsx(23,13): error TS2552: Cannot find name 'ErrorSeverity'. Did you mean 'ErrorEvent'?
+src/components/ErrorBoundary.tsx(171,18): error TS2341: Property 'sendToMonitoringEndpoint' is private and only accessible within class 'ErrorHandler'.
+src/components/WalletConnectButton.tsx(33,5): error TS2339: Property 'reconnectWallet' does not exist on type '{ status: ConnectionStatus; session: AuthSession | null; error: string | null; hasError: boolean; canRetry: boolean; connectWallet: () => Promise<AuthSession>; disconnect: () => void; address: string | null; isConnected: boolean; isConnecting: boolean; }'.
+src/components/WalletConnectButton.tsx(40,5): error TS2339: Property 'handleError' does not exist on type '{ status: ConnectionStatus; session: AuthSession | null; error: string | null; hasError: boolean; canRetry: boolean; connectWallet: () => Promise<AuthSession>; disconnect: () => void; address: string | null; isConnected: boolean; isConnecting: boolean; }'.
+src/components/WalletConnectButton.tsx(41,5): error TS2339: Property 'showErrorNotification' does not exist on type '{ status: ConnectionStatus; session: AuthSession | null; error: string | null; hasError: boolean; canRetry: boolean; connectWallet: () => Promise<AuthSession>; disconnect: () => void; address: string | null; isConnected: boolean; isConnecting: boolean; }'.
+src/components/WalletConnectButtonEnhanced.tsx(75,14): error TS2339: Property 'handleError' does not exist on type '{ status: ConnectionStatus; session: AuthSession | null; error: string | null; hasError: boolean; canRetry: boolean; connectWallet: () => Promise<AuthSession>; disconnect: () => void; address: string | null; isConnected: boolean; isConnecting: boolean; }'.
+src/components/claims/__tests__/MultiStepClaimForm.accessibility.test.tsx(116,46): error TS2345: Argument of type 'string' is not assignable to parameter of type 'null'.
+src/context/NotificationContext.tsx(56,51): error TS2304: Cannot find name 'useState'.
+src/hooks/useWallet.ts(75,5): error TS2322: Type 'AuthSession | null' is not assignable to type 'AuthSession'.
+  Type 'null' is not assignable to type 'AuthSession'.
+src/hooks/useWallet.ts(98,33): error TS2345: Argument of type '{ category: string; code: string; message: string; severity: string; userMessage: string; timestamp: number; }' is not assignable to parameter of type 'string'.
+src/hooks/useWallet.ts(125,31): error TS2345: Argument of type '{ category: string; code: string; message: string; severity: string; userMessage: string; timestamp: number; }' is not assignable to parameter of type 'string'.
+src/lib/__tests__/metadata.test.ts(56,32): error TS2339: Property 'card' does not exist on type 'Twitter'.
+  Property 'card' does not exist on type 'TwitterMetadata'.
+src/lib/__tests__/metadata.test.ts(98,9): error TS2353: Object literal may only specify known properties, and 'coverage' does not exist in type '{ status: "active" | "pending" | "expired"; type: "Health" | "Auto" | "Home" | "Travel"; id: string; name: string; coverageLimit: number; coverageLimitFormatted: string; policyNumber: string; ... 5 more ...; updatedAt?: string | undefined; }'.
+src/lib/__tests__/metadata.test.ts(128,9): error TS2353: Object literal may only specify known properties, and 'coverage' does not exist in type '{ status: "active" | "pending" | "expired"; type: "Health" | "Auto" | "Home" | "Travel"; id: string; name: string; coverageLimit: number; coverageLimitFormatted: string; policyNumber: string; ... 5 more ...; updatedAt?: string | undefined; }'.
+src/lib/api-client.ts(264,13): error TS2345: Argument of type 'Record<string, unknown> | null' is not assignable to parameter of type 'ErrorCategory | undefined'.
+  Type 'null' is not assignable to type 'ErrorCategory | undefined'.
+src/lib/api-client.ts(309,29): error TS2552: Cannot find name 'error'. Did you mean 'Error'?
+src/lib/errorHandler.ts(116,7): error TS2741: Property 'BLOCKCHAIN' is missing in type '{ NETWORK: { CONNECTION_TIMEOUT: { message: string; recoverySuggestion: string; severity: "MEDIUM"; }; SERVER_ERROR: { message: string; recoverySuggestion: string; severity: "HIGH"; }; NETWORK_ERROR: { ...; }; GENERIC_ERROR: { ...; }; }; ... 4 more ...; UNKNOWN: { ...; }; }' but required in type 'Record<ErrorCategory, Record<string, { message: string; recoverySuggestion?: string | undefined; severity: ErrorSeverity; }>>'.
+src/lib/errorHandler.ts(356,9): error TS2367: This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+src/lib/metadata.ts(247,5): error TS18048: 'policy.description' is possibly 'undefined'.
+src/lib/metadata.ts(248,12): error TS18048: 'policy.description' is possibly 'undefined'.
+src/lib/metadata.ts(253,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/metadata.ts(339,23): error TS2339: Property 'coverage' does not exist on type '{ status: "active" | "pending" | "expired"; type: "Health" | "Auto" | "Home" | "Travel"; id: string; name: string; coverageLimit: number; coverageLimitFormatted: string; policyNumber: string; ... 5 more ...; updatedAt?: string | undefined; }'.
+src/lib/metadata.ts(345,23): error TS2339: Property 'policyId' does not exist on type '{ status: "active" | "pending" | "expired"; type: "Health" | "Auto" | "Home" | "Travel"; id: string; name: string; coverageLimit: number; coverageLimitFormatted: string; policyNumber: string; ... 5 more ...; updatedAt?: string | undefined; }'.
+src/lib/security.ts(1,22): error TS2307: Cannot find module 'crypto-js' or its corresponding type declarations.

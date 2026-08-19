@@ -1,4 +1,4 @@
-import { Proposal } from "@/types/dao-types";
+import { Proposal } from "@/types/api";
 
 /**
  * Calculate vote percentage for a specific vote type

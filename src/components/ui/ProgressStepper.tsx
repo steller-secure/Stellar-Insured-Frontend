@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { cn, controlMotion, focusRing } from '@/design-system';
+import { Progress } from './Progress';
 
 export interface Step {
   id: number;
@@ -16,39 +18,27 @@ export interface ProgressStepperProps {
   canNavigate?: (step: number) => boolean;
 }
 
+type StepStatus = 'completed' | 'current' | 'upcoming';
+
+const statusClasses: Record<StepStatus, string> = {
+  completed: 'bg-success border-success text-success-fg',
+  current:
+    'bg-primary border-primary text-primary-fg ring-4 ring-primary/25',
+  upcoming: 'bg-surface-sunken border-border text-fg-subtle',
+};
+
 export const ProgressStepper: React.FC<ProgressStepperProps> = ({
   steps,
   currentStep,
   completedSteps = [],
   onStepClick,
-  canNavigate = () => true
+  canNavigate = () => true,
 }) => {
-  const getStepStatus = (stepNumber: number) => {
+  const getStepStatus = (stepNumber: number): StepStatus => {
     if (completedSteps.includes(stepNumber)) return 'completed';
     if (stepNumber === currentStep) return 'current';
     if (stepNumber < currentStep) return 'completed';
     return 'upcoming';
-  };
-
-  const getStepClasses = (stepNumber: number) => {
-    const status = getStepStatus(stepNumber);
-    const baseClasses = 'flex items-center justify-center w-10 h-10 rounded-full border-2 text-sm font-medium transition-all duration-200';
-    
-    switch (status) {
-      case 'completed':
-        return `${baseClasses} bg-green-500 border-green-500 text-white`;
-      case 'current':
-        return `${baseClasses} bg-cyan-500 border-cyan-500 text-white ring-4 ring-cyan-500/20`;
-      default:
-        return `${baseClasses} bg-slate-800 border-slate-600 text-slate-400`;
-    }
-  };
-
-  const getConnectorClasses = (stepNumber: number) => {
-    const isCompleted = stepNumber < currentStep || completedSteps.includes(stepNumber);
-    return `flex-1 h-0.5 mx-4 transition-colors duration-200 ${
-      isCompleted ? 'bg-green-500' : 'bg-slate-600'
-    }`;
   };
 
   const handleStepClick = (stepNumber: number) => {
@@ -57,37 +47,38 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
     }
   };
 
-  const mobileProgressPercent = Math.round((currentStep / steps.length) * 100);
-  const currentStepObj = steps.find(s => s.id === currentStep);
+  const activeStep = steps.find((step) => step.id === currentStep);
+
+  const mobileProgressPercent =
+    steps.length > 0
+      ? Math.round((currentStep / steps.length) * 100)
+      : 0;
 
   return (
     <div className="w-full">
-      {/*
-        Desktop Stepper
-        role="group" with aria-label groups the steps as a single navigation landmark.
-        WCAG 1.3.1 – Info and Relationships; 4.1.2 – Name, Role, Value
-      */}
-      {/*
-        <nav> already carries the implicit "navigation" landmark role.
-        aria-label differentiates it from other nav elements on the page.
-        WCAG 1.3.1 – Info and Relationships; 4.1.2 – Name, Role, Value
-      */}
+      {/* Desktop Stepper */}
       <nav
-        className="hidden md:flex items-center justify-between"
+        className="hidden items-center justify-between md:flex"
         aria-label="Form progress"
       >
         {steps.map((step, index) => {
           const status = getStepStatus(step.id);
-          const isNavigable = !!onStepClick && canNavigate(step.id);
+
+          const isConnectorComplete =
+            step.id < currentStep ||
+            completedSteps.includes(step.id);
+
+          const isNavigable =
+            !!onStepClick && canNavigate(step.id);
+
           const isCompleted = status === 'completed';
           const isCurrent = status === 'current';
 
-          // Build an accessible label that conveys status
           const stepLabel = isCompleted
             ? `Step ${step.id}: ${step.title} — completed`
             : isCurrent
-            ? `Step ${step.id}: ${step.title} — current step`
-            : `Step ${step.id}: ${step.title} — not yet reached`;
+              ? `Step ${step.id}: ${step.title} — current step`
+              : `Step ${step.id}: ${step.title} — not yet reached`;
 
           return (
             <React.Fragment key={step.id}>
@@ -97,17 +88,25 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
                   onClick={() => handleStepClick(step.id)}
                   disabled={!isNavigable}
                   aria-label={stepLabel}
-                  aria-current={isCurrent ? 'step' : undefined}
+                  aria-current={
+                    isCurrent ? 'step' : undefined
+                  }
                   aria-disabled={!isNavigable}
-                  className={`${getStepClasses(step.id)} ${
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-pill border-2 text-sm font-medium',
+                    controlMotion,
+                    focusRing,
+                    'focus-visible:ring-primary',
+                    statusClasses[status],
                     isNavigable
-                      ? 'cursor-pointer hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
-                      : 'cursor-default'
-                  } disabled:cursor-not-allowed`}
+                      ? 'cursor-pointer hover:scale-105 motion-reduce:hover:scale-100'
+                      : 'cursor-default',
+                    'disabled:cursor-not-allowed',
+                  )}
                 >
                   {isCompleted ? (
                     <svg
-                      className="w-5 h-5"
+                      className="h-5 w-5"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
@@ -121,24 +120,39 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
                   ) : (
                     <span aria-hidden="true">{step.id}</span>
                   )}
+
+                  <span className="sr-only">{step.title}</span>
                 </button>
+
                 <div className="mt-2 text-center" aria-hidden="true">
-                  <div className={`text-sm font-medium ${
-                    isCurrent ? 'text-white' : 'text-slate-400'
-                  }`}>
+                  <div
+                    className={cn(
+                      'text-sm font-medium',
+                      isCurrent
+                        ? 'text-fg'
+                        : 'text-fg-muted',
+                    )}
+                  >
                     {step.title}
                   </div>
+
                   {step.description && (
-                    <div className="text-xs text-slate-500 mt-1 max-w-24">
+                    <div className="mt-1 max-w-24 text-xs text-fg-subtle">
                       {step.description}
                     </div>
                   )}
                 </div>
               </div>
+
               {index < steps.length - 1 && (
                 <div
-                  className={getConnectorClasses(step.id)}
                   aria-hidden="true"
+                  className={cn(
+                    'mx-4 h-0.5 flex-1 transition-colors duration-200 ease-standard',
+                    isConnectorComplete
+                      ? 'bg-success'
+                      : 'bg-border',
+                  )}
                 />
               )}
             </React.Fragment>
@@ -148,51 +162,51 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
 
       {/* Mobile Progress Bar */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between mb-4">
-          {/* Provide screen-reader-accessible progress context */}
+        <div className="mb-4 flex items-center justify-between">
           <span
-            className="text-sm font-medium text-white"
+            className="text-sm font-medium text-fg"
             aria-live="polite"
             aria-atomic="true"
           >
             <span className="sr-only">Form progress: </span>
             Step {currentStep} of {steps.length}
           </span>
-          <span className="text-sm text-slate-400" aria-hidden="true">
+
+          <span
+            className="text-sm text-fg-muted"
+            aria-hidden="true"
+          >
             {mobileProgressPercent}% Complete
           </span>
         </div>
 
-        {/*
-          Progress bar: role="progressbar" + aria-valuenow for AT support.
-          WCAG 4.1.2 – Name, Role, Value
-        */}
-        <div
-          role="progressbar"
-          aria-valuenow={mobileProgressPercent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={`Form completion: ${mobileProgressPercent}%`}
-          className="w-full bg-slate-700 rounded-full h-2 mb-4"
-        >
-          <div
-            className="bg-gradient-to-r from-cyan-500 to-green-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${mobileProgressPercent}%` }}
-          />
-        </div>
+        <Progress
+          value={currentStep}
+          max={steps.length}
+          label={`Step ${currentStep} of ${steps.length}`}
+          hideLabel
+          className="mb-4"
+        />
 
-        {currentStepObj && (
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-white">
-              {currentStepObj.title}
-            </h3>
-            {currentStepObj.description && (
-              <p className="text-sm text-slate-400 mt-1">
-                {currentStepObj.description}
-              </p>
-            )}
-          </div>
-        )}
+        <div
+          role="status"
+          aria-live="polite"
+          className="text-center"
+        >
+          {activeStep && (
+            <>
+              <h3 className="text-lg font-medium text-fg">
+                {activeStep.title}
+              </h3>
+
+              {activeStep.description && (
+                <p className="mt-1 text-sm text-fg-muted">
+                  {activeStep.description}
+                </p>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

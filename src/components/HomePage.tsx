@@ -13,7 +13,7 @@ import { RealtimeStatus } from "@/components/RealtimeStatus";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-zinc-950 relative">
+    <div className="relative flex min-h-screen flex-col bg-surface bg-brand-wash">
       <NavBar />
       <RealtimeStatus className="absolute right-4 top-20 z-10" />
       {/* id="main-content" is the skip-link target from layout.tsx */}

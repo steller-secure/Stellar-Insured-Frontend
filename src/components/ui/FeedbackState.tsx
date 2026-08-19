@@ -1,4 +1,6 @@
 import React from "react";
+import { cn, staticSurfaceRecipe } from "@/design-system";
+import type { UIColor } from "@/design-system";
 import { Button } from "./Button";
 
 type FeedbackVariant = "loading" | "empty" | "error";
@@ -18,6 +20,12 @@ interface FeedbackStateProps {
   onRetry?: () => void;
   showRetryButton?: boolean;
 }
+
+const VARIANT_COLORS: Record<FeedbackVariant, UIColor> = {
+  loading: "primary",
+  empty: "neutral",
+  error: "error",
+};
 
 export const FeedbackState: React.FC<FeedbackStateProps> = ({
   variant,
@@ -40,11 +48,11 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
   > = {
     loading: {
       title: "Loading",
-      description: "We’re fetching the latest data for you.",
+      description: "We're fetching the latest data for you.",
     },
     empty: {
       title: "Nothing here yet",
-      description: "There’s no data to show in this section right now.",
+      description: "There's no data to show in this section right now.",
     },
     error: {
       title: "Something went wrong",
@@ -53,15 +61,25 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
   };
 
   const copy = defaults[variant];
+  const color = VARIANT_COLORS[variant];
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-700 bg-slate-950/60 px-6 py-10 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-brand-primary">
+    <div
+      className="flex flex-col items-center justify-center gap-4 rounded-card border border-dashed border-border bg-surface-sunken px-6 py-10 text-center"
+      role={variant === "error" ? "alert" : "status"}
+    >
+      <div
+        className={cn(
+          "flex h-12 w-12 items-center justify-center rounded-card",
+          staticSurfaceRecipe.soft[color],
+        )}
+      >
         {variant === "loading" && (
           <svg
-            className="h-6 w-6 animate-spin text-brand-primary"
+            className="h-6 w-6 animate-spin motion-reduce:animate-none"
             viewBox="0 0 24 24"
             fill="none"
+            aria-hidden="true"
           >
             <circle
               className="opacity-20"
@@ -80,9 +98,10 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
         )}
         {variant === "empty" && (
           <svg
-            className="h-6 w-6 text-brand-primary"
+            className="h-6 w-6"
             viewBox="0 0 24 24"
             fill="none"
+            aria-hidden="true"
           >
             <rect
               x="3"
@@ -103,9 +122,10 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
         )}
         {variant === "error" && (
           <svg
-            className="h-6 w-6 text-rose-400"
+            className="h-6 w-6"
             viewBox="0 0 24 24"
             fill="none"
+            aria-hidden="true"
           >
             <circle
               cx="12"
@@ -126,67 +146,69 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
       </div>
 
       <div>
-        <p className="text-base font-semibold text-white">
-          {title ?? copy.title}
-        </p>
-        <p className="mt-1 text-sm text-brand-text-muted">
+        <p className="text-base font-semibold text-fg">{title ?? copy.title}</p>
+        <p className="mt-1 text-sm text-fg-muted">
           {description ?? copy.description}
         </p>
       </div>
 
       {/* Error-specific content */}
       {variant === "error" && (
-        <div className="flex flex-col gap-4 w-full max-w-md">
-          {/* Action button */}
+        <div className="flex w-full max-w-md flex-col gap-4">
           {actionLabel && onAction && (
-            <Button size="sm" variant="primary" onClick={onAction} className="w-full">
+            <Button size="sm" onClick={onAction} fullWidth>
               {actionLabel}
             </Button>
           )}
-          
-          {/* Retry button */}
+
           {showRetryButton && onRetry && retryCount < maxRetries && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={onRetry}
-              className="w-full"
-            >
+            <Button variant="outline" size="sm" onClick={onRetry} fullWidth>
               {retryCount > 0 ? `Retry (${retryCount}/${maxRetries})` : "Try Again"}
             </Button>
           )}
-          
-          {/* Error code */}
+
           {errorCode && (
-            <div className="text-xs text-slate-500 font-mono bg-slate-900/50 rounded px-2 py-1">
+            <div className="rounded-field bg-surface-raised px-2 py-1 font-mono text-xs text-fg-subtle">
               Error Code: {errorCode}
             </div>
           )}
-          
-          {/* Recovery suggestion */}
+
           {recoverySuggestion && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-left">
+            <div
+              className={cn(
+                "rounded-field border border-current/20 p-3 text-left",
+                staticSurfaceRecipe.soft.info,
+              )}
+            >
               <div className="flex items-start gap-2">
-                <svg className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-blue-100">Suggestion</p>
-                  <p className="text-sm text-blue-200 mt-1">
-                    {recoverySuggestion}
-                  </p>
+                  <p className="text-sm font-medium">Suggestion</p>
+                  <p className="mt-1 text-sm">{recoverySuggestion}</p>
                 </div>
               </div>
             </div>
           )}
-          
-          {/* Technical details */}
+
           {showTechnicalDetails && technicalDetails && (
-            <details className="bg-slate-900/30 rounded-lg p-3 text-left">
-              <summary className="text-xs text-slate-400 font-medium cursor-pointer">
+            <details className="rounded-field bg-surface-raised p-3 text-left">
+              <summary className="cursor-pointer text-xs font-medium text-fg-muted">
                 Technical Details
               </summary>
-              <pre className="mt-2 text-xs text-slate-300 whitespace-pre-wrap overflow-x-auto">
+              <pre className="mt-2 overflow-x-auto text-xs whitespace-pre-wrap text-fg-muted">
                 {technicalDetails}
               </pre>
             </details>
@@ -196,4 +218,3 @@ export const FeedbackState: React.FC<FeedbackStateProps> = ({
     </div>
   );
 };
-

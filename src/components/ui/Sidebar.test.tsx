@@ -16,6 +16,7 @@ describe('Sidebar', () => {
   it('highlights active route', () => {
     render(<Sidebar />);
     const dashboardLink = screen.getByText('Dashboard').closest('a');
-    expect(dashboardLink).toHaveClass('bg-slate-800');
+    expect(dashboardLink).toHaveClass('bg-primary-soft');
+    expect(dashboardLink).toHaveAttribute('aria-current', 'page');
   });
 });

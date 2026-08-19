@@ -14,70 +14,19 @@ import type {
 import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 import { ApiDataProvider, getActiveDataSource } from '@/config/dataSource';
 
-// Mock data - will be replaced with API calls when available
-const mockPolicies: Policy[] = [
-  {
-    id: 'p1',
-    name: 'Comprehensive Health Plan',
-    type: 'Health',
-    status: 'active',
-    coverageLimit: 50000,
-    coverageLimitFormatted: '$50,000',
-    policyNumber: 'HEL-9928-XJ',
-    premium: 250,
-    expiryDate: '2025-12-31',
-    description: 'Comprehensive health insurance coverage for individuals and families',
-    terms: ['Medical expenses', 'Emergency care', 'Prescription drugs'],
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15'
-  },
-  {
-    id: 'p2',
-    name: 'Standard Auto Insurance',
-    type: 'Auto',
-    status: 'active',
-    coverageLimit: 25000,
-    coverageLimitFormatted: '$25,000',
-    policyNumber: 'AUT-5521-MK',
-    premium: 150,
-    expiryDate: '2025-06-30',
-    description: 'Standard auto insurance covering collision and liability',
-    terms: ['Collision coverage', 'Liability protection', 'Uninsured motorist'],
-    createdAt: '2024-02-20',
-    updatedAt: '2024-02-20'
-  },
-  {
-    id: 'p3',
-    name: 'Home Sweet Home Protection',
-    type: 'Home',
-    status: 'pending',
-    coverageLimit: 500000,
-    coverageLimitFormatted: '$500,000',
-    policyNumber: 'HOM-1102-PP',
-    premium: 400,
-    expiryDate: '2025-09-15',
-    description: 'Complete home insurance protection for your property',
-    terms: ['Structure coverage', 'Personal property', 'Liability protection'],
-    createdAt: '2024-03-10',
-    updatedAt: '2024-03-10'
-  }
-];
+import { DataService } from '@/config/dataSource';
 
 class PolicyService {
-  private policies: Policy[] = [...mockPolicies];
+  // We can remove policies getter/setter completely if not needed, but wait, updatePolicy might use it.
+  // Let's see if updatePolicy uses `this.policies`.
 
   subscribe(listener: (event: BlockchainEvent) => void) {
     return blockchainEvents.subscribe(listener, ['policy.purchased', 'policy.updated']);
   }
 
-  /**
-   * Get all policies with optional filtering
-   */
   async getPolicies(options?: PolicyFilterOptions): Promise<PolicyServiceResponse<PolicyListResponse>> {
     try {
-      let filteredPolicies = getActiveDataSource().useMockData
-        ? [...this.policies]
-        : await ApiDataProvider.getPolicies();
+      let filteredPolicies = await DataService.getPolicies();
 
       // Apply filters
       if (options) {
@@ -134,7 +83,7 @@ class PolicyService {
    */
   async getPolicyById(id: string): Promise<PolicyServiceResponse<Policy | null>> {
     try {
-      const policy = this.policies.find(p => p.id === id);
+      let policy = await DataService.getPolicy(id);
       
       if (!policy) {
         return {
@@ -192,7 +141,7 @@ class PolicyService {
         updatedAt: new Date().toISOString()
       };
 
-      this.policies.push(newPolicy);
+      await DataService.createPolicy(newPolicy);
 
       return {
         data: newPolicy,
@@ -213,9 +162,9 @@ class PolicyService {
    */
   async updatePolicy(id: string, request: PolicyUpdateRequest): Promise<PolicyServiceResponse<Policy>> {
     try {
-      const policyIndex = this.policies.findIndex(p => p.id === id);
+      const currentPolicy = await DataService.getPolicy(id);
       
-      if (policyIndex === -1) {
+      if (!currentPolicy) {
         return {
           data: {} as Policy,
           success: false,
@@ -224,7 +173,7 @@ class PolicyService {
       }
 
       const updatedPolicy = {
-        ...this.policies[policyIndex],
+        ...currentPolicy,
         ...request,
         updatedAt: new Date().toISOString()
       };
@@ -242,7 +191,7 @@ class PolicyService {
         }).then(result => result.finalPremium);
       }
 
-      this.policies[policyIndex] = updatedPolicy;
+      await DataService.updatePolicy(id, updatedPolicy);
 
       return {
         data: updatedPolicy,
@@ -346,12 +295,14 @@ class PolicyService {
     averagePremium: number;
   }>> {
     try {
-      const totalPolicies = this.policies.length;
-      const activePolicies = this.policies.filter(p => p.status === 'active').length;
-      const pendingPolicies = this.policies.filter(p => p.status === 'pending').length;
-      const expiredPolicies = this.policies.filter(p => p.status === 'expired').length;
-      const totalCoverage = this.policies.reduce((sum, p) => sum + p.coverageLimit, 0);
-      const averagePremium = this.policies.reduce((sum, p) => sum + (p.premium || 0), 0) / totalPolicies;
+      let policiesToStat = await DataService.getPolicies();
+
+      const totalPolicies = policiesToStat.length;
+      const activePolicies = policiesToStat.filter(p => p.status === 'active').length;
+      const pendingPolicies = policiesToStat.filter(p => p.status === 'pending').length;
+      const expiredPolicies = policiesToStat.filter(p => p.status === 'expired').length;
+      const totalCoverage = policiesToStat.reduce((sum, p) => sum + p.coverageLimit, 0);
+      const averagePremium = totalPolicies > 0 ? policiesToStat.reduce((sum, p) => sum + (p.premium || 0), 0) / totalPolicies : 0;
 
       return {
         data: {

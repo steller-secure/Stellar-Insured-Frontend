@@ -1,49 +1,69 @@
 import React from "react";
+import { badgeSizeRecipe, cn, staticSurfaceRecipe } from "@/design-system";
+import type { UIColor, UIFieldSize, UIVariant } from "@/design-system";
 
-type BadgeVariant =
-  | "primary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "neutral";
+/**
+ * Pre-token badge names encoded the colour in the variant. They are still
+ * accepted and resolve to `variant="soft"` with the matching colour.
+ */
+type LegacyBadgeVariant = "primary" | "success" | "warning" | "danger" | "neutral";
 
-interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: BadgeVariant;
+const LEGACY_BADGE_COLORS: Record<LegacyBadgeVariant, UIColor> = {
+  primary: "primary",
+  success: "success",
+  warning: "warning",
+  danger: "error",
+  neutral: "neutral",
+};
+
+export interface BadgeProps
+  extends Omit<React.HTMLAttributes<HTMLSpanElement>, "color"> {
+  variant?: UIVariant | LegacyBadgeVariant;
+  color?: UIColor;
+  size?: UIFieldSize;
+  /**
+   * @deprecated Pass `variant="soft"` (tinted) or `variant="solid"` instead.
+   */
   soft?: boolean;
+}
+
+function isLegacyVariant(
+  variant: string | undefined,
+): variant is LegacyBadgeVariant {
+  return variant !== undefined && variant in LEGACY_BADGE_COLORS;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
   className = "",
-  variant = "neutral",
-  soft = true,
+  variant,
+  color,
+  size = "md",
+  soft,
   ...props
 }) => {
-  const base =
-    "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide";
+  let resolvedVariant: UIVariant;
+  let resolvedColor: UIColor;
 
-  const variants: Record<BadgeVariant, string> = {
-    primary: soft
-      ? "bg-brand-primary/15 text-brand-primary"
-      : "bg-brand-primary text-brand-bg",
-    success: soft
-      ? "bg-emerald-500/15 text-emerald-400"
-      : "bg-emerald-500 text-slate-950",
-    warning: soft
-      ? "bg-amber-500/15 text-amber-400"
-      : "bg-amber-500 text-slate-950",
-    danger: soft
-      ? "bg-rose-500/15 text-rose-400"
-      : "bg-rose-500 text-slate-50",
-    neutral: soft
-      ? "bg-slate-700/40 text-slate-200"
-      : "bg-slate-300 text-slate-900",
-  };
+  if (isLegacyVariant(variant)) {
+    resolvedColor = color ?? LEGACY_BADGE_COLORS[variant];
+    resolvedVariant = soft === false ? "solid" : "soft";
+  } else {
+    resolvedColor = color ?? "neutral";
+    resolvedVariant = variant ?? (soft === false ? "solid" : "soft");
+  }
 
   return (
-    <span className={`${base} ${variants[variant]} ${className}`} {...props}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-pill font-semibold uppercase tracking-wide whitespace-nowrap",
+        staticSurfaceRecipe[resolvedVariant][resolvedColor],
+        badgeSizeRecipe[size],
+        className,
+      )}
+      {...props}
+    >
       {children}
     </span>
   );
 };
-

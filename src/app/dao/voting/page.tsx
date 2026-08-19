@@ -13,6 +13,9 @@ export const metadata = pageMetadata.dao;
  * Server Component - uses mock data in development and the API elsewhere.
  */
 export default async function DAOVotingPage() {
+  // TODO: Replace with actual data fetching from blockchain/API
+  // const proposals = await fetchProposalsFromBlockchain();
+
   const proposals = await DataService.getProposals();
 
   return (

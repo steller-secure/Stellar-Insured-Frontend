@@ -6,7 +6,7 @@ import { AlertCircle } from "lucide-react";
 import ProposalCard from "./ProposalCard";
 import ProposalStats from "./ProposalStats";
 import ProposalFilters from "./ProposalFilters";
-import { Proposal, VoteType } from "@/types/dao-types";
+import { Proposal, VoteType } from "@/types/api";
 import { getProposalStats } from "@/lib/dao-utils";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { useNotificationContext } from "@/context/NotificationContext";

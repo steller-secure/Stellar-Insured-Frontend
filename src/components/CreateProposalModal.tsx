@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { proposalService } from '../services/proposalService';
-import { ProposalType } from '@/types/api';
-=======
 import React, { useState } from "react";
 import { proposalService } from "../services/proposalService";
->>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
 
 interface Props {
   onClose: () => void;
@@ -31,18 +25,10 @@ export const CreateProposalModal: React.FC<Props> = ({
     setError(null);
 
     try {
-<<<<<<< HEAD
-      await proposalService.createProposal({ 
-        title, 
-        description, 
-        type, 
-        proposer: 'currentUser',
-        proposerName: 'Current User'
-=======
-      await proposalService.createProposal({
+      // proposalService uses an in-memory sync API
+      proposalService.createProposal({
         title,
         description,
->>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
       });
       onCreated();
       onClose();

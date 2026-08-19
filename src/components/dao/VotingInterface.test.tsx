@@ -1,20 +1,16 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import VotingInterface from './VotingInterface';
-<<<<<<< HEAD
-import { VoteType } from '@/types/api';
-=======
-import { VoteType } from '@/types/proposal';
->>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import VotingInterface from "./VotingInterface";
+import type { VoteType } from "@/types/api";
 
-describe('VotingInterface', () => {
+describe("VotingInterface", () => {
   const mockOnVote = jest.fn();
 
   beforeEach(() => {
     mockOnVote.mockClear();
   });
 
-  it('displays voting power', () => {
+  it("displays voting power", () => {
     render(
       <VotingInterface
         proposalId="1"
@@ -22,12 +18,12 @@ describe('VotingInterface', () => {
         hasVoted={false}
         userVote={null}
         onVote={mockOnVote}
-      />
+      />,
     );
-    expect(screen.getByText('100 votes')).toBeInTheDocument();
+    expect(screen.getByText("100 votes")).toBeInTheDocument();
   });
 
-  it('allows selecting vote options', async () => {
+  it("allows selecting vote options", async () => {
     const user = userEvent.setup();
     render(
       <VotingInterface
@@ -36,14 +32,14 @@ describe('VotingInterface', () => {
         hasVoted={false}
         userVote={null}
         onVote={mockOnVote}
-      />
+      />,
     );
 
-    await user.click(screen.getByText('For'));
-    expect(screen.getByText('Cast Vote')).not.toBeDisabled();
+    await user.click(screen.getByText("For"));
+    expect(screen.getByText("Cast Vote")).not.toBeDisabled();
   });
 
-  it('submits vote when cast button clicked', async () => {
+  it("submits vote when cast button clicked", async () => {
     const user = userEvent.setup();
     mockOnVote.mockResolvedValue(undefined);
 
@@ -54,31 +50,31 @@ describe('VotingInterface', () => {
         hasVoted={false}
         userVote={null}
         onVote={mockOnVote}
-      />
+      />,
     );
 
-    await user.click(screen.getByText('Against'));
-    await user.click(screen.getByText('Cast Vote'));
+    await user.click(screen.getByText("Against"));
+    await user.click(screen.getByText("Cast Vote"));
 
     await waitFor(() => {
-      expect(mockOnVote).toHaveBeenCalledWith('1', 'against');
+      expect(mockOnVote).toHaveBeenCalledWith("1", "against");
     });
   });
 
-  it('shows already voted state', () => {
+  it("shows already voted state", () => {
     render(
       <VotingInterface
         proposalId="1"
         userVotingPower={100}
         hasVoted={true}
-        userVote={'for' as VoteType}
+        userVote={"for" as VoteType}
         onVote={mockOnVote}
-      />
+      />,
     );
-    expect(screen.getByText('You voted: FOR')).toBeInTheDocument();
+    expect(screen.getByText("You voted: FOR")).toBeInTheDocument();
   });
 
-  it('disables submit when no vote selected', () => {
+  it("disables submit when no vote selected", () => {
     render(
       <VotingInterface
         proposalId="1"
@@ -86,15 +82,15 @@ describe('VotingInterface', () => {
         hasVoted={false}
         userVote={null}
         onVote={mockOnVote}
-      />
+      />,
     );
-    expect(screen.getByText('Cast Vote')).toBeDisabled();
+    expect(screen.getByText("Cast Vote")).toBeDisabled();
   });
 
-  it('handles vote error gracefully', async () => {
+  it("handles vote error gracefully", async () => {
     const user = userEvent.setup();
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
-    mockOnVote.mockRejectedValue(new Error('Vote failed'));
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    mockOnVote.mockRejectedValue(new Error("Vote failed"));
 
     render(
       <VotingInterface
@@ -103,11 +99,11 @@ describe('VotingInterface', () => {
         hasVoted={false}
         userVote={null}
         onVote={mockOnVote}
-      />
+      />,
     );
 
-    await user.click(screen.getByText('Abstain'));
-    await user.click(screen.getByText('Cast Vote'));
+    await user.click(screen.getByText("Abstain"));
+    await user.click(screen.getByText("Cast Vote"));
 
     await waitFor(() => {
       expect(consoleError).toHaveBeenCalled();

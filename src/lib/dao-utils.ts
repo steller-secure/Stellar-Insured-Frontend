@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Proposal } from "@/types/api";
-=======
-import type { Proposal, DaoStats } from "@/types/proposal";
->>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
+import type { Proposal, DaoStats } from "@/types/api";
 
 /**
  * Calculate vote percentage for a specific vote type

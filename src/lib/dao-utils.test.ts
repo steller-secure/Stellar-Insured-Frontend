@@ -1,9 +1,5 @@
 import { getProposalStats } from '@/lib/dao-utils';
-<<<<<<< HEAD
-import { Proposal } from '@/types/api';
-=======
-import { Proposal } from '@/types/proposal';
->>>>>>> 14fea72 (fix: add Zod schemas, typed API clients, and runtime validation across services and hooks)
+import type { Proposal } from '@/types/api';
 
 describe('dao-utils', () => {
   const mockProposals: Proposal[] = [

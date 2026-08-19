@@ -3,10 +3,12 @@ import { blockchainEvents } from './blockchainEvents';
 describe('blockchainEvents', () => {
   afterEach(() => {
     blockchainEvents.stop();
+    delete process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL;
     jest.restoreAllMocks();
   });
 
   it('falls back to polling and deduplicates stale events', async () => {
+    process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL = '/api/test-events';
     const event = { id: 'same-event', type: 'claim.updated', data: { claimId: 'c1' } };
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,

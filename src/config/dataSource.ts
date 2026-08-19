@@ -17,13 +17,24 @@ export interface BlockchainDataSourceConfig {
   websocketUrl?: string;
   eventSourceUrl?: string;
   pollingUrl?: string;
+  horizonUrl: string;
+  sorobanRpcUrl?: string;
+  contractIds: string[];
 }
 
 export function getBlockchainDataSource(): BlockchainDataSourceConfig {
   return {
     websocketUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_WS_URL,
     eventSourceUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_EVENTS_URL,
-    pollingUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL || '/api/blockchain/events',
+    pollingUrl: process.env.NEXT_PUBLIC_BLOCKCHAIN_POLL_URL,
+    horizonUrl: stellarConfig.horizonUrl,
+    sorobanRpcUrl: process.env.NEXT_PUBLIC_STELLAR_RPC_URL || (stellarConfig.networkId === 'mainnet'
+      ? 'https://soroban-rpc.mainnet.stellar.gateway.fm'
+      : 'https://soroban-testnet.stellar.org'),
+    contractIds: (process.env.NEXT_PUBLIC_SOROBAN_CONTRACT_IDS || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean),
   };
 }
 
@@ -134,6 +145,11 @@ export class MockDataProvider {
   static async deleteProposal(id: string): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 300));
     return mockDb.deleteProposal(id);
+  }
+
+  static async getProposals(): Promise<Proposal[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return mockProposals;
   }
 }
 
@@ -327,6 +343,13 @@ export class DataService {
     return getActiveDataSource().useMockData 
       ? MockDataProvider.deleteProposal(id) 
       : ApiDataProvider.deleteProposal(id);
+  }
+
+  static async getProposals(): Promise<Proposal[]> {
+    const config = getActiveDataSource();
+    return config.useMockData
+      ? MockDataProvider.getProposals()
+      : ApiDataProvider.getProposals();
   }
 }
 

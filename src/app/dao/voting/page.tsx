@@ -10,8 +10,7 @@ import {
 export const metadata = pageMetadata.dao;
 
 /**
- * Server Component - fetches data and renders client component
- * In production, replace mockProposals with actual data fetching
+ * Server Component - uses mock data in development and the API elsewhere.
  */
 export default async function DAOVotingPage() {
   // TODO: Replace with actual data fetching from blockchain/API

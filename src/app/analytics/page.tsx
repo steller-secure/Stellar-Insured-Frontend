@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { analytics, AnalyticsEvent } from "@/lib/analytics";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Activity, MousePointerClick, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
@@ -14,24 +14,27 @@ export default function AnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const { startLoading, stopLoading } = useLoading();
 
-    const loadData = () => {
+    const loadData = useCallback(() => {
         setLoading(true);
         setError(null);
         startLoading();
         try {
             const data = analytics.getAnalyticsData();
             setEvents(data.sort((a, b) => b.timestamp - a.timestamp));
-        } catch (err) {
+        } catch {
             setError("Failed to load analytics data");
         } finally {
             setLoading(false);
             stopLoading();
         }
-    };
+    }, [startLoading, stopLoading]);
     useEffect(() => {
         loadData();
-        return blockchainEvents.subscribe(() => loadData());
-    }, []);
+        return blockchainEvents.subscribe(() => loadData(), [
+            'policy.purchased', 'policy.updated', 'claim.submitted', 'claim.updated',
+            'proposal.updated', 'vote.cast',
+        ]);
+    }, [loadData]);
 
     const clearData = () => {
         if (confirm("Are you sure you want to clear all local analytics data?")) {

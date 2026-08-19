@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
-@theme {
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --font-inter: var(--font-inter);
+/* ---------------------------------------------------------------------------
+ * Stellar Insured — Design System
+ *
+ * This file is THE single source of truth for design tokens. Nothing else in
+ * the codebase should hard-code a colour, radius, shadow or easing curve.
+ *
+ * Layers, in order:
+ *   1. `@custom-variant dark` — wires Tailwind's `dark:` variant to the `.dark`
+ *      class that ThemeProvider toggles on <html>.
+ *   2. `:root` / `.dark` — runtime *semantic* tokens (`--ds-*`). These are the
+ *      values that change between themes.
+ *   3. `@theme inline` — maps the runtime tokens onto Tailwind's token
+ *      namespaces so utilities (`bg-primary`, `text-fg-muted`,
+ *      `shadow-elevation-2`, `ease-standard`, …) are generated from them.
+ *      `inline` matters: it makes the utilities emit `var(--ds-*)` so they
+ *      re-resolve when the theme class changes.
+ *
+ * A TypeScript mirror of these tokens lives in `src/design-system/tokens.ts`
+ * for code that needs the values outside of a class name.
+ * ------------------------------------------------------------------------- */
 
-    --color-stellar-bg: #030712;
-    --color-stellar-card: #0f172a;
-    --color-stellar-accent: #8b5cf6; /* Violet */
-    --color-stellar-accent-hover: #7c3aed;
-    --color-stellar-secondary: #06b6d4; /* Cyan */
-    --color-brand-bg: #0a0c1a;
-    --color-brand-card: #151929;
-    --color-brand-sidebar: #0f1225;
-    --color-brand-primary: #1fbdf1;
-    --color-brand-primary-hover: #199bc6;
-    --color-brand-accent: #33cc66;
-    --color-brand-text-muted: #94a3b8;
-    --color-brand-border: #2d3748;
+/* Tailwind v4 defaults `dark:` to `prefers-color-scheme`. The app drives the
+ * theme from a class, so the variant has to be redefined. */
+@custom-variant dark (&:where(.dark, .dark *));
 
-    --animate-fade-in: fadeIn 0.5s ease-out;
-    --animate-slide-up: slideUp 0.5s ease-out;
+:root {
+  /* ===== Surfaces ======================================================== */
+  --ds-surface: #ffffff;
+  --ds-surface-raised: #f8fafc;
+  --ds-surface-sunken: #f1f5f9;
+  --ds-surface-overlay: #ffffff;
+  --ds-surface-inverse: #0f172a;
+  --ds-scrim: rgb(15 23 42 / 0.45);
+
+  /* ===== Foreground ====================================================== */
+  --ds-fg: #0f172a; /* 17.9:1 on surface */
+  --ds-fg-muted: #475569; /*  7.5:1 on surface */
+  --ds-fg-subtle: #64748b; /*  4.8:1 on surface */
+  --ds-fg-inverse: #f8fafc;
+
+  /* ===== Borders ========================================================= */
+  --ds-border: #cbd5e1;
+  --ds-border-subtle: #e2e8f0;
+  --ds-border-strong: #94a3b8;
+
+  /* ===== Semantic palette ================================================
+   * Every colour ships five roles so components never need to special-case:
+   *   <name>        solid fill / emphasis
+   *   <name>-hover  solid fill, hovered
+   *   <name>-fg     text or icon placed *on* the solid fill
+   *   <name>-soft   tinted fill for low-emphasis surfaces
+   *   <name>-on-soft text or icon placed on the tinted fill
+   * Every foreground/background pair below meets WCAG AA (>= 4.5:1). */
+
+  --ds-primary: #0369a1; /* white on it: 5.9:1 */
+  --ds-primary-hover: #075985;
+  --ds-primary-fg: #ffffff;
+  --ds-primary-soft: #e0f2fe;
+  --ds-primary-on-soft: #075985; /* 7.4:1 on soft */
+
+  --ds-secondary: #6d28d9; /* white on it: 7.1:1 */
+  --ds-secondary-hover: #5b21b6;
+  --ds-secondary-fg: #ffffff;
+  --ds-secondary-soft: #ede9fe;
+  --ds-secondary-on-soft: #5b21b6;
+
+  --ds-success: #15803d; /* white on it: 5.0:1 */
+  --ds-success-hover: #166534;
+  --ds-success-fg: #ffffff;
+  --ds-success-soft: #dcfce7;
+  --ds-success-on-soft: #166534;
+
+  --ds-warning: #b45309; /* white on it: 5.0:1 */
+  --ds-warning-hover: #92400e;
+  --ds-warning-fg: #ffffff;
+  --ds-warning-soft: #fef3c7;
+  --ds-warning-on-soft: #92400e;
+
+  --ds-error: #b91c1c; /* white on it: 6.5:1 */
+  --ds-error-hover: #991b1b;
+  --ds-error-fg: #ffffff;
+  --ds-error-soft: #fee2e2;
+  --ds-error-on-soft: #991b1b;
+
+  --ds-info: #1d4ed8; /* white on it: 6.7:1 */
+  --ds-info-hover: #1e40af;
+  --ds-info-fg: #ffffff;
+  --ds-info-soft: #dbeafe;
+  --ds-info-on-soft: #1e40af;
+
+  --ds-neutral: #334155; /* white on it: 10.4:1 */
+  --ds-neutral-hover: #1e293b;
+  --ds-neutral-fg: #ffffff;
+  --ds-neutral-soft: #f1f5f9;
+  --ds-neutral-on-soft: #334155;
+
+  /* ===== Focus ring ====================================================== */
+  --ds-ring: var(--ds-primary);
+  --ds-ring-offset: var(--ds-surface);
+
+  /* ===== Elevation ======================================================= */
+  --ds-elevation-0: 0 0 #0000;
+  --ds-elevation-1: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  --ds-elevation-2:
+    0 4px 6px -1px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+  --ds-elevation-3:
+    0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.08);
+  --ds-elevation-4:
+    0 20px 25px -5px rgb(15 23 42 / 0.12), 0 8px 10px -6px rgb(15 23 42 / 0.1);
+
+  /* ===== Motion ==========================================================
+   * Durations are plain custom properties (Tailwind has no duration token
+   * namespace); use them as `duration-[var(--ds-duration-normal)]` or read
+   * them from `src/design-system/tokens.ts`. */
+  --ds-duration-instant: 75ms;
+  --ds-duration-fast: 150ms;
+  --ds-duration-normal: 200ms;
+  --ds-duration-slow: 300ms;
+  --ds-duration-deliberate: 500ms;
 }
 
 /* ─── Accessibility: Focus Ring Tokens ───────────────────────────────────────
@@ -80,63 +178,233 @@
 }
 
 .dark {
-  /* Dark theme - WCAG AA compliant colors */
-  --color-bg-primary: #030712;
-  --color-bg-secondary: #0f172a;
-  --color-bg-tertiary: #1e293b;
-  --color-bg-card: #0f172a;
+  --ds-surface: #030712;
+  --ds-surface-raised: #0f172a;
+  --ds-surface-sunken: #010409;
+  --ds-surface-overlay: #111a2e;
+  --ds-surface-inverse: #f8fafc;
+  --ds-scrim: rgb(2 6 23 / 0.7);
 
-  /* Text colors - WCAG AA compliant on dark background */
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #0f172a;
+  --ds-fg: #f8fafc; /* 18.9:1 on surface */
+  --ds-fg-muted: #cbd5e1; /* 12.0:1 on surface */
+  --ds-fg-subtle: #94a3b8; /*  7.8:1 on surface */
+  --ds-fg-inverse: #0f172a;
 
-  /* Brand colors - adjusted for dark mode visibility */
-  --color-brand-primary: #38bdf8;
-  --color-brand-hover: #22d3ee;
-  --color-brand-accent: #a78bfa;
-  --color-brand-accent-hover: #c4b5fd;
+  --ds-border: #334155;
+  --ds-border-subtle: #1e293b;
+  --ds-border-strong: #475569;
 
-  /* Border colors */
-  --color-border: #334155;
-  --color-border-focus: #38bdf8;
+  --ds-primary: #38bdf8; /* 9.4:1 on surface */
+  --ds-primary-hover: #7dd3fc;
+  --ds-primary-fg: #030712;
+  --ds-primary-soft: #082f49;
+  --ds-primary-on-soft: #7dd3fc; /* 8.3:1 on soft */
 
-  /* Status colors - WCAG AA compliant on dark */
-  --color-success: #4ade80;
-  --color-success-bg: #14532d;
-  --color-warning: #fbbf24;
-  --color-warning-bg: #78350f;
-  --color-error: #f87171;
-  --color-error-bg: #7f1d1d;
-  --color-info: #60a5fa;
-  --color-info-bg: #1e3a8a;
+  --ds-secondary: #a78bfa; /* 7.4:1 on surface */
+  --ds-secondary-hover: #c4b5fd;
+  --ds-secondary-fg: #1e1b4b;
+  --ds-secondary-soft: #2e1065;
+  --ds-secondary-on-soft: #c4b5fd;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --ds-success: #4ade80; /* 11.5:1 on surface */
+  --ds-success-hover: #86efac;
+  --ds-success-fg: #052e16;
+  --ds-success-soft: #052e16;
+  --ds-success-on-soft: #86efac;
+
+  --ds-warning: #fbbf24; /* 12.1:1 on surface */
+  --ds-warning-hover: #fcd34d;
+  --ds-warning-fg: #451a03;
+  --ds-warning-soft: #451a03;
+  --ds-warning-on-soft: #fcd34d;
+
+  --ds-error: #f87171; /* 7.3:1 on surface */
+  --ds-error-hover: #fca5a5;
+  --ds-error-fg: #450a0a;
+  --ds-error-soft: #450a0a;
+  --ds-error-on-soft: #fca5a5;
+
+  --ds-info: #60a5fa; /* 7.9:1 on surface */
+  --ds-info-hover: #93c5fd;
+  --ds-info-fg: #172554;
+  --ds-info-soft: #172554;
+  --ds-info-on-soft: #93c5fd;
+
+  --ds-neutral: #cbd5e1; /* 12.0:1 on surface */
+  --ds-neutral-hover: #e2e8f0;
+  --ds-neutral-fg: #0f172a;
+  --ds-neutral-soft: #1e293b;
+  --ds-neutral-on-soft: #e2e8f0;
+
+  --ds-ring-offset: var(--ds-surface);
+
+  --ds-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --ds-elevation-2:
+    0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --ds-elevation-3:
+    0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --ds-elevation-4:
+    0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.6);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+@theme inline {
+  /* ---- Typeface ------------------------------------------------------- */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* `font-display` replaces the old `font-inter` utility. */
+  --font-display: var(--font-inter), var(--font-geist-sans), sans-serif;
+
+  /* ---- Type scale ------------------------------------------------------
+   * Canonical steps. Anything outside this list is a bug, not a decision. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.02em;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: 0.01em;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-3xl--letter-spacing: -0.015em;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-4xl--letter-spacing: -0.02em;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.1;
+  --text-5xl--letter-spacing: -0.02em;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.05;
+  --text-6xl--letter-spacing: -0.025em;
+
+  /* ---- Spacing ---------------------------------------------------------
+   * 4px base. Canonical steps: 0 1 2 3 4 5 6 8 10 12 16 20 24. */
+  --spacing: 0.25rem;
+
+  /* ---- Radii ----------------------------------------------------------- */
+  --radius-field: 0.5rem; /* inputs, selects, small controls  */
+  --radius-control: 0.75rem; /* buttons, chips                   */
+  --radius-card: 1rem; /* cards, panels                    */
+  --radius-surface: 1.5rem; /* modals, sheets, large surfaces   */
+  --radius-pill: 9999px;
+
+  /* ---- Surfaces -------------------------------------------------------- */
+  --color-surface: var(--ds-surface);
+  --color-surface-raised: var(--ds-surface-raised);
+  --color-surface-sunken: var(--ds-surface-sunken);
+  --color-surface-overlay: var(--ds-surface-overlay);
+  --color-surface-inverse: var(--ds-surface-inverse);
+  --color-scrim: var(--ds-scrim);
+
+  /* ---- Foreground ------------------------------------------------------ */
+  --color-fg: var(--ds-fg);
+  --color-fg-muted: var(--ds-fg-muted);
+  --color-fg-subtle: var(--ds-fg-subtle);
+  --color-fg-inverse: var(--ds-fg-inverse);
+
+  /* ---- Borders --------------------------------------------------------- */
+  --color-border: var(--ds-border);
+  --color-border-subtle: var(--ds-border-subtle);
+  --color-border-strong: var(--ds-border-strong);
+
+  /* ---- Semantic palette ------------------------------------------------ */
+  --color-primary: var(--ds-primary);
+  --color-primary-hover: var(--ds-primary-hover);
+  --color-primary-fg: var(--ds-primary-fg);
+  --color-primary-soft: var(--ds-primary-soft);
+  --color-primary-on-soft: var(--ds-primary-on-soft);
+
+  --color-secondary: var(--ds-secondary);
+  --color-secondary-hover: var(--ds-secondary-hover);
+  --color-secondary-fg: var(--ds-secondary-fg);
+  --color-secondary-soft: var(--ds-secondary-soft);
+  --color-secondary-on-soft: var(--ds-secondary-on-soft);
+
+  --color-success: var(--ds-success);
+  --color-success-hover: var(--ds-success-hover);
+  --color-success-fg: var(--ds-success-fg);
+  --color-success-soft: var(--ds-success-soft);
+  --color-success-on-soft: var(--ds-success-on-soft);
+
+  --color-warning: var(--ds-warning);
+  --color-warning-hover: var(--ds-warning-hover);
+  --color-warning-fg: var(--ds-warning-fg);
+  --color-warning-soft: var(--ds-warning-soft);
+  --color-warning-on-soft: var(--ds-warning-on-soft);
+
+  --color-error: var(--ds-error);
+  --color-error-hover: var(--ds-error-hover);
+  --color-error-fg: var(--ds-error-fg);
+  --color-error-soft: var(--ds-error-soft);
+  --color-error-on-soft: var(--ds-error-on-soft);
+
+  --color-info: var(--ds-info);
+  --color-info-hover: var(--ds-info-hover);
+  --color-info-fg: var(--ds-info-fg);
+  --color-info-soft: var(--ds-info-soft);
+  --color-info-on-soft: var(--ds-info-on-soft);
+
+  --color-neutral: var(--ds-neutral);
+  --color-neutral-hover: var(--ds-neutral-hover);
+  --color-neutral-fg: var(--ds-neutral-fg);
+  --color-neutral-soft: var(--ds-neutral-soft);
+  --color-neutral-on-soft: var(--ds-neutral-on-soft);
+
+  --color-ring: var(--ds-ring);
+  --color-ring-offset: var(--ds-ring-offset);
+
+  /* ---- Deprecated aliases ---------------------------------------------
+   * Kept so pre-token markup keeps rendering (and now follows the theme).
+   * Do not use these in new code — reach for the semantic names above.
+   * `brand-bg` / `stellar-card` were only ever used as the *text* colour on
+   * a `brand-primary` fill, so they alias the on-primary foreground. */
+  --color-brand-primary: var(--ds-primary);
+  --color-brand-primary-hover: var(--ds-primary-hover);
+  --color-brand-hover: var(--ds-primary-hover);
+  --color-brand-accent: var(--ds-success);
+  --color-brand-accent-hover: var(--ds-success-hover);
+  --color-brand-bg: var(--ds-primary-fg);
+  --color-brand-card: var(--ds-surface-raised);
+  --color-brand-sidebar: var(--ds-surface-sunken);
+  --color-brand-border: var(--ds-border);
+  --color-brand-text-muted: var(--ds-fg-muted);
+  --color-stellar-bg: var(--ds-surface);
+  --color-stellar-card: var(--ds-primary-fg);
+  --color-stellar-accent: var(--ds-secondary);
+  --color-stellar-accent-hover: var(--ds-secondary-hover);
+  --color-stellar-secondary: var(--ds-info);
+
+  /* ---- Elevation ------------------------------------------------------- */
+  --shadow-elevation-0: var(--ds-elevation-0);
+  --shadow-elevation-1: var(--ds-elevation-1);
+  --shadow-elevation-2: var(--ds-elevation-2);
+  --shadow-elevation-3: var(--ds-elevation-3);
+  --shadow-elevation-4: var(--ds-elevation-4);
+
+  /* ---- Motion curves --------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1.2);
+  --ease-entrance: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  /* ---- Animations ------------------------------------------------------ */
+  --animate-fade-in: fade-in var(--ds-duration-slow) var(--ease-entrance);
+  --animate-slide-up: slide-up var(--ds-duration-slow) var(--ease-entrance);
+  --animate-slide-in-right: slide-in-right var(--ds-duration-slow)
+    var(--ease-entrance);
+  --animate-shimmer: shimmer 1.6s linear infinite;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+@keyframes fade-in {
   from {
     opacity: 0;
   }
@@ -145,9 +413,9 @@
   }
 }
 
-@keyframes slideUp {
+@keyframes slide-up {
   from {
-    transform: translateY(20px);
+    transform: translateY(1.25rem);
     opacity: 0;
   }
   to {
@@ -156,96 +424,92 @@
   }
 }
 
-html,
-body {
-    background-color: var(--color-stellar-bg);
-    color: white;
+@keyframes slide-in-right {
+  from {
+    transform: translateX(1.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--ds-surface);
+    color: var(--ds-fg);
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color var(--ds-duration-slow) var(--ease-standard),
+      color var(--ds-duration-slow) var(--ease-standard);
+  }
+
+  /* Consistent focus treatment for anything that does not opt out. */
+  :focus-visible {
+    outline: 2px solid var(--ds-ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--ds-primary);
+    color: var(--ds-primary-fg);
+  }
+}
+
+@layer utilities {
+  /* Ambient brand wash used by marketing surfaces. */
+  .bg-brand-wash {
     background-image:
-        radial-gradient(
-            at 0% 0%,
-            rgba(139, 92, 246, 0.15) 0px,
-            transparent 50%
-        ),
-        radial-gradient(
-            at 100% 0%,
-            rgba(6, 182, 212, 0.15) 0px,
-            transparent 50%
-        );
-}
+      radial-gradient(
+        at 0% 0%,
+        color-mix(in oklab, var(--ds-primary) 14%, transparent) 0px,
+        transparent 50%
+      ),
+      radial-gradient(
+        at 100% 0%,
+        color-mix(in oklab, var(--ds-secondary) 14%, transparent) 0px,
+        transparent 50%
+      );
+  }
 
-.section__two__card {
+  .section__two__card {
     background: linear-gradient(
-        to bottom,
-        #5730cb33 22%,
-        #1e243333 48%,
-        #d2c53b33 96%
+      to bottom,
+      color-mix(in oklab, var(--ds-secondary) 20%, transparent) 22%,
+      color-mix(in oklab, var(--ds-surface-raised) 20%, transparent) 48%,
+      color-mix(in oklab, var(--ds-warning) 20%, transparent) 96%
     );
-    box-shadow: 0 4px 4px 0 #b6fa9e;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+    box-shadow: var(--ds-elevation-3);
+  }
 }
 
-/* Utility classes using CSS variables */
-.bg-primary {
-  background-color: var(--color-bg-primary);
-}
-.bg-secondary {
-  background-color: var(--color-bg-secondary);
-}
-.bg-tertiary {
-  background-color: var(--color-bg-tertiary);
-}
-.bg-card {
-  background-color: var(--color-bg-card);
-}
-
-.text-primary {
-  color: var(--color-text-primary);
-}
-.text-secondary {
-  color: var(--color-text-secondary);
-}
-.text-muted {
-  color: var(--color-text-muted);
-}
-.text-inverse {
-  color: var(--color-text-inverse);
-}
-
-.border-default {
-  border-color: var(--color-border);
-}
-.border-focus {
-  border-color: var(--color-border-focus);
-}
-
-.shadow-sm {
-  box-shadow: var(--shadow-sm);
-}
-.shadow-md {
-  box-shadow: var(--shadow-md);
-}
-.shadow-lg {
-  box-shadow: var(--shadow-lg);
-}
-
-/* Status background utilities */
-.bg-success {
-  background-color: var(--color-success-bg);
-}
-.bg-warning {
-  background-color: var(--color-warning-bg);
-}
-.bg-error {
-  background-color: var(--color-error-bg);
-}
-.bg-info {
-  background-color: var(--color-info-bg);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

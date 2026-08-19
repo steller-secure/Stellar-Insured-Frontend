@@ -2,7 +2,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider, themeInitScript } from "@/components/ThemeProvider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import GlobalLoader from "@/components/loaders/GlobalLoader";
@@ -44,6 +44,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Applies the stored theme before first paint so the page never
+            flashes the wrong palette. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >

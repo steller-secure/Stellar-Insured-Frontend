@@ -20,7 +20,20 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_KEY = "theme-preference";
+export const THEME_KEY = "theme-preference";
+
+/**
+ * Runs before first paint, from `<head>`, so the `.dark` class is already on
+ * `<html>` when the first frame renders. Without it the page paints in light
+ * mode and then snaps to dark once React hydrates.
+ *
+ * Kept as a string because it has to be injected with
+ * `dangerouslySetInnerHTML` — a real `<script>` child would not run early
+ * enough.
+ */
+export const themeInitScript = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
+  THEME_KEY,
+)});var d=t==="dark"||((!t||t==="system")&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
@@ -63,7 +76,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     let storedTheme: Theme | null = null;
     try {
       storedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
-    } catch (e) {
+    } catch {
       // ignore storage errors
     }
 
@@ -75,11 +88,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     // Listen for system theme changes
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      const currentTheme = localStorage.getItem(THEME_KEY) || "system";
-      if (currentTheme === "system") {
-        const newResolved = applyTheme("system");
-        setResolvedTheme(newResolved);
+    const handleChange = () => {
+      let currentTheme: string | null = null;
+      try {
+        currentTheme = localStorage.getItem(THEME_KEY);
+      } catch {
+        // ignore storage errors
+      }
+      if (!currentTheme || currentTheme === "system") {
+        setResolvedTheme(applyTheme("system"));
       }
     };
 
@@ -97,7 +114,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       } else {
         localStorage.setItem(THEME_KEY, newTheme);
       }
-    } catch (e) {
+    } catch {
       // ignore storage errors
     }
 

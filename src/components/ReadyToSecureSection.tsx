@@ -12,7 +12,7 @@ export default function ReadyToSecureSection() {
         {/* Main Heading */}
         <h2 
           id="cta-heading"
-          className="font-bold text-[#080D24] mb-8 text-center font-inter"
+          className="font-bold text-[#080D24] mb-8 text-center font-display"
           style={{
             fontWeight: 700,
             fontSize: 'clamp(32px, 6vw, 48px)',
@@ -25,7 +25,7 @@ export default function ReadyToSecureSection() {
 
         {/* Subheading */}
         <p 
-          className="text-white mb-12 lg:mb-16 text-center font-inter font-bold max-w-4xl mx-auto"
+          className="text-white mb-12 lg:mb-16 text-center font-display font-bold max-w-4xl mx-auto"
           style={{
             fontWeight: 700,
             fontSize: '20px',

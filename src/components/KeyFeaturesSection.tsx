@@ -20,10 +20,10 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
           className="w-[26px] h-[26px] object-contain"
         />
       </div>
-      <h3 className="text-white font-bold text-xl leading-none  font-inter mb-3">
+      <h3 className="text-white font-bold text-xl leading-none  font-display mb-3">
         {title}
       </h3>
-      <p className="text-slate-300 font-bold text-[15px] leading-relaxed font-inter">
+      <p className="text-slate-300 font-bold text-[15px] leading-relaxed font-display">
         {description}
       </p>
     </div>
@@ -73,7 +73,7 @@ const KeyFeaturesSection = () => {
             Key Features
           </h2>
           <div className="max-w-4xl mx-auto">
-            <p className="text-slate-300 font-bold text-xl leading-relaxed text-center font-inter">
+            <p className="text-slate-300 font-bold text-xl leading-relaxed text-center font-display">
               Stellar Insured leverages blockchain technology to provide innovative insurance solutions that are transparent, efficient, and user-centric.
             </p>
           </div>

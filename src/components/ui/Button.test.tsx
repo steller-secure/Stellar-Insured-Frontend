@@ -30,23 +30,69 @@ describe('Button', () => {
     expect(button).toBeDisabled();
   });
 
-  it('applies variant classes', () => {
+  it('resolves the legacy variant names onto the token palette', () => {
     const { container, rerender } = render(<Button variant="primary">Primary</Button>);
     let button = container.querySelector('button');
-    expect(button).toHaveClass('bg-cyan-500');
-    
+    expect(button).toHaveClass('bg-primary', 'text-primary-fg');
+
     rerender(<Button variant="secondary">Secondary</Button>);
     button = container.querySelector('button');
-    expect(button).toHaveClass('bg-slate-800');
-    
-    rerender(<Button variant="outline">Outline</Button>);
+    expect(button).toHaveClass('bg-neutral', 'text-neutral-fg');
+
+    rerender(<Button variant="danger">Danger</Button>);
     button = container.querySelector('button');
-    expect(button).toHaveClass('border-2');
+    expect(button).toHaveClass('bg-error', 'text-error-fg');
+  });
+
+  it('combines variant and color independently', () => {
+    const { container, rerender } = render(
+      <Button variant="outline" color="success">Outline</Button>
+    );
+    let button = container.querySelector('button');
+    expect(button).toHaveClass('border-success', 'text-success');
+
+    rerender(<Button variant="soft" color="warning">Soft</Button>);
+    button = container.querySelector('button');
+    expect(button).toHaveClass('bg-warning-soft', 'text-warning-on-soft');
+  });
+
+  it('lets an explicit color override the one implied by a legacy variant', () => {
+    const { container } = render(
+      <Button variant="danger" color="info">Danger</Button>
+    );
+    expect(container.querySelector('button')).toHaveClass('bg-info');
+  });
+
+  it('applies size classes', () => {
+    const { container, rerender } = render(<Button size="sm">Small</Button>);
+    expect(container.querySelector('button')).toHaveClass('h-9');
+
+    rerender(<Button size="xl">Extra large</Button>);
+    expect(container.querySelector('button')).toHaveClass('h-14');
   });
 
   it('applies fullWidth class', () => {
     const { container } = render(<Button fullWidth>Full Width</Button>);
     const button = container.querySelector('button');
     expect(button).toHaveClass('w-full');
+  });
+
+  it('defaults to type="button" so it cannot submit a form by accident', () => {
+    const { container } = render(<Button>Click me</Button>);
+    expect(container.querySelector('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('renders leading and trailing icons', () => {
+    render(
+      <Button
+        leadingIcon={<span data-testid="leading" />}
+        trailingIcon={<span data-testid="trailing" />}
+      >
+        Click me
+      </Button>
+    );
+
+    expect(screen.getByTestId('leading')).toBeInTheDocument();
+    expect(screen.getByTestId('trailing')).toBeInTheDocument();
   });
 });

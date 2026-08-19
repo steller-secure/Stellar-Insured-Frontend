@@ -1,13 +1,24 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useId } from "react";
+import {
+  cn,
+  controlMotion,
+  disabledControl,
+  fieldSizeRecipe,
+  fieldStateRecipe,
+} from "@/design-system";
+import type { UIFieldSize } from "@/design-system";
+import {
+  ErrorIcon,
+  FieldShell,
+  SuccessIcon,
+  resolveFieldState,
+  type FieldOwnProps,
+} from "./Field";
 
-type TextareaState = "default" | "success" | "error";
-
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label: string;
-  error?: string;
-  helperText?: string;
-  state?: TextareaState;
-  /** Shows a red asterisk next to the label */
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+    FieldOwnProps {
+  size?: UIFieldSize;
   required?: boolean;
 }
 
@@ -15,25 +26,48 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
     {
       label,
+      hideLabel,
       error,
       helperText,
-      state = "default",
+      state,
+      size = "md",
       required,
       className = "",
+      id,
       ...props
     },
     ref,
   ) => {
-    const hasError = state === "error" || !!error;
-    const isSuccess = state === "success" && !hasError;
-
-    const borderState = hasError
-      ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500"
-      : isSuccess
-        ? "border-emerald-500/80 focus:border-emerald-500 focus:ring-emerald-500"
-        : "border-slate-800 hover:border-slate-700 focus:border-cyan-500 focus:ring-cyan-500";
+    const generatedId = useId();
+    const controlId = id ?? generatedId;
+    const descriptionId = `${controlId}-description`;
+    const resolvedState = resolveFieldState(state, error);
+    const hasIcon = resolvedState !== "default";
 
     return (
+      <FieldShell
+        label={label}
+        hideLabel={hideLabel}
+        error={error}
+        helperText={helperText}
+        controlId={controlId}
+        descriptionId={descriptionId}
+        required={required}
+        resolvedState={resolvedState}
+      >
+        <textarea
+          ref={ref}
+          id={controlId}
+          required={required}
+          className={cn(
+            "min-h-30 w-full border-2 bg-surface-sunken text-fg placeholder:text-fg-subtle",
+            "focus:outline-none focus:ring-1",
+            controlMotion,
+            disabledControl,
+            fieldSizeRecipe[size],
+            fieldStateRecipe[resolvedState],
+            hasIcon && "pr-11",
+            className,
       <div className="w-full">
         {/* Label with optional required asterisk */}
         <label htmlFor={props.id} className="mb-2 flex items-center gap-1 text-sm font-medium text-slate-300">
@@ -98,8 +132,17 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               </svg>
             </div>
           )}
-        </div>
+          aria-invalid={resolvedState === "error"}
+          aria-describedby={error || helperText ? descriptionId : undefined}
+          {...props}
+        />
 
+        {hasIcon && (
+          <div className="pointer-events-none absolute top-3 right-3">
+            {resolvedState === "error" ? (
+              <ErrorIcon className="h-5 w-5" />
+            ) : (
+              <SuccessIcon className="h-5 w-5" />
         {/* Error or helper text */}
         {(error || helperText) && (
           <p
@@ -126,10 +169,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 />
               </svg>
             )}
-            {error || helperText}
-          </p>
+          </div>
         )}
-      </div>
+      </FieldShell>
     );
   },
 );

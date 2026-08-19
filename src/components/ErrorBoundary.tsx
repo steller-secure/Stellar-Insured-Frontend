@@ -34,27 +34,32 @@ interface ErrorFallbackUIProps {
   onReload: () => void;
 }
 
-function ErrorFallbackUI({ error, errorInfo, onRetry, onReload }: ErrorFallbackUIProps) {
+function ErrorFallbackUI({
+  error,
+  errorInfo,
+  onRetry,
+  onReload,
+}: ErrorFallbackUIProps) {
   const titleId = useId();
-  const descId  = useId();
+  const descId = useId();
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-slate-900 p-4"
+      className="min-h-screen flex items-center justify-center bg-surface p-4"
       role="alert"
       aria-live="assertive"
       aria-labelledby={titleId}
       aria-describedby={descId}
     >
-      <Card className="max-w-2xl w-full bg-slate-800 border-slate-700">
+      <Card variant="solid" elevation={2} className="max-w-2xl w-full">
         <div className="p-8 text-center">
           <div className="mb-6">
             <div
-              className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-red-500/10 border border-red-500/20"
+              className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-pill bg-error-soft text-error-on-soft"
               aria-hidden="true"
             >
               <svg
-                className="w-8 h-8 text-red-400"
+                className="w-8 h-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -69,40 +74,44 @@ function ErrorFallbackUI({ error, errorInfo, onRetry, onReload }: ErrorFallbackU
               </svg>
             </div>
 
-            {/* aria-labelledby points to this heading — WCAG 1.3.1, 4.1.2 */}
-            <h2 id={titleId} className="text-2xl font-bold text-white mb-2">
+            <h2
+              id={titleId}
+              className="text-2xl font-bold text-fg mb-2"
+            >
               Something went wrong
             </h2>
-            <p id={descId} className="text-slate-300 mb-6">
-              We&apos;re sorry, but something unexpected happened. Our team has been notified.
+
+            <p id={descId} className="text-fg-muted mb-6">
+              We&apos;re sorry, but something unexpected happened. Our team has
+              been notified.
             </p>
           </div>
 
           <div className="space-y-4">
-            <Button
-              variant="primary"
-              onClick={onRetry}
-              className="w-full"
-            >
+            <Button onClick={onRetry} fullWidth>
               Try Again
             </Button>
 
             <Button
               variant="outline"
               onClick={onReload}
-              className="w-full"
+              fullWidth
             >
               Refresh Page
             </Button>
           </div>
 
           {process.env.NODE_ENV === 'development' && error && (
-            <details className="mt-8 bg-slate-900/50 rounded-lg p-4 text-left">
-              <summary className="text-slate-300 font-medium cursor-pointer">
+            <details className="mt-8 bg-surface-sunken rounded-card p-4 text-left">
+              <summary className="text-fg-muted font-medium cursor-pointer">
                 Error Details (Development Only)
               </summary>
-              <div className="mt-2 text-sm text-slate-400">
-                <p className="font-mono mb-2">{error.toString()}</p>
+
+              <div className="mt-2 text-sm text-fg-subtle">
+                <p className="font-mono mb-2">
+                  {error.toString()}
+                </p>
+
                 {errorInfo?.componentStack && (
                   <pre className="whitespace-pre-wrap overflow-x-auto">
                     {errorInfo.componentStack}
@@ -117,15 +126,74 @@ function ErrorFallbackUI({ error, errorInfo, onRetry, onReload }: ErrorFallbackU
   );
 }
 
+// ── Inline functional error fallback ────────────────────────────────────────
+// Kept separate from the callback to ensure hooks are used inside a valid
+// functional component.
+interface ComponentErrorFallbackProps {
+  error: Error;
+  onReset: () => void;
+}
+
+function ComponentErrorFallback({
+  error,
+  onReset,
+}: ComponentErrorFallbackProps) {
+  const titleId = useId();
+
+  return (
+    <div
+      className="p-4 bg-error-soft text-error-on-soft border border-current/20 rounded-card"
+      role="alert"
+      aria-labelledby={titleId}
+    >
+      <div className="flex items-start gap-3">
+        <svg
+          className="w-5 h-5 mt-0.5 shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+
+        <div>
+          <h4 id={titleId} className="font-medium mb-1">
+            Component Error
+          </h4>
+
+          <p className="text-sm mb-3">
+            {error.message}
+          </p>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onReset}
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 class ErrorBoundaryClass extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
+
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
       category: 'SYSTEM',
-      severity: 'HIGH'
+      severity: 'HIGH',
     };
   }
 
@@ -135,18 +203,21 @@ class ErrorBoundaryClass extends Component<Props, State> {
       error,
       errorInfo: null,
       category: 'SYSTEM',
-      severity: 'HIGH'
+      severity: 'HIGH',
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({ error, errorInfo });
+    this.setState({
+      error,
+      errorInfo,
+    });
 
     // Log to analytics
     analytics.trackError(error, {
       componentStack: errorInfo.componentStack,
       errorName: error.name,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Standardize the error via errorHandler
@@ -157,20 +228,29 @@ class ErrorBoundaryClass extends Component<Props, State> {
       {
         componentStack: errorInfo.componentStack,
         errorBoundary: true,
-        level: this.props.level || 'global'
+        level: this.props.level || 'global',
       }
     );
 
-    // NOTE: Hooks (useNotificationContext) cannot be called inside class
-    // component methods. User-actionable notifications for boundary errors are
-    // handled by the root-level toast infrastructure via errorHandler, or by
-    // wrapping pages in a functional component that reads from the context.
+    // Hooks cannot be called inside class component methods.
+    // User-actionable notifications are handled by the root-level
+    // notification infrastructure.
+    //
     // See useErrorBoundary() below for the functional equivalent.
 
     // Send to monitoring
-    errorHandler.sendToMonitoringEndpoint(appError).catch(() => { /* silent */ });
+    errorHandler
+      .sendToMonitoringEndpoint(appError)
+      .catch(() => {
+        // Silent failure
+      });
 
-    console.error('ErrorBoundary caught an error:', error, errorInfo, appError);
+    console.error(
+      'ErrorBoundary caught an error:',
+      error,
+      errorInfo,
+      appError
+    );
 
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -183,8 +263,12 @@ class ErrorBoundaryClass extends Component<Props, State> {
       error: null,
       errorInfo: null,
       category: 'SYSTEM',
-      severity: 'HIGH'
+      severity: 'HIGH',
     });
+  };
+
+  handleReload = () => {
+    window.location.reload();
   };
 
   render() {
@@ -198,7 +282,7 @@ class ErrorBoundaryClass extends Component<Props, State> {
           error={this.state.error}
           errorInfo={this.state.errorInfo}
           onRetry={this.handleRetry}
-          onReload={() => window.location.reload()}
+          onReload={this.handleReload}
         />
       );
     }
@@ -223,55 +307,37 @@ export function useErrorBoundary() {
 
   const ErrorFallback = React.useCallback(
     ({ children }: { children: ReactNode }) => {
-      const titleId = React.useId();
-
       if (error) {
         return (
-          <div
-            className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
-            role="alert"
-            aria-labelledby={titleId}
-          >
-            <div className="flex items-start gap-3">
-              <svg
-                className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <div>
-                <h4 id={titleId} className="font-medium text-red-100 mb-1">
-                  Component Error
-                </h4>
-                <p className="text-sm text-red-200 mb-3">{error.message}</p>
-                <Button size="sm" variant="outline" onClick={resetError}>
-                  Try Again
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ComponentErrorFallback
+            error={error}
+            onReset={resetError}
+          />
         );
       }
+
       return <>{children}</>;
     },
-    [error, resetError],
+    [error, resetError]
   );
 
-  return { error, handleError, resetError, ErrorFallback, router, addNotification };
+  return {
+    error,
+    handleError,
+    resetError,
+    ErrorFallback,
+    router,
+    addNotification,
+  };
 }
 
 // Export the main ErrorBoundary component
 export const ErrorBoundary = ErrorBoundaryClass;
 
 // Export types
-export type { Props as ErrorBoundaryProps, State as ErrorBoundaryState };
+export type {
+  Props as ErrorBoundaryProps,
+  State as ErrorBoundaryState,
+};
 
 export default ErrorBoundary;

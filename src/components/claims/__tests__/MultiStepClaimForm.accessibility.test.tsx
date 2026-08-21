@@ -11,7 +11,7 @@
  *   4.1.3  Status Messages (draft restored notice, error alert)
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { renderWithQueryClient as render } from '@/test-utils/renderWithQueryClient';
 import { axe, toHaveNoViolations } from 'jest-axe';
 
 expect.extend(toHaveNoViolations);

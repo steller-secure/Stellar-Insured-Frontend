@@ -1,5 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithQueryClient as render } from '@/test-utils/renderWithQueryClient';
 import { WalletConnectButton } from '@/components/WalletConnectButton';
 import * as freighterApi from '@stellar/freighter-api';
 

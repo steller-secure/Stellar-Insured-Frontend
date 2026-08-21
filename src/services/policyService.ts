@@ -11,18 +11,10 @@ import type {
   PolicyType,
   PolicyStatus
 } from './types/policy.types';
-import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 
 import { DataService } from '@/config/dataSource';
 
 class PolicyService {
-  // We can remove policies getter/setter completely if not needed, but wait, updatePolicy might use it.
-  // Let's see if updatePolicy uses `this.policies`.
-
-  subscribe(listener: (event: BlockchainEvent) => void) {
-    return blockchainEvents.subscribe(listener, ['policy.purchased', 'policy.updated']);
-  }
-
   async getPolicies(options?: PolicyFilterOptions): Promise<PolicyServiceResponse<PolicyListResponse>> {
     try {
       let filteredPolicies = await DataService.getPolicies();

@@ -31,12 +31,6 @@ const customJestConfig = {
       statements: 80,
     },
     // Per-file threshold for core hooks
-    './src/hooks/useDataFetch.ts': {
-      lines: 80,
-      functions: 80,
-      branches: 80,
-      statements: 80,
-    },
     './src/hooks/useForm.ts': {
       lines: 80,
       functions: 80,

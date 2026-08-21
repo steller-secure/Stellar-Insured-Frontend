@@ -1,12 +1,8 @@
 import { Proposal, ProposalStatus } from '@/types/api';
 import { v4 as uuidv4 } from 'uuid';
-import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 import { DataService } from '@/config/dataSource';
 
 export const proposalService = {
-  subscribe: (listener: (event: BlockchainEvent) => void) =>
-    blockchainEvents.subscribe(listener, ['proposal.updated', 'vote.cast']),
-
   createProposal: async (data: Omit<Proposal, 'id' | 'status' | 'startDate' | 'endDate' | 'votesFor' | 'votesAgainst' | 'votesAbstain' | 'totalVotes' | 'quorum' | 'userVotingPower' | 'hasVoted' | 'userVote'>): Promise<Proposal> => {
     const proposal: Proposal = {
       ...data,

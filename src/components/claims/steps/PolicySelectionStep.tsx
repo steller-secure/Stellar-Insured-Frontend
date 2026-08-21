@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
-import { policyService } from '@/services/policyService';
+import { usePoliciesQuery } from '@/hooks/queries/usePolicies';
 import type { StepValidation } from '@/hooks/useMultiStepForm';
-import type { Policy } from '@/services/types/policy.types';
 
 export interface PolicySelectionData {
   policyId: string;
@@ -32,33 +31,12 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
   onDataChange,
   onValidation
 }) => {
-  const [policies, setPolicies] = useState<Policy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  const { data: policiesData, isLoading: loading } = usePoliciesQuery({ status: 'active' });
+  const policies = policiesData?.policies ?? [];
+
   const selectedPolicy = policies.find(p => p.id === data.policyId);
-
-  // Load policies from service
-  useEffect(() => {
-    const loadPolicies = async () => {
-      try {
-        setLoading(true);
-        const result = await policyService.getPolicies({ status: 'active' });
-        if (result.success) {
-          setPolicies(result.data.policies);
-        } else {
-          setError(result.error || 'Failed to load policies');
-        }
-      } catch (err) {
-        setError('Failed to load policies');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPolicies();
-  }, []);
 
   // Validate step
   const errors = React.useMemo(() => {

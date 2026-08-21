@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithQueryClient as render } from '@/test-utils/renderWithQueryClient';
 import DAOVotingClient from '@/components/dao/DAOVotingClient';
 import { mockDb } from '@/mocks/db';
 

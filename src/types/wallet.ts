@@ -39,6 +39,8 @@ export interface WalletBalance {
 
 export interface UseWalletBalanceReturn extends WalletBalance {
   refetch: () => Promise<void>;
+  /** Schedule a refetch after a transaction likely confirms, and briefly poll faster. */
+  triggerPostTransactionRefresh: () => void;
   isPollingActive: boolean;
   pollingInterval: number;
 }

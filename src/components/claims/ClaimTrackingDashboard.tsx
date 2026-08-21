@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { type Claim } from '@/types/api';
-import { useDataFetchList } from '@/hooks/useDataFetch';
-import { DataService } from '@/config/dataSource';
+import { useClaimsQuery } from '@/hooks/queries/useClaims';
 import { ClaimsSkeleton, EmptyState, ErrorState } from '@/components/ui/SkeletonLoaders';
 
 export interface ClaimTrackingDashboardProps {
@@ -107,13 +106,7 @@ export const ClaimTrackingDashboard: React.FC<ClaimTrackingDashboardProps> = ({
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
 
   // Fetch claims with loading state
-  const { items: claims, loading, error, refetch } = useDataFetchList(
-    () => DataService.getClaims(),
-    {
-      cacheDuration: 5 * 60 * 1000,
-      eventTypes: ['claim.submitted', 'claim.updated'],
-    }
-  );
+  const { data: claims = [], isLoading: loading, error, refetch } = useClaimsQuery();
 
   const filteredClaims = claims
     .filter(claim => 

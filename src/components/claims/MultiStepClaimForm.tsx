@@ -9,7 +9,8 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { ProgressStepper, type Step } from '@/components/ui/ProgressStepper';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { claimApi } from '@/services/api/claimApi';
+import { useCreateClaimMutation } from '@/hooks/queries/useClaimMutations';
+import { usePolicyQuery } from '@/hooks/queries/usePolicies';
 
 // Step Components
 import { PolicySelectionStep, type PolicySelectionData } from './steps/PolicySelectionStep';
@@ -122,6 +123,9 @@ export const MultiStepClaimForm: React.FC = () => {
   // Warn about unsaved changes on browser navigation / tab close
   const { confirmNavigation } = useUnsavedChanges(isDraft && !isSuccess);
 
+  const { data: selectedPolicy } = usePolicyQuery(formData.policyId);
+  const createClaimMutation = useCreateClaimMutation();
+
   const handleCancel = useCallback(() => {
     if (confirmNavigation()) {
       router.push('/claims');
@@ -155,17 +159,20 @@ export const MultiStepClaimForm: React.FC = () => {
     const result = await executeTransaction(
       async () => {
         // Send data to the API for server-side validation and creation
-        const response = await claimApi.create({
-          policyId: formData.policyId,
-          incidentType: formData.incidentType,
-          amount: parseFloat(formData.claimAmount),
-          description: formData.description,
-          evidence: formData.documents.map(d => d.name)
+        const claim = await createClaimMutation.mutateAsync({
+          request: {
+            policyId: formData.policyId,
+            incidentType: formData.incidentType,
+            amount: parseFloat(formData.claimAmount),
+            description: formData.description,
+            evidence: formData.documents.map(d => d.name)
+          },
+          policyName: selectedPolicy?.name ?? formData.policyId,
         });
-        
-        const newClaimId = response.data.id || `CLM-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+        const newClaimId = claim.id || `CLM-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
         setClaimId(newClaimId);
-        
+
         // Return the claim id from the async operation
         return newClaimId;
       },

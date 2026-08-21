@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { DataService } from '@/config/dataSource';
-import { useDataFetchOne } from '@/hooks/useDataFetch';
+import { usePolicyQuery } from '@/hooks/queries/usePolicies';
 import type { StepValidation } from '@/hooks/useMultiStepForm';
 
 export interface ReviewSubmitData {
@@ -33,10 +32,7 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   
   // Fetch the selected policy with caching
-  const { item: selectedPolicy } = useDataFetchOne(
-    () => DataService.getPolicy(formData.policyId),
-    { cacheDuration: 10 * 60 * 1000 }
-  );
+  const { data: selectedPolicy } = usePolicyQuery(formData.policyId);
 
   // Validate step
   const errors = React.useMemo(() => {

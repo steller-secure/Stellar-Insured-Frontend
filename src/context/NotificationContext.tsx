@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import type { AppError, ErrorCategory } from "@/lib/errorHandler";
 import { blockchainEvents, type BlockchainEvent } from "@/lib/blockchainEvents";

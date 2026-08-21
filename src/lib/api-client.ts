@@ -261,6 +261,7 @@ class ApiClient {
             (errorBody?.message as string) ?? response.statusText,
             response.status,
             errorBody?.code as string | undefined,
+            undefined,
             errorBody,
           );
         }
@@ -304,12 +305,14 @@ class ApiClient {
       }
     };
 
-    // Retry with exponential backoff via errorHandler
+    // Retry with exponential backoff via errorHandler. The category argument
+    // only matters when no explicit policy is passed (it's used to look up a
+    // default policy) — since we always pass one below, "NETWORK" is a safe
+    // placeholder.
     if (retries > 0) {
-      const retryCategory = error.category || "NETWORK";
       return errorHandler.retryWithBackoff<ApiResponse<T>>(
         execute,
-        retryCategory,
+        "NETWORK",
         {
           maxRetries: retries,
           baseDelay: 1000,

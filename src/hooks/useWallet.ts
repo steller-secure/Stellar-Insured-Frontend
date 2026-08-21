@@ -27,6 +27,7 @@ export function useWallet() {
   } = useWalletStore();
 
   const {
+    handleError,
     executeWithErrorHandling,
     showSuccessNotification,
     showErrorNotification,
@@ -66,12 +67,7 @@ export function useWallet() {
   }, [session?.expiresAt, signOut, showErrorNotification]);
 
   // ─── Connect wallet and create session ──────────────────────────────────
-  const connectWallet = useCallback(async (): Promise<AuthSession> => {
-    // Return existing session if already connected
-    if (session) {
-      return session;
-    }
-
+  const performConnect = useCallback(async (): Promise<AuthSession | null> => {
     return executeWithErrorHandling(async () => {
       startConnection();
 
@@ -93,22 +89,14 @@ export function useWallet() {
       };
 
       completeConnection(newSession);
-      
+
       if (showSuccessNotification) {
-        showSuccessNotification({
-          category: 'WALLET',
-          code: 'CONNECTION_SUCCESS',
-          message: 'Wallet connected successfully',
-          severity: 'info',
-          userMessage: 'Your wallet has been connected',
-          timestamp: Date.now()
-        });
+        showSuccessNotification('Wallet connected successfully');
       }
 
       return newSession;
     }, 'WALLET');
   }, [
-    session,
     executeWithErrorHandling,
     startConnection,
     setStatus,
@@ -116,20 +104,28 @@ export function useWallet() {
     showSuccessNotification
   ]);
 
+  const connectWallet = useCallback(async (): Promise<AuthSession | null> => {
+    // Return existing session if already connected
+    if (session) {
+      return session;
+    }
+
+    return performConnect();
+  }, [session, performConnect]);
+
+  // Force a fresh connection attempt even if a (possibly stale) session
+  // already exists — used to retry after a failed connection.
+  const reconnectWallet = useCallback(async (): Promise<AuthSession | null> => {
+    return performConnect();
+  }, [performConnect]);
+
   // ─── Disconnect wallet ───────────────────────────────────────────────────
   const disconnect = useCallback(() => {
     blockchainEvents.stop();
     signOut();
     
     if (showSuccessNotification) {
-      showSuccessNotification({
-        category: 'WALLET',
-        code: 'DISCONNECTION_SUCCESS',
-        message: 'Wallet disconnected',
-        severity: 'info',
-        userMessage: 'Your wallet has been disconnected',
-        timestamp: Date.now()
-      });
+      showSuccessNotification('Wallet disconnected');
     }
   }, [signOut, showSuccessNotification]);
 
@@ -140,11 +136,14 @@ export function useWallet() {
     error,
     hasError,
     canRetry,
-    
+
     // Actions
     connectWallet,
+    reconnectWallet,
     disconnect,
-    
+    handleError,
+    showErrorNotification,
+
     // Convenience
     address: session?.address ?? null,
     isConnected: status === 'connected' && !!session,

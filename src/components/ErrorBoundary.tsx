@@ -3,7 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode, useId } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { errorHandler } from '@/lib/errorHandler';
+import { errorHandler, type ErrorCategory, type ErrorSeverity } from '@/lib/errorHandler';
 import { analytics } from '@/lib/analytics';
 import { useNotificationContext } from '@/context/NotificationContext';
 import { useRouter } from 'next/navigation';
@@ -237,13 +237,9 @@ class ErrorBoundaryClass extends Component<Props, State> {
     // notification infrastructure.
     //
     // See useErrorBoundary() below for the functional equivalent.
-
-    // Send to monitoring
-    errorHandler
-      .sendToMonitoringEndpoint(appError)
-      .catch(() => {
-        // Silent failure
-      });
+    //
+    // handleError() above already logs to analytics and the monitoring
+    // endpoint internally — no separate call needed here.
 
     console.error(
       'ErrorBoundary caught an error:',

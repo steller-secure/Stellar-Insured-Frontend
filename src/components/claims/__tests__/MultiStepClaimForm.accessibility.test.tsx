@@ -19,7 +19,7 @@ expect.extend(toHaveNoViolations);
 // ── localStorage mock ─────────────────────────────────────────────────────────
 
 const localStorageMock = {
-  getItem: jest.fn(() => null),
+  getItem: jest.fn((): string | null => null),
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),

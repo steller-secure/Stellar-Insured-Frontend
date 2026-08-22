@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 export interface FormInputProps<T extends FieldValues>
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
-    "name" | "onChange" | "onBlur" | "value" | "defaultValue" | "id"
+    "name" | "onChange" | "onBlur" | "value" | "defaultValue" | "id" | "size"
   > {
   name: Path<T>;
   control: Control<T>;

@@ -199,18 +199,6 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({
                 {activeStep.title}
               </h3>
 
-        {currentStepObj && (
-          <div className="text-center">
-            <h2 className="text-lg font-medium text-white">
-              {currentStepObj.title}
-            </h2>
-            {currentStepObj.description && (
-              <p className="text-sm text-slate-400 mt-1">
-                {currentStepObj.description}
-              </p>
-            )}
-          </div>
-        )}
               {activeStep.description && (
                 <p className="mt-1 text-sm text-fg-muted">
                   {activeStep.description}

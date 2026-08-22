@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Policy } from "@/services/types/policy.types";
+import type { Policy } from "@/types/policy";
 
 interface PolicyCardProps {
   policy: Policy;

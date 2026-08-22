@@ -1,8 +1,4 @@
 "use client";
-import React, { useState } from 'react';
-import { proposalService } from '../services/proposalService';
-import { ProposalType } from '@/types/api';
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,16 +56,8 @@ export const CreateProposalModal: React.FC<CreateProposalModalProps> = ({
       const proposal = proposalService.createProposal({
         title: data.title,
         description: data.description,
-        type: data.type,
-        author: "currentUser",
-      await proposalService.createProposal({ 
-        title, 
-        description, 
-        type, 
-        proposer: 'currentUser',
-        proposerName: 'Current User'
       });
-      onCreated(proposal);
+      onCreated(proposal as Proposal);
       onClose();
     } catch {
       setError("root", {

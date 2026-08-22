@@ -204,6 +204,18 @@ const ERROR_MESSAGES: Record<ErrorCategory, Record<string, {
       recoverySuggestion: 'Please try again. If the problem continues, contact support.',
       severity: 'MEDIUM'
     }
+  },
+  BLOCKCHAIN: {
+    TRANSACTION_FAILED: {
+      message: 'Blockchain transaction failed.',
+      recoverySuggestion: 'Please check your transaction details and try again.',
+      severity: 'HIGH'
+    },
+    GENERIC_ERROR: {
+      message: 'A blockchain error occurred.',
+      recoverySuggestion: 'Please verify your wallet connection and try again.',
+      severity: 'MEDIUM'
+    }
   }
 };
 
@@ -353,7 +365,7 @@ class ErrorHandler {
    * Send error to monitoring endpoint
    */
   private async sendToMonitoringEndpoint(error: AppError): Promise<void> {
-    if (!typeof window !== 'undefined') return;
+    if (typeof window === 'undefined') return;
     try {
       const monitorUrl = process.env.NEXT_PUBLIC_MONITORING_ENDPOINT;
       if (!monitorUrl) return;

@@ -18,7 +18,7 @@ describe('DAOVotingClient', () => {
   });
 
   it('shows new proposal button', () => {
-    render(<DAOVotingClient initialProposals={mockProposals} />);
+    render(<DAOVotingClient initialProposals={mockDb.getProposals()} />);
     
     expect(
       screen.getByRole('button', { name: 'Create a new governance proposal' }),
@@ -27,7 +27,7 @@ describe('DAOVotingClient', () => {
 
   it('opens the create proposal modal when clicking New Proposal', async () => {
     const user = userEvent.setup();
-    render(<DAOVotingClient initialProposals={mockProposals} />);
+    render(<DAOVotingClient initialProposals={mockDb.getProposals()} />);
 
     await user.click(
       screen.getByRole('button', { name: 'Create a new governance proposal' }),

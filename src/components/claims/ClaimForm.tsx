@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -41,9 +41,13 @@ export const ClaimForm = () => {
   });
 
   // Fetch policies with loading state
-  const { items: policies, loading: policiesLoading, error: policiesError } = useDataFetchList(
+  const {
+    items: policies,
+    loading: policiesLoading,
+    error: policiesError,
+  } = useDataFetchList(
     () => DataService.getPolicies(),
-    { cacheDuration: 10 * 60 * 1000 } // Cache for 10 minutes
+    { cacheDuration: 10 * 60 * 1000 }, // Cache for 10 minutes
   );
 
   const {
@@ -91,11 +95,11 @@ export const ClaimForm = () => {
         // Simulate successful submission
         return {
           refNo: `CLM-${Math.floor(Math.random() * 10000)}`,
-          status: 'pending',
+          status: "pending",
         };
       },
-      'SYSTEM',
-      'CLAIM_SUBMISSION_FAILED',
+      "SYSTEM",
+      "CLAIM_SUBMISSION_FAILED",
       {
         policyId: data.policyId,
         amount: data.amount,
@@ -105,7 +109,7 @@ export const ClaimForm = () => {
     stopLoading();
 
     if (result) {
-      showSuccessNotification('Claim submitted successfully!');
+      showSuccessNotification("Claim submitted successfully!");
       setIsSuccess(true);
     }
   });
@@ -115,25 +119,49 @@ export const ClaimForm = () => {
   if (isSuccess) {
     return (
       <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50" aria-hidden="true">
-          <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        <div
+          className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20 ring-1 ring-green-500/50"
+          aria-hidden="true"
+        >
+          <svg
+            className="h-12 w-12"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
         <div className="space-y-2">
-          <h2 className="text-3xl font-bold text-white">Claim Submitted Successfully!</h2>
+          <h2 className="text-3xl font-bold text-white">
+            Claim Submitted Successfully!
+          </h2>
           <p className="text-slate-400">
-            Your claim for <span className="text-white font-medium">{selectedPolicy?.name}</span> has been received.
+            Your claim for{" "}
+            <span className="text-white font-medium">
+              {selectedPolicy?.name}
+            </span>{" "}
+            has been received.
             <br />
-            Reference ID:{' '}
-            <span className="font-mono text-cyan-400">CLM-{Math.floor(Math.random() * 10000)}</span>
+            Reference ID:{" "}
+            <span className="font-mono text-cyan-400">
+              CLM-{Math.floor(Math.random() * 10000)}
+            </span>
           </p>
         </div>
         <div className="flex gap-4 pt-4">
           <Link href="/">
             <Button variant="outline">Return Home</Button>
           </Link>
-          <Button onClick={() => window.location.reload()}>Submit Another Claim</Button>
+          <Button onClick={() => window.location.reload()}>
+            Submit Another Claim
+          </Button>
         </div>
       </div>
     );
@@ -144,26 +172,47 @@ export const ClaimForm = () => {
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-8 animate-slide-up" noValidate aria-labelledby="claim-form-heading" aria-describedby="claim-form-description">
       <div className="space-y-2 text-center sm:text-left">
-        <h1 id="claim-form-heading" className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        <h1
+          id="claim-form-heading"
+          className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+        >
           File a New Claim
         </h1>
         <p id="claim-form-description" className="text-lg text-slate-400">
-          Please provide details about the incident. Our team will review your submission shortly.
+          Please provide details about the incident. Our team will review your
+          submission shortly.
         </p>
       </div>
 
       {/* Display submission errors */}
       {submitError && (
-        <div role="alert" aria-live="polite" className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 md:p-6 shadow-xl">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 md:p-6 shadow-xl"
+        >
           <div className="flex gap-3">
-            <svg className="h-6 w-6 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-6 w-6 flex-shrink-0 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div className="flex-1">
               <h3 className="font-semibold text-red-500">Submission Failed</h3>
               <p className="mt-1 text-sm text-red-400">{submitError.message}</p>
               {submitError.recoverySuggestion && (
-                <p className="mt-2 text-sm text-red-300">{submitError.recoverySuggestion}</p>
+                <p className="mt-2 text-sm text-red-300">
+                  {submitError.recoverySuggestion}
+                </p>
               )}
             </div>
             <button
@@ -172,8 +221,19 @@ export const ClaimForm = () => {
               aria-label="Dismiss error"
               className="flex-shrink-0 text-red-400 hover:text-red-300"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -184,12 +244,16 @@ export const ClaimForm = () => {
       {policiesLoading ? (
         <LoadingState message="Loading your policies..." />
       ) : policiesError ? (
-        <div role="alert" className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-          <p className="text-red-400">Failed to load policies. Please try again.</p>
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4"
+        >
+          <p className="text-red-400">
+            Failed to load policies. Please try again.
+          </p>
         </div>
       ) : (
         <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm sm:p-8 space-y-6 shadow-xl">
-
           {/* Policy Selection */}
           <FormSelect
             name="policyId"
@@ -242,7 +306,12 @@ export const ClaimForm = () => {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
         <Link href="/" className="sm:order-first">
-          <Button type="button" variant="outline" fullWidth className="sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            fullWidth
+            className="sm:w-auto"
+          >
             Cancel
           </Button>
         </Link>

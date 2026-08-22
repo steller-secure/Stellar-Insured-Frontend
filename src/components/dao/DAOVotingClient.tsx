@@ -6,11 +6,15 @@ import { AlertCircle } from "lucide-react";
 import ProposalCard from "./ProposalCard";
 import ProposalStats from "./ProposalStats";
 import ProposalFilters from "./ProposalFilters";
-import { Proposal, VoteType } from "@/types/api";
+import type { Proposal, VoteType } from "@/types/api";
 import { getProposalStats } from "@/lib/dao-utils";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { useNotificationContext } from "@/context/NotificationContext";
-import { ProposalCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import {
+  ProposalCardSkeleton,
+  EmptyState,
+  ErrorState,
+} from "@/components/ui/SkeletonLoaders";
 import { blockchainEvents } from "@/lib/blockchainEvents";
 import { CreateProposalModal } from "@/components/CreateProposalModal";
 
@@ -28,19 +32,33 @@ export default function DAOVotingClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { execute: executeTransaction, error: voteError, clearError } = useTransactionHandler({
+  const {
+    execute: executeTransaction,
+    error: voteError,
+    clearError,
+  } = useTransactionHandler({
     showSuccessToast: false,
   });
   const { addNotification } = useNotificationContext();
 
-  useEffect(() => blockchainEvents.subscribe((event) => {
-    const incoming = (event.data.proposal ?? event.data) as Partial<Proposal>;
-    const id = event.resourceId ?? incoming.id;
-    if (!id) return;
-    setProposals(current => current.map(proposal => proposal.id === id
-      ? { ...proposal, ...incoming }
-      : proposal));
-  }, ['proposal.updated', 'vote.cast']), []);
+  useEffect(
+    () =>
+      blockchainEvents.subscribe(
+        (event) => {
+          const incoming = (event.data.proposal ??
+            event.data) as Partial<Proposal>;
+          const id = event.resourceId ?? incoming.id;
+          if (!id) return;
+          setProposals((current) =>
+            current.map((proposal) =>
+              proposal.id === id ? { ...proposal, ...incoming } : proposal,
+            ),
+          );
+        },
+        ["proposal.updated", "vote.cast"],
+      ),
+    [],
+  );
 
   // Simulate initial loading if no proposals provided
   useEffect(() => {
@@ -191,10 +209,16 @@ export default function DAOVotingClient({
                   aria-hidden="true"
                 />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-red-500">{voteError.title}</h3>
-                  <p className="mt-1 text-sm text-red-400">{voteError.message}</p>
+                  <h3 className="font-semibold text-red-500">
+                    {voteError.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-red-400">
+                    {voteError.message}
+                  </p>
                   {voteError.remediationStep && (
-                    <p className="mt-2 text-sm text-red-300">{voteError.remediationStep}</p>
+                    <p className="mt-2 text-sm text-red-300">
+                      {voteError.remediationStep}
+                    </p>
                   )}
                 </div>
                 {/*
@@ -300,11 +324,11 @@ export default function DAOVotingClient({
               id: proposal.id,
               title: proposal.title,
               description: proposal.description,
-              proposer: proposal.author,
-              proposerName: proposal.author,
+              proposer: proposal.proposer,
+              proposerName: proposal.proposerName,
               status: "pending",
-              startDate: proposal.createdAt.toISOString().slice(0, 10),
-              endDate: proposal.createdAt.toISOString().slice(0, 10),
+              startDate: proposal.startDate,
+              endDate: proposal.endDate,
               votesFor: 0,
               votesAgainst: 0,
               votesAbstain: 0,

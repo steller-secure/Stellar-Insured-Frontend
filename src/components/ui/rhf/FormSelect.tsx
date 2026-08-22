@@ -13,7 +13,7 @@ export interface FormSelectOption {
 export interface FormSelectProps<T extends FieldValues>
   extends Omit<
     React.SelectHTMLAttributes<HTMLSelectElement>,
-    "name" | "onChange" | "onBlur" | "value" | "defaultValue" | "id"
+    "name" | "onChange" | "onBlur" | "value" | "defaultValue" | "id" | "size"
   > {
   name: Path<T>;
   control: Control<T>;

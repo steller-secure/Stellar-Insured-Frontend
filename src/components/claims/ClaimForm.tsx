@@ -1,53 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
-import { FileUpload } from "@/components/ui/FileUpload";
-import type { Policy } from "@/types/api";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import { useLoading } from "@/contexts/LoadingContext";
-import { useErrorHandler } from "@/hooks/useErrorHandler";
-import { useDataFetchList } from "@/hooks/useDataFetch";
-import { DataService } from "@/config/dataSource";
-import { LoadingState } from "@/components/ui/SkeletonLoaders";
+import React, { useEffect, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { FileUpload } from '@/components/ui/FileUpload';
+import { type Policy } from '@/types/api';
+import Link from 'next/link';
+import { useLoading } from '@/contexts/LoadingContext';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useDataFetchList } from '@/hooks/useDataFetch';
+import { DataService } from '@/config/dataSource';
+import { LoadingState } from '@/components/ui/SkeletonLoaders';
+import { FormInput } from '@/components/ui/rhf/FormInput';
+import { FormSelect } from '@/components/ui/rhf/FormSelect';
+import { FormTextarea } from '@/components/ui/rhf/FormTextarea';
+import { FormFileUpload } from '@/components/ui/rhf/FormFileUpload';
 import {
-  required,
-  positiveNumber,
-  minLength,
-  requiredFile,
-  allowedFileTypes,
-  maxFileSize,
-} from "@/lib/validators";
-
-// ─── Form shape ────────────────────────────────────────────────────────────────
-
-// extends Record<string, unknown> satisfies the hook's generic constraint
-// without breaking the individual field types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface ClaimFormData extends Record<string, any> {
-  policyId: string;
-  amount: string;
-  description: string;
-  evidence: File | null;
-}
+  claimSchema,
+  setClaimPolicy,
+  type ClaimFormValues,
+} from '@/lib/form-schemas';
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 export const ClaimForm = () => {
-  const router = useRouter();
-
-  const [formData, setFormData] = useState<ClaimFormData>({
-    policyId: "",
-    amount: "",
-    description: "",
-    evidence: null,
-  });
-
   const [isSuccess, setIsSuccess] = useState(false);
   const { loading, startLoading, stopLoading } = useLoading();
   const {
@@ -70,67 +50,40 @@ export const ClaimForm = () => {
     { cacheDuration: 10 * 60 * 1000 }, // Cache for 10 minutes
   );
 
-  // Derived state — used in conditional validation for the amount field
-  const selectedPolicy = policies.find((p) => p.id === formData.policyId);
+  const {
+    control,
+    handleSubmit,
+    trigger,
+    formState: { isDirty, isValid },
+  } = useForm<ClaimFormValues>({
+    resolver: zodResolver(claimSchema),
+    mode: 'onChange',
+    defaultValues: { policyId: '', amount: '', description: '', evidence: null },
+  });
 
-  // ── Validation rules ──────────────────────────────────────────────────────────
+  // Derived state — the schema reads the selected policy's coverage limit
+  // lazily, so feed it in whenever the watched policy changes and re-validate
+  // the claim amount so the coverage-limit check stays in sync with RHF.
+  const selectedPolicyId = useWatch({ control, name: 'policyId' });
+  const selectedPolicy = policies.find((p) => p.id === selectedPolicyId);
 
-  const { errors, touched, validate, validateField, handleBlur } =
-    useFormValidation<ClaimFormData>({
-      policyId: [required("Please select a policy")],
-      amount: [
-        required("Please enter a claim amount"),
-        positiveNumber("Amount must be greater than 0"),
-        // Conditional rule: only enforces coverage limit when a policy is selected
-        (value) =>
-          selectedPolicy && Number(value) > selectedPolicy.coverageLimit
-            ? `Amount cannot exceed policy limit of ${selectedPolicy.coverageLimitFormatted}`
-            : null,
-      ],
-      description: [
-        required("Please provide a description of the incident"),
-        minLength(20, "Description must be at least 20 characters"),
-      ],
-      evidence: [
-        requiredFile("Please upload supporting evidence"),
-        allowedFileTypes(
-          ["application/pdf", "image/png", "image/jpeg"],
-          "Only PDF, PNG or JPG files are allowed",
-        ),
-        maxFileSize(10 * 1024 * 1024, "File must be under 10MB"),
-      ],
-    });
-
-  // ── Handlers ──────────────────────────────────────────────────────────────────
-
-  /**
-   * Updates a text/select field and re-validates in real-time
-   * only if the field has already been touched (to avoid premature errors).
-   */
-  const handleChange = (field: keyof ClaimFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (touched[field]) {
-      validateField(field, value as ClaimFormData[typeof field]);
+  useEffect(() => {
+    setClaimPolicy(
+      selectedPolicy
+        ? {
+            coverageLimit: selectedPolicy.coverageLimit,
+            coverageLimitFormatted: selectedPolicy.coverageLimitFormatted,
+          }
+        : null
+    );
+    if (selectedPolicy) {
+      void trigger('amount');
     }
-  };
+  }, [selectedPolicy, trigger]);
 
-  /**
-   * Updates the file field and validates immediately since file inputs
-   * don't have a separate blur event like text fields do.
-   */
-  const handleFileChange = (file: File | null) => {
-    setFormData((prev) => ({ ...prev, evidence: file }));
-    validateField("evidence", file);
-  };
+  const submitDisabled = loading || !isDirty || !isValid;
 
-  /**
-   * Runs full form validation on submit.
-   * validate() marks all fields as touched so all errors show at once.
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate(formData)) return;
-
+  const onSubmit = handleSubmit(async (data) => {
     clearError();
     startLoading();
 
@@ -148,9 +101,9 @@ export const ClaimForm = () => {
       "SYSTEM",
       "CLAIM_SUBMISSION_FAILED",
       {
-        policyId: formData.policyId,
-        amount: formData.amount,
-      },
+        policyId: data.policyId,
+        amount: data.amount,
+      }
     );
 
     stopLoading();
@@ -159,7 +112,7 @@ export const ClaimForm = () => {
       showSuccessNotification("Claim submitted successfully!");
       setIsSuccess(true);
     }
-  };
+  });
 
   // ── Success state ─────────────────────────────────────────────────────────────
 
@@ -217,13 +170,7 @@ export const ClaimForm = () => {
   // ── Form ──────────────────────────────────────────────────────────────────────
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mx-auto max-w-2xl space-y-8 animate-slide-up"
-      noValidate
-      aria-labelledby="claim-form-heading"
-      aria-describedby="claim-form-description"
-    >
+    <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-8 animate-slide-up" noValidate aria-labelledby="claim-form-heading" aria-describedby="claim-form-description">
       <div className="space-y-2 text-center sm:text-left">
         <h1
           id="claim-form-heading"
@@ -308,7 +255,9 @@ export const ClaimForm = () => {
       ) : (
         <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm sm:p-8 space-y-6 shadow-xl">
           {/* Policy Selection */}
-          <Select
+          <FormSelect
+            name="policyId"
+            control={control}
             id="claim-policy"
             label="Select Policy"
             placeholder="Choose a policy..."
@@ -317,71 +266,40 @@ export const ClaimForm = () => {
               value: p.id,
               label: `${p.name} (${p.policyNumber}) - Coverage: ${p.coverageLimitFormatted}`,
             }))}
-            value={formData.policyId}
-            onChange={(e) => handleChange("policyId", e.target.value)}
-            onBlur={() => handleBlur("policyId", formData.policyId)}
-            error={touched.policyId ? errors.policyId : undefined}
-            state={
-              touched.policyId && errors.policyId
-                ? "error"
-                : touched.policyId && formData.policyId
-                  ? "success"
-                  : "default"
-            }
           />
 
           {/* Claim Amount */}
-          <div className="relative">
-            <Input
-              id="claim-amount"
-              label="Claim Amount (USD)"
-              type="number"
-              placeholder="0.00"
-              required
-              value={formData.amount}
-              onChange={(e) => handleChange("amount", e.target.value)}
-              onBlur={() => handleBlur("amount", formData.amount)}
-              error={touched.amount ? errors.amount : undefined}
-              helperText={
-                selectedPolicy
-                  ? `Available coverage: ${selectedPolicy.coverageLimitFormatted}`
-                  : undefined
-              }
-              state={
-                touched.amount && errors.amount
-                  ? "error"
-                  : touched.amount && formData.amount && !errors.amount
-                    ? "success"
-                    : "default"
-              }
-            />
-          </div>
+          <FormInput
+            name="amount"
+            control={control}
+            id="claim-amount"
+            label="Claim Amount (USD)"
+            type="number"
+            placeholder="0.00"
+            required
+            helperText={
+              selectedPolicy
+                ? `Available coverage: ${selectedPolicy.coverageLimitFormatted}`
+                : undefined
+            }
+          />
 
           {/* Incident Description */}
-          <Textarea
+          <FormTextarea
+            name="description"
+            control={control}
             id="claim-description"
             label="Incident Description"
             placeholder="Please describe what happened, when, and where..."
             required
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            onBlur={() => handleBlur("description", formData.description)}
-            error={touched.description ? errors.description : undefined}
-            state={
-              touched.description && errors.description
-                ? "error"
-                : touched.description && formData.description.length >= 20
-                  ? "success"
-                  : "default"
-            }
           />
 
           {/* File Upload */}
-          <FileUpload
+          <FormFileUpload
+            name="evidence"
+            control={control}
             label="Supporting Evidence"
             accept=".pdf,.png,.jpg,.jpeg"
-            onChange={handleFileChange}
-            error={errors.evidence}
           />
         </div>
       )}
@@ -400,6 +318,7 @@ export const ClaimForm = () => {
         <Button
           type="submit"
           isLoading={loading}
+          disabled={submitDisabled}
           fullWidth
           className="sm:w-auto min-w-40"
         >

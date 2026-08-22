@@ -16,6 +16,7 @@ import {
   ErrorState,
 } from "@/components/ui/SkeletonLoaders";
 import { blockchainEvents } from "@/lib/blockchainEvents";
+import { CreateProposalModal } from "@/components/CreateProposalModal";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -30,6 +31,7 @@ export default function DAOVotingClient({
   const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const {
     execute: executeTransaction,
     error: voteError,
@@ -185,6 +187,7 @@ export default function DAOVotingClient({
             <button
               type="button"
               aria-label="Create a new governance proposal"
+              onClick={() => setIsCreateOpen(true)}
               className="bg-[#22BBF9] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#22BBF9]/90 transition-all w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22BBF9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F1F]"
             >
               {/* The "+" is decorative; keep it visible but screen readers will use aria-label */}
@@ -311,6 +314,35 @@ export default function DAOVotingClient({
           )}
         </div>
       </div>
+
+      <CreateProposalModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={(proposal) => {
+          setProposals((prev) => [
+            {
+              id: proposal.id,
+              title: proposal.title,
+              description: proposal.description,
+              proposer: proposal.proposer,
+              proposerName: proposal.proposerName,
+              status: "pending",
+              startDate: proposal.startDate,
+              endDate: proposal.endDate,
+              votesFor: 0,
+              votesAgainst: 0,
+              votesAbstain: 0,
+              totalVotes: 0,
+              quorum: 10000,
+              userVotingPower: 0,
+              hasVoted: false,
+              userVote: null,
+            },
+            ...prev,
+          ]);
+          addNotification("Proposal created successfully!", "success");
+        }}
+      />
     </div>
   );
 }

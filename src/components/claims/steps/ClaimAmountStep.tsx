@@ -1,98 +1,81 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/Input';
+import React, { useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormInput } from '@/components/ui/rhf/FormInput';
+import { FormSelect } from '@/components/ui/rhf/FormSelect';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataService } from '@/config/dataSource';
 import { useDataFetchOne } from '@/hooks/useDataFetch';
-import type { StepValidation } from '@/hooks/useMultiStepForm';
+import { setMultiStepClaimPolicy } from '@/lib/form-schemas';
+import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
-export interface ClaimAmountData {
-  claimAmount: string;
-  estimatedLoss: string;
-  currency: string;
-  breakdown: Array<{
-    id: string;
-    description: string;
-    amount: string;
-  }>;
+interface BreakdownItem {
+  id: string;
+  description: string;
+  amount: string;
 }
 
-export interface ClaimAmountStepProps {
-  data: ClaimAmountData;
-  policyId: string;
-  onDataChange: (data: Partial<ClaimAmountData>) => void;
-  onValidation: (validation: StepValidation) => void;
-}
+export const ClaimAmountStep: React.FC = () => {
+  const { control, watch, getValues, setValue, trigger } =
+    useFormContext<MultiStepClaimFormValues>();
+  const [showBreakdown, setShowBreakdown] = useState(
+    () => getValues('breakdown').length > 0
+  );
 
-export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
-  data,
-  policyId,
-  onDataChange,
-  onValidation
-}) => {
-  const [showBreakdown, setShowBreakdown] = useState(data.breakdown.length > 0);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  
+  const policyId = watch('policyId');
+  const claimAmount = watch('claimAmount');
+  const currency = watch('currency');
+  const estimatedLoss = watch('estimatedLoss');
+  const breakdown = watch('breakdown');
+
   // Fetch the selected policy with caching
-  const { item: selectedPolicy, loading } = useDataFetchOne(
+  const { item: selectedPolicy } = useDataFetchOne(
     () => DataService.getPolicy(policyId),
     { cacheDuration: 10 * 60 * 1000 }
   );
 
-  // Validate step
-  const errors = React.useMemo(() => {
-    const errs: Record<string, string> = {};
-    
-    if (!data.claimAmount) {
-      errs.claimAmount = 'Please enter the claim amount';
-    } else {
-      const amount = parseFloat(data.claimAmount);
-      if (isNaN(amount) || amount <= 0) {
-        errs.claimAmount = 'Please enter a valid amount greater than 0';
-      } else if (selectedPolicy && amount > selectedPolicy.coverageLimit) {
-        errs.claimAmount = `Amount cannot exceed policy limit of ${selectedPolicy.coverageLimitFormatted}`;
-      }
+  // Feed the selected policy's coverage into the shared schema and re-validate
+  // the claim amount so the coverage-limit check stays in sync with RHF.
+  useEffect(() => {
+    setMultiStepClaimPolicy(
+      selectedPolicy
+        ? {
+            coverageLimit: selectedPolicy.coverageLimit,
+            coverageLimitFormatted: selectedPolicy.coverageLimitFormatted,
+          }
+        : null
+    );
+    if (selectedPolicy) {
+      void trigger('claimAmount');
     }
-
-    if (!data.currency) {
-      errs.currency = 'Please select a currency';
-    }
-
-    return errs;
-  }, [data, selectedPolicy]);
-
-  React.useEffect(() => {
-    const isValid = Object.keys(errors).length === 0;
-    onValidation({ isValid, errors });
-  }, [errors, onValidation]);
+  }, [selectedPolicy, trigger]);
 
   const addBreakdownItem = () => {
-    const newItem = {
+    const current = getValues('breakdown');
+    const newItem: BreakdownItem = {
       id: Date.now().toString(),
       description: '',
       amount: ''
     };
-    onDataChange({
-      breakdown: [...data.breakdown, newItem]
-    });
+    setValue('breakdown', [...current, newItem], { shouldDirty: true });
   };
 
   const updateBreakdownItem = (id: string, field: 'description' | 'amount', value: string) => {
-    const updatedBreakdown = data.breakdown.map(item =>
+    const updated = getValues('breakdown').map(item =>
       item.id === id ? { ...item, [field]: value } : item
     );
-    onDataChange({ breakdown: updatedBreakdown });
+    setValue('breakdown', updated, { shouldDirty: true });
   };
 
   const removeBreakdownItem = (id: string) => {
-    const updatedBreakdown = data.breakdown.filter(item => item.id !== id);
-    onDataChange({ breakdown: updatedBreakdown });
+    const updated = getValues('breakdown').filter(item => item.id !== id);
+    setValue('breakdown', updated, { shouldDirty: true });
   };
 
   const calculateBreakdownTotal = () => {
-    return data.breakdown.reduce((total, item) => {
+    return breakdown.reduce((total, item) => {
       const amount = parseFloat(item.amount) || 0;
       return total + amount;
     }, 0);
@@ -101,7 +84,7 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: data.currency || 'USD'
+      currency: currency || 'USD'
     }).format(amount);
   };
 
@@ -117,7 +100,7 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-white">Claim Amount & Loss Details</h2>
         <p className="text-slate-400">
-          Specify the amount you're claiming and provide a breakdown of your losses.
+          Specify the amount you&apos;re claiming and provide a breakdown of your losses.
         </p>
       </div>
 
@@ -142,58 +125,34 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
 
         {/* Currency Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-white mb-2">Currency</label>
-            <select
-              value={data.currency}
-              onChange={(e) => {
-                setTouched(prev => ({ ...prev, currency: true }));
-                onDataChange({ currency: e.target.value });
-              }}
-              className={`w-full px-3 py-2 bg-slate-800 border rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${touched.currency && errors.currency ? 'border-rose-500' : 'border-slate-600'}`}
-            >
-              <option value="">Select currency...</option>
-              {currencies.map(currency => (
-                <option key={currency.value} value={currency.value}>
-                  {currency.label}
-                </option>
-              ))}
-            </select>
-            {touched.currency && errors.currency && (
-              <p className="mt-1 flex items-center gap-1 text-sm text-rose-400">
-                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
-                </svg>
-                {errors.currency}
-              </p>
-            )}
-          </div>
+          <FormSelect
+            name="currency"
+            control={control}
+            label="Currency"
+            placeholder="Select currency..."
+            options={currencies}
+          />
         </div>
 
         {/* Claim Amount */}
-        <Input
+        <FormInput
+          name="claimAmount"
+          control={control}
           label="Total Claim Amount"
           type="number"
           step="0.01"
           placeholder="0.00"
-          value={data.claimAmount}
-          onChange={(e) => {
-            setTouched(prev => ({ ...prev, claimAmount: true }));
-            onDataChange({ claimAmount: e.target.value });
-          }}
           helperText={selectedPolicy ? `Available coverage: ${selectedPolicy.coverageLimitFormatted}` : undefined}
-          error={touched.claimAmount ? errors.claimAmount : undefined}
         />
 
         {/* Estimated Loss */}
-        <Input
+        <FormInput
+          name="estimatedLoss"
+          control={control}
           label="Estimated Total Loss (Optional)"
           type="number"
           step="0.01"
           placeholder="0.00"
-          value={data.estimatedLoss}
-          onChange={(e) => onDataChange({ estimatedLoss: e.target.value })}
           helperText="If your total loss exceeds the claim amount, specify the full estimated loss here"
         />
 
@@ -229,17 +188,18 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                 </Button>
               </div>
 
-              {data.breakdown.length === 0 ? (
+              {breakdown.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-4">
-                  No breakdown items added yet. Click "Add Item" to start.
+                  No breakdown items added yet. Click &quot;Add Item&quot; to start.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {data.breakdown.map((item, index) => (
+                  {breakdown.map((item, index) => (
                     <div key={item.id} className="flex items-center space-x-3 p-3 bg-slate-900/50 rounded-lg">
                       <div className="flex-1">
                         <input
                           type="text"
+                          aria-label={`Breakdown item ${index + 1} description`}
                           placeholder="Description (e.g., Bitcoin wallet loss)"
                           value={item.description}
                           onChange={(e) => updateBreakdownItem(item.id, 'description', e.target.value)}
@@ -250,6 +210,7 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                         <input
                           type="number"
                           step="0.01"
+                          aria-label={`Breakdown item ${index + 1} amount`}
                           placeholder="Amount"
                           value={item.amount}
                           onChange={(e) => updateBreakdownItem(item.id, 'amount', e.target.value)}
@@ -257,7 +218,9 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                         />
                       </div>
                       <button
+                        type="button"
                         onClick={() => removeBreakdownItem(item.id)}
+                        aria-label={`Remove breakdown item ${index + 1}`}
                         className="p-2 text-slate-400 hover:text-red-400 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -268,17 +231,17 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
                   ))}
 
                   {/* Breakdown Total */}
-                  {data.breakdown.length > 0 && (
+                  {breakdown.length > 0 && (
                     <div className="border-t border-slate-600 pt-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-white">Breakdown Total:</span>
                         <span className="text-lg font-semibold text-cyan-400">
-                          {data.currency ? formatCurrency(calculateBreakdownTotal()) : `${calculateBreakdownTotal().toFixed(2)}`}
+                          {currency ? formatCurrency(calculateBreakdownTotal()) : `${calculateBreakdownTotal().toFixed(2)}`}
                         </span>
                       </div>
-                      {data.claimAmount && calculateBreakdownTotal() !== parseFloat(data.claimAmount) && (
+                      {claimAmount && calculateBreakdownTotal() !== parseFloat(claimAmount) && (
                         <p className="text-xs text-orange-400 mt-1">
-                          Note: Breakdown total doesn't match claim amount
+                          Note: Breakdown total doesn&apos;t match claim amount
                         </p>
                       )}
                     </div>
@@ -290,25 +253,25 @@ export const ClaimAmountStep: React.FC<ClaimAmountStepProps> = ({
         )}
 
         {/* Claim Summary */}
-        {data.claimAmount && data.currency && (
+        {claimAmount && currency && (
           <Card className="p-4 bg-cyan-500/5 border-cyan-500/20">
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-cyan-400">Claim Summary</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-slate-400">Claim Amount:</p>
-                  <p className="text-white font-medium">{formatCurrency(parseFloat(data.claimAmount))}</p>
+                  <p className="text-white font-medium">{formatCurrency(parseFloat(claimAmount))}</p>
                 </div>
-                {data.estimatedLoss && (
+                {estimatedLoss && (
                   <div>
                     <p className="text-slate-400">Total Estimated Loss:</p>
-                    <p className="text-white font-medium">{formatCurrency(parseFloat(data.estimatedLoss))}</p>
+                    <p className="text-white font-medium">{formatCurrency(parseFloat(estimatedLoss))}</p>
                   </div>
                 )}
               </div>
               {selectedPolicy && (
                 <div className="text-xs text-slate-400">
-                  Coverage remaining: {formatCurrency(selectedPolicy.coverageLimit - parseFloat(data.claimAmount))}
+                  Coverage remaining: {formatCurrency(selectedPolicy.coverageLimit - parseFloat(claimAmount))}
                 </div>
               )}
             </div>

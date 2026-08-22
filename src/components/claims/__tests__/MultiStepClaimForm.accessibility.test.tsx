@@ -19,10 +19,10 @@ expect.extend(toHaveNoViolations);
 // ── localStorage mock ─────────────────────────────────────────────────────────
 
 const localStorageMock = {
-  getItem: jest.fn<string | null, [string]>(() => null),
-  setItem: jest.fn<void, [string, string]>(),
-  removeItem: jest.fn<void, [string]>(),
-  clear: jest.fn<void, []>(),
+  getItem: jest.fn((_key: string): string | null => null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
 };
 Object.defineProperty(window, "localStorage", {
   value: localStorageMock,

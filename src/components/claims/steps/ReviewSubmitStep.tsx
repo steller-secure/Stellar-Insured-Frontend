@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { DataService } from '@/config/dataSource';
 import { useDataFetchOne } from '@/hooks/useDataFetch';
 import type { StepValidation } from '@/hooks/useMultiStepForm';
+import type { MultiStepClaimFormData } from '../MultiStepClaimForm';
 
 export interface ReviewSubmitData {
   agreedToTerms: boolean;
@@ -14,7 +15,7 @@ export interface ReviewSubmitData {
 
 export interface ReviewSubmitStepProps {
   data: ReviewSubmitData;
-  formData: any; // Full form data from all steps
+  formData: MultiStepClaimFormData;
   onDataChange: (data: Partial<ReviewSubmitData>) => void;
   onValidation: (validation: StepValidation) => void;
   onSubmit: () => void;
@@ -169,7 +170,7 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
                 
                 {showFullBreakdown && (
                   <div className="space-y-2">
-                    {formData.breakdown.map((item: any, index: number) => (
+                    {formData.breakdown.map((item, index) => (
                       <div key={item.id} className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">{item.description}</span>
                         <span className="text-white">

@@ -9,6 +9,9 @@
 export { policyApi } from './policyApi';
 export { claimApi } from './claimApi';
 export { daoApi } from './daoApi';
+export { authApi } from './authApi';
+export { walletApi } from './walletApi';
+export { analyticsApi } from './analyticsApi';
 
 // Re-export useful types
 export type { PolicyListParams } from './policyApi';
@@ -28,4 +31,13 @@ export type {
   Proposal,
   ProposalStatus,
   VoteType,
+  AuthSession,
+  AuthRequest,
+  AuthResponse,
+  WalletBalance,
+  WalletBalanceAsset,
+  WalletBalanceResponse,
+  AnalyticsEvent,
+  AnalyticsEventRequest,
+  AnalyticsStats,
 } from '@/types/api';

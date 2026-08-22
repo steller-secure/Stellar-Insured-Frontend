@@ -69,7 +69,7 @@ function PolicyListingContent() {
 
       // Filter by coverage types
       if (filterState.coverageTypes.length > 0) {
-        if (!filterState.coverageTypes.includes(item.id as any)) {
+        if (!filterState.coverageTypes.includes(item.id)) {
           return false;
         }
       }

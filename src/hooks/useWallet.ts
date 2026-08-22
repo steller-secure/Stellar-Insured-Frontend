@@ -72,7 +72,7 @@ export function useWallet() {
       return session;
     }
 
-    return executeWithErrorHandling(async () => {
+    const result = await executeWithErrorHandling(async () => {
       startConnection();
 
       // Request wallet access
@@ -95,18 +95,17 @@ export function useWallet() {
       completeConnection(newSession);
       
       if (showSuccessNotification) {
-        showSuccessNotification({
-          category: 'WALLET',
-          code: 'CONNECTION_SUCCESS',
-          message: 'Wallet connected successfully',
-          severity: 'info',
-          userMessage: 'Your wallet has been connected',
-          timestamp: Date.now()
-        });
+        showSuccessNotification('Wallet connected successfully');
       }
 
       return newSession;
     }, 'WALLET');
+
+    if (!result) {
+      throw new Error('Failed to connect wallet');
+    }
+
+    return result;
   }, [
     session,
     executeWithErrorHandling,
@@ -122,14 +121,7 @@ export function useWallet() {
     signOut();
     
     if (showSuccessNotification) {
-      showSuccessNotification({
-        category: 'WALLET',
-        code: 'DISCONNECTION_SUCCESS',
-        message: 'Wallet disconnected',
-        severity: 'info',
-        userMessage: 'Your wallet has been disconnected',
-        timestamp: Date.now()
-      });
+      showSuccessNotification('Wallet disconnected');
     }
   }, [signOut, showSuccessNotification]);
 

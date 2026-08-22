@@ -1,5 +1,5 @@
 import { getProposalStats } from '@/lib/dao-utils';
-import { Proposal } from '@/types/api';
+import type { Proposal } from '@/types/api';
 
 describe('dao-utils', () => {
   const mockProposals: Proposal[] = [

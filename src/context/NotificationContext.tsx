@@ -1,8 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useCallback, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useToast } from "@/components/ui/toast";
-import type { AppError, ErrorCategory } from "@/lib/errorHandler";
+import { errorHandler, ErrorCategory, AppError } from "@/lib/errorHandler";
 import { blockchainEvents, type BlockchainEvent } from "@/lib/blockchainEvents";
 import { useWalletStore } from "@/store";
 
@@ -11,7 +17,11 @@ type NotificationType = "success" | "error" | "warning" | "info";
 type ErrorSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 interface NotificationContextType {
-  addNotification: (message: string, type: NotificationType, severity?: ErrorSeverity) => void;
+  addNotification: (
+    message: string,
+    type: NotificationType,
+    severity?: ErrorSeverity,
+  ) => void;
   addError: (error: AppError) => void;
   /**
    * The most recent announcement text for the polite aria-live region.
@@ -39,18 +49,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => blockchainEvents.stop();
   }, [address]);
 
-  useEffect(() => blockchainEvents.subscribe((event: BlockchainEvent) => {
-    const messages: Partial<Record<BlockchainEvent['type'], string>> = {
-      'policy.purchased': 'Your policy purchase was confirmed on-chain.',
-      'policy.updated': 'One of your policies was updated on-chain.',
-      'claim.submitted': 'Your claim submission was confirmed on-chain.',
-      'claim.updated': 'The status of one of your claims changed.',
-      'proposal.updated': 'A governance proposal status changed.',
-      'vote.cast': 'New voting results are available.',
-    };
-    const message = messages[event.type];
-    if (message) showToast(message, event.type.endsWith('purchased') || event.type.endsWith('submitted') ? 'success' : 'info');
-  }), [showToast]);
+  useEffect(
+    () =>
+      blockchainEvents.subscribe((event: BlockchainEvent) => {
+        const messages: Partial<Record<BlockchainEvent["type"], string>> = {
+          "policy.purchased": "Your policy purchase was confirmed on-chain.",
+          "policy.updated": "One of your policies was updated on-chain.",
+          "claim.submitted": "Your claim submission was confirmed on-chain.",
+          "claim.updated": "The status of one of your claims changed.",
+          "proposal.updated": "A governance proposal status changed.",
+          "vote.cast": "New voting results are available.",
+        };
+        const message = messages[event.type];
+        if (message)
+          showToast(
+            message,
+            event.type.endsWith("purchased") || event.type.endsWith("submitted")
+              ? "success"
+              : "info",
+          );
+      }),
+    [showToast],
+  );
   // Holds the latest polite live-region message; reset after a short delay
   // so the same message can be re-announced if needed.
   const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
@@ -67,7 +87,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const addNotification = useCallback(
-    (message: string, type: NotificationType = "info", severity?: ErrorSeverity) => {
+    (
+      message: string,
+      type: NotificationType = "info",
+      severity?: ErrorSeverity,
+    ) => {
       showToast(message, type);
       // Also pipe the message into the live region for non-visual users
       announce(message);
@@ -77,22 +101,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addError = useCallback(
     (error: AppError) => {
-      // Critical errors are logged, not shown as toast
-      if (error.severity === 'CRITICAL') {
-        // Send to monitoring endpoint
-        console.error('[Critical application error]', error);
+      if (error.severity === "CRITICAL") {
+        console.error("[Critical application error]", error);
+        // Use public API to report critical errors (routes to analytics/monitoring)
+        try {
+          errorHandler.handleError(
+            error.category,
+            error.code ?? "GENERIC_ERROR",
+            error,
+            error.context,
+          );
+        } catch {
+          /* ignore */
+        }
         return;
       }
 
       // Non-critical errors are shown as toast and announced via live region
-      showToast(error.message, 'error');
+      showToast(error.message, "error");
       announce(error.message);
     },
     [showToast, announce],
   );
 
   return (
-    <NotificationContext.Provider value={{ addNotification, addError, liveAnnouncement, announce }}>
+    <NotificationContext.Provider
+      value={{ addNotification, addError, liveAnnouncement, announce }}
+    >
       {children}
       {/*
         Polite aria-live region for dynamic status announcements.

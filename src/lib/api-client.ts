@@ -4,6 +4,7 @@
  * retry logic with exponential backoff, and request cancellation.
  */
 
+import { z } from "zod";
 import { errorHandler, type ErrorCategory } from "@/lib/errorHandler";
 import { globalRateLimiter } from "@/lib/rate-limiter";
 
@@ -29,6 +30,8 @@ export interface RequestConfig extends Omit<RequestInit, "body"> {
   timeout?: number;
   retries?: number;
   body?: unknown;
+  /** Optional Zod schema to validate the response data. */
+  schema?: z.ZodTypeAny;
 }
 
 type RequestInterceptor = (
@@ -206,11 +209,13 @@ class ApiClient {
     const url = this.buildURL(path, config.params);
     const retries = config.retries ?? this.defaultRetries;
     const timeout = config.timeout ?? this.defaultTimeout;
+    const schema = config.schema;
 
     const {
       params: _params,
       timeout: _timeout,
       retries: _retries,
+      schema: _schema,
       body,
       ...fetchOptions
     } = config;
@@ -261,6 +266,7 @@ class ApiClient {
             (errorBody?.message as string) ?? response.statusText,
             response.status,
             errorBody?.code as string | undefined,
+            "NETWORK",
             errorBody,
           );
         }
@@ -275,12 +281,35 @@ class ApiClient {
         }
 
         const data = (await response.json()) as T;
+
+        // Validate response data with the provided Zod schema
+        if (schema) {
+          const validated = schema.parse(data);
+          return { data: validated as T, status: response.status, headers: response.headers };
+        }
+
         return { data, status: response.status, headers: response.headers };
       } catch (error) {
         clearTimeout(timeoutId);
 
         if (error instanceof ApiClientError) {
           let processed = error;
+          for (const interceptor of this.errorInterceptors) {
+            processed = interceptor(processed);
+          }
+          throw processed;
+        }
+
+        // Zod validation errors
+        if (error instanceof z.ZodError) {
+          const validationError = new ApiClientError(
+            "Response validation failed",
+            0,
+            "VALIDATION_ERROR",
+            "VALIDATION",
+            error.errors,
+          );
+          let processed = validationError;
           for (const interceptor of this.errorInterceptors) {
             processed = interceptor(processed);
           }
@@ -306,7 +335,7 @@ class ApiClient {
 
     // Retry with exponential backoff via errorHandler
     if (retries > 0) {
-      const retryCategory = error.category || "NETWORK";
+      const retryCategory: ErrorCategory = "NETWORK";
       return errorHandler.retryWithBackoff<ApiResponse<T>>(
         execute,
         retryCategory,

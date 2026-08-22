@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ThumbsUp, ThumbsDown, MinusCircle } from "lucide-react";
-import { VoteType } from "@/types/api";
+import type { VoteType } from "@/types/api";
 import VotingButton from "./VotingButton";
 
 interface VotingInterfaceProps {

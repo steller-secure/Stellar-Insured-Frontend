@@ -11,7 +11,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { WalletStatus } from "@/components/WalletStatus";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { ProtectedRoute } from "@/components/protected-route";
-import type { Policy } from "@/services/types/policy.types";
+import type { Policy } from "@/types/policy";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PolicyCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
 import { blockchainEvents } from "@/lib/blockchainEvents";

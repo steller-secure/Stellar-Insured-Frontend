@@ -5,7 +5,7 @@ import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { policyService } from '@/services/policyService';
 import type { StepValidation } from '@/hooks/useMultiStepForm';
-import type { Policy } from '@/services/types/policy.types';
+import type { Policy } from '@/types/policy';
 
 export interface PolicySelectionData {
   policyId: string;
@@ -99,7 +99,7 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
             label: `${p.name} (${p.policyNumber})`
           }))}
           value={data.policyId}
-          onChange={(e: any) => {
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             setTouched(prev => ({ ...prev, policyId: true }));
             onDataChange({ policyId: e.target.value });
           }}
@@ -144,7 +144,7 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
           placeholder="Select the type of incident..."
           options={incidentTypes}
           value={data.incidentType}
-          onChange={(e: any) => {
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             setTouched(prev => ({ ...prev, incidentType: true }));
             onDataChange({ incidentType: e.target.value });
           }}

@@ -1,16 +1,24 @@
 "use client";
-"use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { PolicyPlan } from "@/data/policies/listing/policy-plans-mock";
 import {
   MOCK_TX_HASH,
-  MOCK_WALLET_ADDRESS,
   PolicyPurchasePayload,
   STELLAR_EXPLORER_TX_URL,
 } from "@/data/policies/listing/policy-purchase-flow-mock";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { usePurchasePolicyMutation } from "@/hooks/queries/usePolicyMutations";
+import { useWallet } from "@/hooks/useWallet";
+import {
+  policyPurchaseSchemaAsync,
+  type PolicyPurchaseFormValues,
+} from "@/lib/form-schemas";
+import { FormInput } from "@/components/ui/rhf/FormInput";
+import { FormCheckbox } from "@/components/ui/rhf/FormCheckbox";
+import { FormSummaryError } from "@/components/ui/rhf/FormSummaryError";
 
 type PolicyPurchaseEntryModalProps = {
   isOpen: boolean;
@@ -40,7 +48,6 @@ export function PolicyPurchaseEntryModal({
   onClose,
   onConfirm,
 }: PolicyPurchaseEntryModalProps) {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [status, setStatus] = useState<PurchaseStatus>("review");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -57,9 +64,35 @@ export function PolicyPurchaseEntryModal({
   });
   const purchaseMutation = usePurchasePolicyMutation();
 
+  const {
+    address: connectedWalletAddress,
+    connectWallet,
+    isConnecting,
+  } = useWallet();
+
+  const {
+    control,
+    reset,
+    setValue,
+    setError,
+    clearErrors,
+    getValues,
+    trigger,
+    formState: { errors, isDirty, isValid },
+  } = useForm<PolicyPurchaseFormValues>({
+    resolver: zodResolver(policyPurchaseSchemaAsync),
+    mode: "onChange",
+    defaultValues: { walletAddress: "" },
+  });
+
+  const walletAddressValue = useWatch({ control, name: "walletAddress" });
+
+  const isWalletConnected = Boolean(walletAddressValue);
+  const rootError = (errors.root as { message?: string } | undefined)?.message;
+
   useEffect(() => {
     if (isOpen) {
-      setWalletAddress(null);
+      reset({ walletAddress: "" });
       setStatus("review");
       clearTxError();
       setTxHash(null);
@@ -72,14 +105,19 @@ export function PolicyPurchaseEntryModal({
       timersRef.current.forEach((timer) => window.clearTimeout(timer));
       timersRef.current = [];
     };
-  }, [isOpen]);
+  }, [isOpen, reset, clearTxError]);
+
+  useEffect(() => {
+    if (isOpen && connectedWalletAddress) {
+      setValue("walletAddress", connectedWalletAddress, { shouldValidate: true });
+    }
+  }, [isOpen, connectedWalletAddress, setValue]);
 
   useEffect(() => {
     setIsCopied(false);
   }, [status, txHash]);
 
   if (!isOpen || !plan) return null;
-  const isWalletConnected = Boolean(walletAddress);
   const isProcessing =
     status === "signing" || status === "submitting" || status === "confirming" || isTxLoading;
   const progressStep = status === "submitting" ? 1 : status === "confirming" ? 2 : 0;
@@ -136,6 +174,27 @@ export function PolicyPurchaseEntryModal({
     });
   };
 
+  const handleConfirmPurchase = async () => {
+    const valid = await trigger();
+    if (valid) {
+      startPurchaseFlow();
+    }
+  };
+
+  const handleConnectWallet = async () => {
+    try {
+      const session = await connectWallet();
+      if (session?.address) {
+        setValue("walletAddress", session.address, { shouldValidate: true });
+        clearErrors("root");
+      }
+    } catch (e) {
+      setError("root", {
+        message: e instanceof Error ? e.message : "Failed to connect wallet. Please try again.",
+      });
+    }
+  };
+
   const handleCopyTx = () => {
     const hash = txHash ?? MOCK_TX_HASH;
     if (!hash) return;
@@ -163,7 +222,7 @@ export function PolicyPurchaseEntryModal({
     assetCode: plan.assetCode,
     assetIssuer: plan.assetIssuer,
     networkFeeXlm: plan.networkFeeXlm,
-    walletAddress: walletAddress ?? "",
+    walletAddress: getValues("walletAddress"),
     txHash: hash,
     explorerUrl: `${STELLAR_EXPLORER_TX_URL}${hash}`,
     status: "success",
@@ -320,83 +379,105 @@ export function PolicyPurchaseEntryModal({
               Instant coverage powered by blockchain
             </div>
 
-            <div className="mt-4 rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-              <div className="text-white text-lg font-bold font-['Inter']">{plan.name}</div>
-              <div className="mt-1 text-stone-300 text-sm font-bold font-['Inter']">
-                {plan.description}
-              </div>
-            </div>
+            <div>
+              <FormSummaryError message={rootError} id="policy-purchase-summary-error" />
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-                <div className="text-stone-300 text-xs font-bold font-['Inter']">Premium</div>
-                <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.premium}</div>
+              <div className="mt-4 rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                <div className="text-white text-lg font-bold font-['Inter']">{plan.name}</div>
+                <div className="mt-1 text-stone-300 text-sm font-bold font-['Inter']">
+                  {plan.description}
+                </div>
               </div>
-              <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-                <div className="text-stone-300 text-xs font-bold font-['Inter']">Duration</div>
-                <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.duration}</div>
-              </div>
-              <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-                <div className="text-stone-300 text-xs font-bold font-['Inter']">Coverage</div>
-                <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.coverage}</div>
-              </div>
-              <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-                <div className="text-stone-300 text-xs font-bold font-['Inter']">Deductible</div>
-                <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.deductible}</div>
-              </div>
-            </div>
 
-            <div className="mt-4 flex items-start justify-between gap-4 rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-stone-300 text-xs font-bold font-['Inter']">Wallet</div>
-                {isWalletConnected ? (
-                  <div className="mt-1 flex items-center justify-center gap-2 pr-1">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-[#2b3f62] px-2 py-0.5 text-[11px] font-bold text-stone-300">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Connected
-                    </span>
-                    <span className="text-white text-[10px] font-mono leading-none whitespace-nowrap">
-                      {formatWalletAddress(walletAddress ?? "")}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="mt-1 text-stone-300 text-xs font-bold font-['Inter']">
-                    Connect your Stellar wallet to activate coverage.
-                  </div>
-                )}
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                  <div className="text-stone-300 text-xs font-bold font-['Inter']">Premium</div>
+                  <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.premium}</div>
+                </div>
+                <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                  <div className="text-stone-300 text-xs font-bold font-['Inter']">Duration</div>
+                  <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.duration}</div>
+                </div>
+                <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                  <div className="text-stone-300 text-xs font-bold font-['Inter']">Coverage</div>
+                  <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.coverage}</div>
+                </div>
+                <div className="rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                  <div className="text-stone-300 text-xs font-bold font-['Inter']">Deductible</div>
+                  <div className="mt-1 text-white text-base font-bold font-['Inter']">{plan.deductible}</div>
+                </div>
               </div>
-              {!isWalletConnected ? (
+
+              <div className="mt-4 flex items-start justify-between gap-4 rounded-[8px] border border-[#2b3f62] bg-[#0c1733] px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-stone-300 text-xs font-bold font-['Inter']">Wallet</div>
+                  {isWalletConnected ? (
+                    <div className="mt-1 flex items-center justify-center gap-2 pr-1">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-[#2b3f62] px-2 py-0.5 text-[11px] font-bold text-stone-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        Connected
+                      </span>
+                      <span className="text-white text-[10px] font-mono leading-none whitespace-nowrap">
+                        {formatWalletAddress(walletAddressValue ?? "")}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-stone-300 text-xs font-bold font-['Inter']">
+                      Connect your Stellar wallet to activate coverage.
+                    </div>
+                  )}
+                </div>
+                {!isWalletConnected ? (
+                  <button
+                    type="button"
+                    onClick={handleConnectWallet}
+                    disabled={isConnecting}
+                    className="shrink-0 rounded-lg bg-brand-primary px-4 py-2 text-xs font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-4">
+                <FormInput
+                  name="walletAddress"
+                  control={control}
+                  label="Stellar Wallet Address"
+                  required
+                  placeholder="G..."
+                  autoComplete="off"
+                />
+                <FormCheckbox
+                  name="agreeToTerms"
+                  control={control}
+                  label="I agree to the terms and conditions"
+                  required
+                />
+              </div>
+
+              <div className="mt-4 text-stone-300 text-xs font-bold font-['Inter']">
+                Confirm to activate coverage on the Stellar blockchain.
+              </div>
+
+              <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setWalletAddress(MOCK_WALLET_ADDRESS)}
-                  className="shrink-0 rounded-lg bg-brand-primary px-4 py-2 text-xs font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover"
+                  onClick={onClose}
+                  className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover"
                 >
-                  Connect Wallet
+                  Cancel
                 </button>
-              ) : null}
-            </div>
 
-            <div className="mt-4 text-stone-300 text-xs font-bold font-['Inter']">
-              Confirm to activate coverage on the Stellar blockchain.
-            </div>
-
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={startPurchaseFlow}
-                disabled={!isWalletConnected || isProcessing}
-                className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Confirm and Sign
-              </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmPurchase}
+                  disabled={isProcessing || !isDirty || !isValid}
+                  className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-bold text-brand-bg transition-colors hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Confirm and Sign
+                </button>
+              </div>
             </div>
           </>
         )}

@@ -1,27 +1,21 @@
 import { proposalService } from '../services/proposalService';
 
 describe('Proposal Service', () => {
-  it('creates a proposal', async () => {
-    const proposal = await proposalService.createProposal({
-      title: 'Test Proposal',
-      description: 'Testing',
-      type: 'UPGRADE',
-      proposer: 'user1',
-      proposerName: 'User 1',
+  it('creates a proposal', () => {
+    const proposal = proposalService.createProposal({
+      title: 'Test Upgrade Proposal',
+      description: 'UPGRADE proposal',
     });
     expect(proposal.id).toBeDefined();
     expect(proposal.status).toBe('pending');
   });
 
-  it('updates a proposal', async () => {
-    const proposal = await proposalService.createProposal({
-      title: 'Update Proposal',
-      description: 'Testing update',
-      type: 'FUNDING',
-      proposer: 'user2',
-      proposerName: 'User 2',
+  it('updates a proposal', () => {
+    const proposal = proposalService.createProposal({
+      title: 'Test Funding Proposal',
+      description: 'FUNDING proposal',
     });
-    const updated = await proposalService.updateProposal(proposal.id, { status: 'active' });
+    const updated = proposalService.updateProposal(proposal.id, { status: 'active' });
     expect(updated?.status).toBe('active');
   });
 });

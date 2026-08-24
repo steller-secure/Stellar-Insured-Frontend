@@ -6,13 +6,20 @@ import { AlertCircle } from "lucide-react";
 import ProposalCard from "./ProposalCard";
 import ProposalStats from "./ProposalStats";
 import ProposalFilters from "./ProposalFilters";
-import { Proposal, VoteType } from "@/types/api";
+import type { Proposal, VoteType } from "@/types/api";
 import { getProposalStats } from "@/lib/dao-utils";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
 import { useNotificationContext } from "@/context/NotificationContext";
-import { ProposalCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import {
+  ProposalCardSkeleton,
+  EmptyState,
+  ErrorState,
+} from "@/components/ui/SkeletonLoaders";
+import { CreateProposalModal } from "@/components/CreateProposalModal";
+import { useQueryClient } from "@tanstack/react-query";
 import { useProposalsQuery } from "@/hooks/queries/useProposals";
 import { useCastVoteMutation } from "@/hooks/queries/useProposalMutations";
+import { queryKeys } from "@/hooks/queries/queryKeys";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -24,10 +31,16 @@ export default function DAOVotingClient({
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
-  const { execute: executeTransaction, error: voteError, clearError } = useTransactionHandler({
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const {
+    execute: executeTransaction,
+    error: voteError,
+    clearError,
+  } = useTransactionHandler({
     showSuccessToast: false,
   });
   const { addNotification } = useNotificationContext();
+  const queryClient = useQueryClient();
 
   const {
     data: proposals = [],
@@ -106,6 +119,7 @@ export default function DAOVotingClient({
             <button
               type="button"
               aria-label="Create a new governance proposal"
+              onClick={() => setIsCreateOpen(true)}
               className="bg-[#22BBF9] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#22BBF9]/90 transition-all w-full sm:w-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22BBF9] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F1F]"
             >
               {/* The "+" is decorative; keep it visible but screen readers will use aria-label */}
@@ -127,10 +141,16 @@ export default function DAOVotingClient({
                   aria-hidden="true"
                 />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-red-500">{voteError.title}</h3>
-                  <p className="mt-1 text-sm text-red-400">{voteError.message}</p>
+                  <h3 className="font-semibold text-red-500">
+                    {voteError.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-red-400">
+                    {voteError.message}
+                  </p>
                   {voteError.remediationStep && (
-                    <p className="mt-2 text-sm text-red-300">{voteError.remediationStep}</p>
+                    <p className="mt-2 text-sm text-red-300">
+                      {voteError.remediationStep}
+                    </p>
                   )}
                 </div>
                 {/*
@@ -226,6 +246,38 @@ export default function DAOVotingClient({
           )}
         </div>
       </div>
+
+      <CreateProposalModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={(proposal) => {
+          queryClient.setQueriesData<Proposal[]>(
+            { queryKey: queryKeys.proposals.all },
+            (current) => [
+              {
+                id: proposal.id,
+                title: proposal.title,
+                description: proposal.description,
+                proposer: proposal.proposer,
+                proposerName: proposal.proposerName,
+                status: "pending",
+                startDate: proposal.startDate,
+                endDate: proposal.endDate,
+                votesFor: 0,
+                votesAgainst: 0,
+                votesAbstain: 0,
+                totalVotes: 0,
+                quorum: 10000,
+                userVotingPower: 0,
+                hasVoted: false,
+                userVote: null,
+              },
+              ...(current ?? []),
+            ]
+          );
+          addNotification("Proposal created successfully!", "success");
+        }}
+      />
     </div>
   );
 }

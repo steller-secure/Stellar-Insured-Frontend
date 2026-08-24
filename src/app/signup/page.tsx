@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthShell } from "@/components/auth-shell";
 import { useAuth } from "@/components/auth-provider";
 import {
@@ -12,8 +14,12 @@ import {
 } from "@/lib/freighter";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import { required, email, minLength, pattern } from "@/lib/validators";
+import {
+  signupSchema,
+  type SignupFormValues,
+} from "@/lib/form-schemas";
+import { FormInput } from "@/components/ui/rhf/FormInput";
+import { FormSummaryError } from "@/components/ui/rhf/FormSummaryError";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,15 +27,7 @@ type UiState =
   | { status: "idle" }
   | { status: "connecting" }
   | { status: "signing"; address: string; message: string }
-  | { status: "error"; message: string }
   | { status: "success" };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface SignUpFormData extends Record<string, any> {
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -41,54 +39,19 @@ export default function SignUpPage() {
 
   const [ui, setUi] = useState<UiState>({ status: "idle" });
 
-  const [formData, setFormData] = useState<SignUpFormData>({
-    email: "",
-    password: "",
-    confirmPassword: "",
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors, isDirty, isValid },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    mode: "onChange",
+    defaultValues: { email: "", password: "", confirmPassword: "" },
   });
 
   const busy = ui.status === "connecting" || ui.status === "signing";
-
-  // ── Validation rules ──────────────────────────────────────────────────────
-
-  const { errors, touched, validate, validateField, handleBlur } =
-    useFormValidation<SignUpFormData>({
-      email: [
-        required("Email address is required"),
-        email("Please enter a valid email address"),
-      ],
-      password: [
-        required("Password is required"),
-        minLength(8, "Password must be at least 8 characters"),
-        // Must contain at least one number
-        pattern(/\d/, "Password must contain at least one number"),
-        // Must contain at least one uppercase letter
-        pattern(/[A-Z]/, "Password must contain at least one uppercase letter"),
-      ],
-      confirmPassword: [
-        required("Please confirm your password"),
-        // Confirm password must match password — checked inline
-        (value) =>
-          value !== formData.password ? "Passwords do not match" : null,
-      ],
-    });
-
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
-  /**
-   * Updates a field and re-validates in real-time if it has already been touched.
-   * Also re-validates confirmPassword when password changes since it's dependent.
-   */
-  const handleChange = (field: keyof SignUpFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (touched[field]) {
-      validateField(field, value);
-    }
-    // Re-validate confirmPassword whenever password changes
-    if (field === "password" && touched.confirmPassword) {
-      validateField("confirmPassword", formData.confirmPassword);
-    }
-  };
+  const submitDisabled = busy || !isDirty || !isValid;
 
   const primaryLabel = useMemo(() => {
     if (ui.status === "connecting") return "Connecting...";
@@ -96,14 +59,13 @@ export default function SignUpPage() {
     return "Sign up";
   }, [ui.status]);
 
+  const rootError = (errors.root as { message?: string } | undefined)?.message;
+
   /**
    * Runs full form validation before attempting wallet connection.
-   * Replaces the previous manual password match check with the hook.
+   * Non-field failures (wallet/signing) surface as a summary error.
    */
-  const connect = async () => {
-    // Validate all fields — shows all errors at once if any fail
-    if (!validate(formData)) return;
-
+  const onSubmit = handleSubmit(async (data) => {
     try {
       setUi({ status: "connecting" });
       const address = await connectFreighter();
@@ -115,6 +77,9 @@ export default function SignUpPage() {
           new Error("This wallet already has an account. Please sign in."),
           { action: "signup", reason: "wallet_already_registered" }
         );
+        setError("root", {
+          message: "This wallet already has an account. Please sign in.",
+        });
         showErrorNotification(appError);
         setUi({ status: "idle" });
         return;
@@ -126,7 +91,7 @@ export default function SignUpPage() {
 
       registerAddress(address, {
         createdAt: Date.now(),
-        email: formData.email.trim() || undefined,
+        email: data.email.trim() || undefined,
       });
 
       setSession({
@@ -138,7 +103,7 @@ export default function SignUpPage() {
       });
 
       trackAction("AUTH", "SIGNUP_SUCCESS", {
-        hasEmail: !!formData.email.trim(),
+        hasEmail: !!data.email.trim(),
       });
       showSuccessNotification("Signed up successfully!");
       setUi({ status: "success" });
@@ -151,13 +116,13 @@ export default function SignUpPage() {
         { context: "signup" }
       );
 
-      showErrorNotification(appError);
-      setUi({
-        status: "error",
-        message: appError.message,
+      setError("root", {
+        message: e instanceof Error ? e.message : appError.message,
       });
+      showErrorNotification(appError);
+      setUi({ status: "idle" });
     }
-  };
+  });
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -177,280 +142,41 @@ export default function SignUpPage() {
         </div>
       }
     >
-      <div className="flex flex-col gap-4">
-        {/* ── Email field ── */}
-        <div className="flex flex-col gap-1">
-          <label className="flex items-center gap-1 text-sm text-white/70">
-            Email Address
-            {/* Required asterisk */}
-            <span className="text-rose-400" aria-hidden="true">
-              *
-            </span>
-          </label>
-          <div className="relative">
-            <input
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              onBlur={() => handleBlur("email", formData.email)}
-              placeholder="your@email.com"
-              type="email"
-              // Supports autofill/paste — onChange fires for both
-              autoComplete="email"
-              aria-invalid={touched.email && !!errors.email}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              className={`h-11 w-full rounded-lg border bg-white/5 px-4 text-white placeholder:text-white/30 outline-none transition-colors
-                ${
-                  touched.email && errors.email
-                    ? "border-rose-500 focus:border-rose-500"
-                    : touched.email && !errors.email
-                      ? "border-emerald-500/80 focus:border-emerald-500"
-                      : "border-white/10 focus:border-sky-400/60"
-                }`}
-            />
-            {/* Validation icon */}
-            {touched.email && errors.email && (
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-rose-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4m0 4h.01"
-                  />
-                </svg>
-              </div>
-            )}
-            {touched.email && !errors.email && formData.email && (
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-emerald-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-            )}
-          </div>
-          {/* Inline error message */}
-          {touched.email && errors.email && (
-            <p
-              id="email-error"
-              className="flex items-center gap-1 text-xs text-rose-400"
-              role="alert"
-            >
-              <svg
-                className="h-3 w-3 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01"
-                />
-              </svg>
-              {errors.email}
-            </p>
-          )}
-        </div>
+      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+        <FormSummaryError
+          message={rootError}
+          id="signup-summary-error"
+        />
 
-        {/* ── Password field ── */}
-        <div className="flex flex-col gap-1">
-          <label className="flex items-center gap-1 text-sm text-white/70">
-            Password
-            <span className="text-rose-400" aria-hidden="true">
-              *
-            </span>
-          </label>
-          <div className="relative">
-            <input
-              value={formData.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              onBlur={() => handleBlur("password", formData.password)}
-              placeholder="Enter your password"
-              type="password"
-              autoComplete="new-password"
-              aria-invalid={touched.password && !!errors.password}
-              aria-describedby={errors.password ? "password-error" : undefined}
-              className={`h-11 w-full rounded-lg border bg-white/5 px-4 text-white placeholder:text-white/30 outline-none transition-colors
-                ${
-                  touched.password && errors.password
-                    ? "border-rose-500 focus:border-rose-500"
-                    : touched.password && !errors.password
-                      ? "border-emerald-500/80 focus:border-emerald-500"
-                      : "border-white/10 focus:border-sky-400/60"
-                }`}
-            />
-            {touched.password && errors.password && (
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-rose-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4m0 4h.01"
-                  />
-                </svg>
-              </div>
-            )}
-            {touched.password && !errors.password && formData.password && (
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-emerald-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-            )}
-          </div>
-          {touched.password && errors.password && (
-            <p
-              id="password-error"
-              className="flex items-center gap-1 text-xs text-rose-400"
-              role="alert"
-            >
-              <svg
-                className="h-3 w-3 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01"
-                />
-              </svg>
-              {errors.password}
-            </p>
-          )}
-        </div>
+        <FormInput
+          name="email"
+          control={control}
+          label="Email Address"
+          required
+          placeholder="your@email.com"
+          type="email"
+          autoComplete="email"
+        />
 
-        {/* ── Confirm Password field ── */}
-        <div className="flex flex-col gap-1">
-          <label className="flex items-center gap-1 text-sm text-white/70">
-            Confirm Password
-            <span className="text-rose-400" aria-hidden="true">
-              *
-            </span>
-          </label>
-          <div className="relative">
-            <input
-              value={formData.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
-              onBlur={() =>
-                handleBlur("confirmPassword", formData.confirmPassword)
-              }
-              placeholder="Confirm your password"
-              type="password"
-              autoComplete="new-password"
-              aria-invalid={touched.confirmPassword && !!errors.confirmPassword}
-              aria-describedby={
-                errors.confirmPassword ? "confirm-password-error" : undefined
-              }
-              className={`h-11 w-full rounded-lg border bg-white/5 px-4 text-white placeholder:text-white/30 outline-none transition-colors
-                ${
-                  touched.confirmPassword && errors.confirmPassword
-                    ? "border-rose-500 focus:border-rose-500"
-                    : touched.confirmPassword && !errors.confirmPassword
-                      ? "border-emerald-500/80 focus:border-emerald-500"
-                      : "border-white/10 focus:border-sky-400/60"
-                }`}
-            />
-            {touched.confirmPassword && errors.confirmPassword && (
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg
-                  className="h-4 w-4 text-rose-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4m0 4h.01"
-                  />
-                </svg>
-              </div>
-            )}
-            {touched.confirmPassword &&
-              !errors.confirmPassword &&
-              formData.confirmPassword && (
-                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                  <svg
-                    className="h-4 w-4 text-emerald-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-              )}
-          </div>
-          {touched.confirmPassword && errors.confirmPassword && (
-            <p
-              id="confirm-password-error"
-              className="flex items-center gap-1 text-xs text-rose-400"
-              role="alert"
-            >
-              <svg
-                className="h-3 w-3 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 8v4m0 4h.01"
-                />
-              </svg>
-              {errors.confirmPassword}
-            </p>
-          )}
-        </div>
+        <FormInput
+          name="password"
+          control={control}
+          label="Password"
+          required
+          placeholder="Enter your password"
+          type="password"
+          autoComplete="new-password"
+        />
+
+        <FormInput
+          name="confirmPassword"
+          control={control}
+          label="Confirm Password"
+          required
+          placeholder="Confirm your password"
+          type="password"
+          autoComplete="new-password"
+        />
 
         {/* ── Wallet signing message ── */}
         {ui.status === "signing" ? (
@@ -466,40 +192,15 @@ export default function SignUpPage() {
           </div>
         ) : null}
 
-        {/* ── API / wallet error ── */}
-        {ui.status === "error" && (
-          <p
-            className="flex items-center gap-1 text-xs text-rose-400"
-            role="alert"
-          >
-            <svg
-              className="h-3 w-3 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 8v4m0 4h.01"
-              />
-            </svg>
-            {ui.message}
-          </p>
-        )}
-
         {/* ── Submit button ── */}
         <button
-          type="button"
-          onClick={connect}
-          disabled={busy}
+          type="submit"
+          disabled={submitDisabled}
           className="h-11 w-full rounded-lg bg-sky-500 font-semibold text-zinc-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {primaryLabel}
         </button>
-      </div>
+      </form>
     </AuthShell>
   );
 }

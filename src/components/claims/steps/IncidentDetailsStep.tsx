@@ -1,59 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
+import React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormInput } from '@/components/ui/rhf/FormInput';
+import { FormTextarea } from '@/components/ui/rhf/FormTextarea';
 import { Card } from '@/components/ui/Card';
-import type { StepValidation } from '@/hooks/useMultiStepForm';
+import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
-export interface IncidentDetailsData {
-  incidentDate: string;
-  incidentTime: string;
-  location: string;
-  description: string;
-  immediateActions: string;
-}
-
-export interface IncidentDetailsStepProps {
-  data: IncidentDetailsData;
-  onDataChange: (data: Partial<IncidentDetailsData>) => void;
-  onValidation: (validation: StepValidation) => void;
-}
-
-export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
-  data,
-  onDataChange,
-  onValidation
-}) => {
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  // Validate step
-  const errors = React.useMemo(() => {
-    const errs: Record<string, string> = {};
-    
-    if (!data.incidentDate) {
-      errs.incidentDate = 'Please provide the incident date';
-    } else {
-      const incidentDate = new Date(data.incidentDate);
-      const today = new Date();
-      if (incidentDate > today) {
-        errs.incidentDate = 'Incident date cannot be in the future';
-      }
-    }
-    
-    if (!data.description) {
-      errs.description = 'Please provide a detailed description';
-    } else if (data.description.length < 50) {
-      errs.description = 'Description must be at least 50 characters';
-    }
-
-    return errs;
-  }, [data]);
-
-  React.useEffect(() => {
-    const isValid = Object.keys(errors).length === 0;
-    onValidation({ isValid, errors });
-  }, [errors, onValidation]);
+export const IncidentDetailsStep: React.FC = () => {
+  const { control, watch } = useFormContext<MultiStepClaimFormValues>();
+  const incidentDate = watch('incidentDate');
+  const incidentTime = watch('incidentTime');
+  const description = watch('description');
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -77,48 +35,46 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
       <div className="space-y-6">
         {/* Date and Time */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
+          <FormInput
+            name="incidentDate"
+            control={control}
             label="Incident Date"
             type="date"
-            value={data.incidentDate}
-            onChange={(e) => {
-              setTouched(prev => ({ ...prev, incidentDate: true }));
-              onDataChange({ incidentDate: e.target.value });
-            }}
             max={new Date().toISOString().split('T')[0]}
-            error={touched.incidentDate ? errors.incidentDate : undefined}
           />
-          <Input
+          <FormInput
+            name="incidentTime"
+            control={control}
             label="Approximate Time (Optional)"
             type="time"
-            value={data.incidentTime}
-            onChange={(e) => onDataChange({ incidentTime: e.target.value })}
           />
         </div>
 
         {/* Date Preview */}
-        {data.incidentDate && (
+        {incidentDate && (
           <Card className="p-3 bg-slate-800/30 border-slate-700">
             <p className="text-sm text-slate-400">
-              Incident occurred on: <span className="text-white font-medium">{formatDate(data.incidentDate)}</span>
-              {data.incidentTime && (
-                <span> at <span className="text-white font-medium">{data.incidentTime}</span></span>
+              Incident occurred on: <span className="text-white font-medium">{formatDate(incidentDate)}</span>
+              {incidentTime && (
+                <span> at <span className="text-white font-medium">{incidentTime}</span></span>
               )}
             </p>
           </Card>
         )}
 
         {/* Location */}
-        <Input
+        <FormInput
+          name="location"
+          control={control}
           label="Location (Optional)"
           placeholder="e.g., Online, New York, Home, etc."
-          value={data.location}
-          onChange={(e) => onDataChange({ location: e.target.value })}
           helperText="Where did the incident occur? This can be physical or digital location."
         />
 
         {/* Description */}
-        <Textarea
+        <FormTextarea
+          name="description"
+          control={control}
           label="Detailed Description"
           placeholder="Please provide a comprehensive description of what happened. Include:
 • What exactly occurred?
@@ -126,26 +82,20 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
 • What assets or systems were affected?
 • Any suspicious activities you noticed?
 • Timeline of events..."
-          value={data.description}
-          onChange={(e) => {
-            setTouched(prev => ({ ...prev, description: true }));
-            onDataChange({ description: e.target.value });
-          }}
           rows={8}
-          helperText={`${data.description.length}/50 characters minimum`}
-          error={touched.description ? errors.description : undefined}
+          helperText={`${description.length}/50 characters minimum`}
         />
 
         {/* Immediate Actions */}
-        <Textarea
+        <FormTextarea
+          name="immediateActions"
+          control={control}
           label="Immediate Actions Taken (Optional)"
           placeholder="Describe any immediate steps you took after discovering the incident:
 • Did you contact any authorities?
 • Did you change passwords or secure accounts?
 • Did you notify your bank or exchange?
 • Any other protective measures..."
-          value={data.immediateActions}
-          onChange={(e) => onDataChange({ immediateActions: e.target.value })}
           rows={4}
           helperText="This information helps us understand the scope and your response to the incident."
         />
@@ -159,7 +109,7 @@ export const IncidentDetailsStep: React.FC<IncidentDetailsStepProps> = ({
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-blue-400">Tips for Better Claims Processing</h4>
+              <h3 className="text-sm font-medium text-blue-400">Tips for Better Claims Processing</h3>
               <ul className="text-sm text-slate-400 mt-1 space-y-1">
                 <li>• Be as specific as possible with dates and times</li>
                 <li>• Include transaction IDs, wallet addresses, or other relevant identifiers</li>

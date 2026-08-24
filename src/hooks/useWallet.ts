@@ -27,7 +27,6 @@ export function useWallet() {
   } = useWalletStore();
 
   const {
-    handleError,
     executeWithErrorHandling,
     showSuccessNotification,
     showErrorNotification,
@@ -67,8 +66,13 @@ export function useWallet() {
   }, [session?.expiresAt, signOut, showErrorNotification]);
 
   // ─── Connect wallet and create session ──────────────────────────────────
-  const performConnect = useCallback(async (): Promise<AuthSession | null> => {
-    return executeWithErrorHandling(async () => {
+  const connectWallet = useCallback(async (): Promise<AuthSession> => {
+    // Return existing session if already connected
+    if (session) {
+      return session;
+    }
+
+    const result = await executeWithErrorHandling(async () => {
       startConnection();
 
       // Request wallet access
@@ -96,28 +100,20 @@ export function useWallet() {
 
       return newSession;
     }, 'WALLET');
+
+    if (!result) {
+      throw new Error('Failed to connect wallet');
+    }
+
+    return result;
   }, [
+    session,
     executeWithErrorHandling,
     startConnection,
     setStatus,
     completeConnection,
     showSuccessNotification
   ]);
-
-  const connectWallet = useCallback(async (): Promise<AuthSession | null> => {
-    // Return existing session if already connected
-    if (session) {
-      return session;
-    }
-
-    return performConnect();
-  }, [session, performConnect]);
-
-  // Force a fresh connection attempt even if a (possibly stale) session
-  // already exists — used to retry after a failed connection.
-  const reconnectWallet = useCallback(async (): Promise<AuthSession | null> => {
-    return performConnect();
-  }, [performConnect]);
 
   // ─── Disconnect wallet ───────────────────────────────────────────────────
   const disconnect = useCallback(() => {
@@ -139,10 +135,7 @@ export function useWallet() {
 
     // Actions
     connectWallet,
-    reconnectWallet,
     disconnect,
-    handleError,
-    showErrorNotification,
 
     // Convenience
     address: session?.address ?? null,

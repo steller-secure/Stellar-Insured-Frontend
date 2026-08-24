@@ -1,42 +1,44 @@
-import { ConnectionStatus, AuthSession } from "@/store/types";
+import { z } from "zod";
+import {
+  walletBalanceSchema,
+  authSessionSchema,
+  type WalletBalance,
+  type WalletBalanceAsset,
+  type WalletBalanceResponse,
+} from "./api";
 
-export interface FreighterIsConnectedResponse {
-  isConnected?: boolean;
-  error?: string;
-}
+// Re-export derived types
+export type { WalletBalance, WalletBalanceAsset, WalletBalanceResponse };
 
-export interface FreighterRequestAccessResponse {
-  address?: string;
-  error?: string;
-}
+// Zod schemas for wallet connection state
+export const walletConnectionStateSchema = z.object({
+  status: z.enum(["idle", "connecting", "connected", "error", "signing"]),
+  session: authSessionSchema.nullable(),
+  error: z.string().nullable(),
+});
+export type WalletConnectionState = z.infer<typeof walletConnectionStateSchema>;
 
-export interface FreighterSignMessageResponse {
-  signedMessage?: string;
-  signerAddress?: string;
-  error?: string;
-}
+// Freighter response schemas
+export const freighterIsConnectedResponseSchema = z.object({
+  isConnected: z.boolean().optional(),
+  error: z.string().optional(),
+});
+export type FreighterIsConnectedResponse = z.infer<typeof freighterIsConnectedResponseSchema>;
 
-export interface WalletConnectionState {
-  status: ConnectionStatus;
-  session: AuthSession | null;
-  error: string | null;
-}
+export const freighterRequestAccessResponseSchema = z.object({
+  address: z.string().optional(),
+  error: z.string().optional(),
+});
+export type FreighterRequestAccessResponse = z.infer<typeof freighterRequestAccessResponseSchema>;
 
-export interface WalletBalanceAsset {
-  code: string;
-  issuer: string;
-  balance: number;
-}
+export const freighterSignMessageResponseSchema = z.object({
+  signedMessage: z.string().optional(),
+  signerAddress: z.string().optional(),
+  error: z.string().optional(),
+});
+export type FreighterSignMessageResponse = z.infer<typeof freighterSignMessageResponseSchema>;
 
-export interface WalletBalance {
-  xlm: number;
-  assets: WalletBalanceAsset[];
-  loading: boolean;
-  refreshing: boolean;
-  error: string | null;
-  lastUpdated: number | null;
-}
-
+// UseWalletBalanceReturn extends WalletBalance with additional methods
 export interface UseWalletBalanceReturn extends WalletBalance {
   refetch: () => Promise<void>;
   /** Schedule a refetch after a transaction likely confirms, and briefly poll faster. */

@@ -1,21 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Select } from '@/components/ui/Select';
+import React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { FormSelect } from '@/components/ui/rhf/FormSelect';
 import { Card } from '@/components/ui/Card';
 import { usePoliciesQuery } from '@/hooks/queries/usePolicies';
-import type { StepValidation } from '@/hooks/useMultiStepForm';
-
-export interface PolicySelectionData {
-  policyId: string;
-  incidentType: string;
-}
-
-export interface PolicySelectionStepProps {
-  data: PolicySelectionData;
-  onDataChange: (data: Partial<PolicySelectionData>) => void;
-  onValidation: (validation: StepValidation) => void;
-}
+import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
 const incidentTypes = [
   { value: 'wallet-hack', label: 'Wallet Hack / Compromise' },
@@ -26,37 +16,19 @@ const incidentTypes = [
   { value: 'other', label: 'Other Incident' }
 ];
 
-export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
-  data,
-  onDataChange,
-  onValidation
-}) => {
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+export const PolicySelectionStep: React.FC = () => {
+  const { control, watch } = useFormContext<MultiStepClaimFormValues>();
 
-  const { data: policiesData, isLoading: loading } = usePoliciesQuery({ status: 'active' });
+  const policyId = watch('policyId');
+  const incidentType = watch('incidentType');
+
+  const { data: policiesData, isLoading: loading, error: queryError } = usePoliciesQuery({
+    status: 'active',
+  });
   const policies = policiesData?.policies ?? [];
+  const error = queryError ? queryError.message || 'Failed to load policies' : null;
 
-  const selectedPolicy = policies.find(p => p.id === data.policyId);
-
-  // Validate step
-  const errors = React.useMemo(() => {
-    const errs: Record<string, string> = {};
-    
-    if (!data.policyId) {
-      errs.policyId = 'Please select a policy';
-    }
-    
-    if (!data.incidentType) {
-      errs.incidentType = 'Please select an incident type';
-    }
-
-    return errs;
-  }, [data]);
-
-  React.useEffect(() => {
-    const isValid = Object.keys(errors).length === 0;
-    onValidation({ isValid, errors });
-  }, [errors, onValidation]);
+  const selectedPolicy = policies.find(p => p.id === policyId);
 
   return (
     <div className="space-y-6">
@@ -69,21 +41,23 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
 
       <div className="space-y-6">
         {/* Policy Selection */}
-        <Select
+        <FormSelect
+          name="policyId"
+          control={control}
           label="Select Policy"
           placeholder="Choose a policy..."
           options={policies.map(p => ({
             value: p.id,
             label: `${p.name} (${p.policyNumber})`
           }))}
-          value={data.policyId}
-          onChange={(e: any) => {
-            setTouched(prev => ({ ...prev, policyId: true }));
-            onDataChange({ policyId: e.target.value });
-          }}
           disabled={loading}
-          error={touched.policyId ? errors.policyId : undefined}
         />
+
+        {error && (
+          <p className="text-sm text-rose-400" role="alert">
+            {error}
+          </p>
+        )}
 
         {/* Selected Policy Details */}
         {selectedPolicy && (
@@ -117,20 +91,16 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
         )}
 
         {/* Incident Type Selection */}
-        <Select
+        <FormSelect
+          name="incidentType"
+          control={control}
           label="Incident Type"
           placeholder="Select the type of incident..."
           options={incidentTypes}
-          value={data.incidentType}
-          onChange={(e: any) => {
-            setTouched(prev => ({ ...prev, incidentType: true }));
-            onDataChange({ incidentType: e.target.value });
-          }}
-          error={touched.incidentType ? errors.incidentType : undefined}
         />
 
         {/* Incident Type Description */}
-        {data.incidentType && (
+        {incidentType && (
           <Card className="p-4 bg-cyan-500/5 border-cyan-500/20">
             <div className="flex items-start space-x-3">
               <div className="shrink-0 w-6 h-6 bg-cyan-500/20 rounded-full flex items-center justify-center mt-0.5">
@@ -139,16 +109,16 @@ export const PolicySelectionStep: React.FC<PolicySelectionStepProps> = ({
                 </svg>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-cyan-400">
-                  {incidentTypes.find(t => t.value === data.incidentType)?.label}
-                </h4>
+                <h3 className="text-sm font-medium text-cyan-400">
+                  {incidentTypes.find(t => t.value === incidentType)?.label}
+                </h3>
                 <p className="text-sm text-slate-400 mt-1">
-                  {data.incidentType === 'wallet-hack' && 'Claims related to unauthorized access to your cryptocurrency wallet or private keys.'}
-                  {data.incidentType === 'smart-contract' && 'Claims for losses due to vulnerabilities or exploits in smart contracts.'}
-                  {data.incidentType === 'defi-protocol' && 'Claims related to security breaches or hacks in DeFi protocols.'}
-                  {data.incidentType === 'exchange-hack' && 'Claims for losses due to security breaches at cryptocurrency exchanges.'}
-                  {data.incidentType === 'phishing' && 'Claims related to losses from phishing attacks or social engineering.'}
-                  {data.incidentType === 'other' && 'Other types of incidents not covered by the above categories.'}
+                  {incidentType === 'wallet-hack' && 'Claims related to unauthorized access to your cryptocurrency wallet or private keys.'}
+                  {incidentType === 'smart-contract' && 'Claims for losses due to vulnerabilities or exploits in smart contracts.'}
+                  {incidentType === 'defi-protocol' && 'Claims related to security breaches or hacks in DeFi protocols.'}
+                  {incidentType === 'exchange-hack' && 'Claims for losses due to security breaches at cryptocurrency exchanges.'}
+                  {incidentType === 'phishing' && 'Claims related to losses from phishing attacks or social engineering.'}
+                  {incidentType === 'other' && 'Other types of incidents not covered by the above categories.'}
                 </p>
               </div>
             </div>

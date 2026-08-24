@@ -207,13 +207,13 @@ const ERROR_MESSAGES: Record<ErrorCategory, Record<string, {
   },
   BLOCKCHAIN: {
     TRANSACTION_FAILED: {
-      message: 'The transaction could not be confirmed on the blockchain.',
-      recoverySuggestion: 'Check the network and try submitting the transaction again.',
+      message: 'Blockchain transaction failed.',
+      recoverySuggestion: 'Please check your transaction details and try again.',
       severity: 'HIGH'
     },
     GENERIC_ERROR: {
-      message: 'A blockchain error occurred. Please try again.',
-      recoverySuggestion: 'Verify your network connection and try again.',
+      message: 'A blockchain error occurred.',
+      recoverySuggestion: 'Please verify your wallet connection and try again.',
       severity: 'MEDIUM'
     }
   }

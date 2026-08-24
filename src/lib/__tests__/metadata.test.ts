@@ -53,9 +53,7 @@ describe("metadata", () => {
         template: "%s | Stellar Insured",
       });
       expect(metadata.openGraph?.siteName).toBe("Stellar Insured");
-      expect((metadata.twitter as Record<string, unknown> | null | undefined)?.card).toBe(
-        "summary_large_image"
-      );
+      expect(metadata.twitter?.title).toBe("Stellar Insured");
       expect(metadata.alternates?.canonical).toBe("https://stellar-insured.com");
     });
   });
@@ -96,7 +94,7 @@ describe("metadata", () => {
       const metadata = createPolicyMetadata({
         id: "1",
         name: "Crypto Asset Protection",
-        type: "Home",
+        type: "Health",
         status: "active",
         coverageLimit: 75000,
         coverageLimitFormatted: "$75,000",
@@ -128,7 +126,7 @@ describe("metadata", () => {
       const schema = createInsuranceProductSchema({
         id: "1",
         name: "Crypto Asset Protection",
-        type: "Home",
+        type: "Health",
         status: "active",
         coverageLimit: 75000,
         coverageLimitFormatted: "$75,000",

@@ -146,14 +146,12 @@ export const policyApi = {
    */
   async getStatistics(
     config?: RequestConfig
-  ): Promise<
-    ApiResponse<{
-      totalPolicies: number;
-      activePolicies: number;
-      totalCoverage: number;
-      averagePremium: number;
-    }>
-  > {
+  ): Promise<ApiResponse<{
+    totalPolicies: number;
+    activePolicies: number;
+    totalCoverage: number;
+    averagePremium: number;
+  }>> {
     const response = await apiClient.get<unknown>('/api/policies/statistics', { retries: 1, ...config });
     return {
       ...response,

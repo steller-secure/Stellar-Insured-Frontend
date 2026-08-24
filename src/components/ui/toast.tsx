@@ -19,42 +19,6 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const hideToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const showToast = useCallback((message: string, type: ToastType = "info") => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      hideToast(id);
-    }, 5000);
-  }, [hideToast]);
-
-  const value = useMemo(() => ({ showToast }), [showToast]);
-
-  return (
-    <ToastContext.Provider value={value}>
-      {children}
-      <div
-        className="fixed right-4 bottom-4 z-70 flex w-full max-w-sm flex-col gap-2"
-        role="region"
-        aria-label="Notifications"
-      >
-        {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onClose={() => hideToast(toast.id)} />
-        ))}
-      </div>
-    </ToastContext.Provider>
-  );
-}
-
-/** Toast types map onto the shared semantic colours. */
 const TOAST_COLORS: Record<ToastType, UIColor> = {
   success: "success",
   error: "error",
@@ -67,6 +31,13 @@ const icons: Record<ToastType, typeof CheckCircle> = {
   error: AlertCircle,
   info: Info,
   warning: AlertTriangle,
+};
+
+const typeLabels: Record<ToastType, string> = {
+  success: "Success",
+  error: "Error",
+  info: "Info",
+  warning: "Warning",
 };
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
@@ -83,16 +54,54 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       )}
     >
       <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-      <div className="flex-1 text-sm font-medium">{toast.message}</div>
+      <div className="flex-1 text-sm font-medium">
+        <span className="sr-only">{typeLabels[toast.type]}: </span>
+        {toast.message}
+      </div>
       <button
         type="button"
         onClick={onClose}
-        aria-label="Dismiss notification"
+        aria-label={`Dismiss ${typeLabels[toast.type].toLowerCase()} notification: ${toast.message}`}
         className="shrink-0 opacity-70 transition-opacity duration-200 ease-standard hover:opacity-100"
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
+  );
+}
+
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const hideToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const showToast = useCallback((message: string, type: ToastType = "info") => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    setTimeout(() => {
+      hideToast(id);
+    }, 5000);
+  }, [hideToast]);
+
+  const value = useMemo(() => ({ showToast }), [showToast]);
+
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        role="status"
+        className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 w-full max-w-sm"
+      >
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onClose={() => hideToast(toast.id)} />
+        ))}
+      </div>
+    </ToastContext.Provider>
   );
 }
 

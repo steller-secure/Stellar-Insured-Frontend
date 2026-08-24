@@ -41,6 +41,8 @@ export type FreighterSignMessageResponse = z.infer<typeof freighterSignMessageRe
 // UseWalletBalanceReturn extends WalletBalance with additional methods
 export interface UseWalletBalanceReturn extends WalletBalance {
   refetch: () => Promise<void>;
+  /** Schedule a refetch after a transaction likely confirms, and briefly poll faster. */
+  triggerPostTransactionRefresh: () => void;
   isPollingActive: boolean;
   pollingInterval: number;
 }

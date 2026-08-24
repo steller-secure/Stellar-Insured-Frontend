@@ -11,7 +11,8 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { ProgressStepper, type Step } from '@/components/ui/ProgressStepper';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { claimApi } from '@/services/api/claimApi';
+import { useCreateClaimMutation } from '@/hooks/queries/useClaimMutations';
+import { usePolicyQuery } from '@/hooks/queries/usePolicies';
 import {
   multiStepClaimSchema,
   CLAIM_DOCUMENT_TYPES_REQUIRED,
@@ -119,6 +120,9 @@ export const MultiStepClaimForm: React.FC = () => {
   // Warn about unsaved changes on browser navigation / tab close
   const { confirmNavigation } = useUnsavedChanges(isDraft && !isSuccess);
 
+  const { data: selectedPolicy } = usePolicyQuery(formValues.policyId);
+  const createClaimMutation = useCreateClaimMutation();
+
   // Restore a persisted draft on mount
   useEffect(() => {
     const draft = persistence.load();
@@ -223,16 +227,20 @@ export const MultiStepClaimForm: React.FC = () => {
 
     const result = await executeTransaction(
       async () => {
-        const response = await claimApi.create({
-          policyId: data.policyId,
-          incidentType: data.incidentType,
-          amount: parseFloat(data.claimAmount),
-          description: data.description,
-          evidence: data.documents.map((doc) => doc.name),
+        // Send data to the API for server-side validation and creation
+        const claim = await createClaimMutation.mutateAsync({
+          request: {
+            policyId: data.policyId,
+            incidentType: data.incidentType,
+            amount: parseFloat(data.claimAmount),
+            description: data.description,
+            evidence: data.documents.map((doc) => doc.name),
+          },
+          policyName: selectedPolicy?.name ?? data.policyId,
         });
 
         const newClaimId =
-          response.data.id ||
+          claim.id ||
           `CLM-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)
             .toString()
             .padStart(4, '0')}`;

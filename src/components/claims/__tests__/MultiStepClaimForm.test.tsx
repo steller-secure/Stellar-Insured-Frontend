@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithQueryClient as render } from '@/test-utils/renderWithQueryClient';
 import { MultiStepClaimForm } from '../MultiStepClaimForm';
 
 // Mock localStorage

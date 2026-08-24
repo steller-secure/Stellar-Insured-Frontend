@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/ui/rhf/FormSelect';
 import { Card } from '@/components/ui/Card';
-import { policyService } from '@/services/policyService';
-import type { Policy } from '@/services/types/policy.types';
+import { usePoliciesQuery } from '@/hooks/queries/usePolicies';
 import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
 const incidentTypes = [
@@ -19,35 +18,17 @@ const incidentTypes = [
 
 export const PolicySelectionStep: React.FC = () => {
   const { control, watch } = useFormContext<MultiStepClaimFormValues>();
-  const [policies, setPolicies] = useState<Policy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const policyId = watch('policyId');
   const incidentType = watch('incidentType');
 
+  const { data: policiesData, isLoading: loading, error: queryError } = usePoliciesQuery({
+    status: 'active',
+  });
+  const policies = policiesData?.policies ?? [];
+  const error = queryError ? queryError.message || 'Failed to load policies' : null;
+
   const selectedPolicy = policies.find(p => p.id === policyId);
-
-  // Load policies from service
-  useEffect(() => {
-    const loadPolicies = async () => {
-      try {
-        setLoading(true);
-        const result = await policyService.getPolicies({ status: 'active' });
-        if (result.success) {
-          setPolicies(result.data.policies);
-        } else {
-          setError(result.error || 'Failed to load policies');
-        }
-      } catch {
-        setError('Failed to load policies');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPolicies();
-  }, []);
 
   return (
     <div className="space-y-6">

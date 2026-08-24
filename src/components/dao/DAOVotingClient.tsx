@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { AlertCircle } from "lucide-react";
 
 import ProposalCard from "./ProposalCard";
@@ -15,8 +15,11 @@ import {
   EmptyState,
   ErrorState,
 } from "@/components/ui/SkeletonLoaders";
-import { blockchainEvents } from "@/lib/blockchainEvents";
 import { CreateProposalModal } from "@/components/CreateProposalModal";
+import { useQueryClient } from "@tanstack/react-query";
+import { useProposalsQuery } from "@/hooks/queries/useProposals";
+import { useCastVoteMutation } from "@/hooks/queries/useProposalMutations";
+import { queryKeys } from "@/hooks/queries/queryKeys";
 
 interface DAOVotingClientProps {
   initialProposals: Proposal[];
@@ -25,12 +28,9 @@ interface DAOVotingClientProps {
 export default function DAOVotingClient({
   initialProposals,
 }: DAOVotingClientProps) {
-  const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [votingProposalId, setVotingProposalId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const {
     execute: executeTransaction,
@@ -40,37 +40,16 @@ export default function DAOVotingClient({
     showSuccessToast: false,
   });
   const { addNotification } = useNotificationContext();
+  const queryClient = useQueryClient();
 
-  useEffect(
-    () =>
-      blockchainEvents.subscribe(
-        (event) => {
-          const incoming = (event.data.proposal ??
-            event.data) as Partial<Proposal>;
-          const id = event.resourceId ?? incoming.id;
-          if (!id) return;
-          setProposals((current) =>
-            current.map((proposal) =>
-              proposal.id === id ? { ...proposal, ...incoming } : proposal,
-            ),
-          );
-        },
-        ["proposal.updated", "vote.cast"],
-      ),
-    [],
-  );
-
-  // Simulate initial loading if no proposals provided
-  useEffect(() => {
-    if (initialProposals.length === 0) {
-      setLoading(true);
-      // Simulate data fetch
-      setTimeout(() => {
-        setLoading(false);
-        setError("No proposals available");
-      }, 1000);
-    }
-  }, [initialProposals]);
+  const {
+    data: proposals = [],
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useProposalsQuery({ initialData: initialProposals });
+  const error = queryError ? "Failed to load proposals. Please try again." : null;
+  const castVoteMutation = useCastVoteMutation();
 
   /**
    * Handle vote submission
@@ -84,44 +63,7 @@ export default function DAOVotingClient({
     setVotingProposalId(proposalId);
 
     const result = await executeTransaction(
-      async () => {
-        // Simulate blockchain transaction delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        setProposals((prevProposals) =>
-          prevProposals.map((proposal) => {
-            if (proposal.id === proposalId) {
-              const voteAmount = proposal.userVotingPower;
-
-              const updatedVotes = {
-                votesFor:
-                  voteType === "for"
-                    ? proposal.votesFor + voteAmount
-                    : proposal.votesFor,
-                votesAgainst:
-                  voteType === "against"
-                    ? proposal.votesAgainst + voteAmount
-                    : proposal.votesAgainst,
-                votesAbstain:
-                  voteType === "abstain"
-                    ? proposal.votesAbstain + voteAmount
-                    : proposal.votesAbstain,
-              };
-
-              return {
-                ...proposal,
-                ...updatedVotes,
-                totalVotes: proposal.totalVotes + voteAmount,
-                hasVoted: true,
-                userVote: voteType,
-              };
-            }
-            return proposal;
-          }),
-        );
-
-        return { proposalId, voteType };
-      },
+      () => castVoteMutation.mutateAsync({ proposalId, voteType }),
       { action: "dao_vote", proposalId, voteType },
     );
 
@@ -152,17 +94,7 @@ export default function DAOVotingClient({
   const stats = getProposalStats(proposals);
 
   const handleRetry = () => {
-    setError(null);
-    setLoading(true);
-    // Simulate retry
-    setTimeout(() => {
-      setLoading(false);
-      if (initialProposals.length > 0) {
-        setProposals(initialProposals);
-      } else {
-        setError("Failed to load proposals. Please try again.");
-      }
-    }, 1000);
+    void refetch();
   };
 
   return (
@@ -319,27 +251,30 @@ export default function DAOVotingClient({
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onCreated={(proposal) => {
-          setProposals((prev) => [
-            {
-              id: proposal.id,
-              title: proposal.title,
-              description: proposal.description,
-              proposer: proposal.proposer,
-              proposerName: proposal.proposerName,
-              status: "pending",
-              startDate: proposal.startDate,
-              endDate: proposal.endDate,
-              votesFor: 0,
-              votesAgainst: 0,
-              votesAbstain: 0,
-              totalVotes: 0,
-              quorum: 10000,
-              userVotingPower: 0,
-              hasVoted: false,
-              userVote: null,
-            },
-            ...prev,
-          ]);
+          queryClient.setQueriesData<Proposal[]>(
+            { queryKey: queryKeys.proposals.all },
+            (current) => [
+              {
+                id: proposal.id,
+                title: proposal.title,
+                description: proposal.description,
+                proposer: proposal.proposer,
+                proposerName: proposal.proposerName,
+                status: "pending",
+                startDate: proposal.startDate,
+                endDate: proposal.endDate,
+                votesFor: 0,
+                votesAgainst: 0,
+                votesAbstain: 0,
+                totalVotes: 0,
+                quorum: 10000,
+                userVotingPower: 0,
+                hasVoted: false,
+                userVote: null,
+              },
+              ...(current ?? []),
+            ]
+          );
           addNotification("Proposal created successfully!", "success");
         }}
       />

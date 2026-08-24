@@ -148,9 +148,9 @@ describe('ApiClient', () => {
       globalThis.fetch = fetchMock;
       const client = loadClient();
 
-      await expect(client.get('/missing')).rejects.toThrow('Not found');
+      await expect(client.get('/missing', { retries: 0 })).rejects.toThrow('Not found');
       try {
-        await client.get('/missing');
+        await client.get('/missing', { retries: 0 });
       } catch (err: unknown) {
         const e = err as { status: number; code: string; name: string };
         expect(e.name).toBe('ApiClientError');
@@ -163,9 +163,9 @@ describe('ApiClient', () => {
       globalThis.fetch = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
       const client = loadClient();
 
-      await expect(client.get('/offline')).rejects.toThrow('Failed to fetch');
+      await expect(client.get('/offline', { retries: 0 })).rejects.toThrow('Failed to fetch');
       try {
-        await client.get('/offline');
+        await client.get('/offline', { retries: 0 });
       } catch (err: unknown) {
         const e = err as { code: string; name: string };
         expect(e.name).toBe('ApiClientError');
@@ -179,9 +179,9 @@ describe('ApiClient', () => {
       );
       const client = loadClient();
 
-      await expect(client.get('/slow')).rejects.toThrow();
+      await expect(client.get('/slow', { retries: 0 })).rejects.toThrow();
       try {
-        await client.get('/slow');
+        await client.get('/slow', { retries: 0 });
       } catch (err: unknown) {
         const e = err as { code: string; name: string };
         expect(e.name).toBe('ApiClientError');
@@ -267,7 +267,7 @@ describe('ApiClient', () => {
         return error;
       });
 
-      await expect(client.get('/fail')).rejects.toThrow();
+      await expect(client.get('/fail', { retries: 0 })).rejects.toThrow();
       expect(intercepted).toHaveLength(1);
       expect(intercepted[0].status).toBe(500);
     });

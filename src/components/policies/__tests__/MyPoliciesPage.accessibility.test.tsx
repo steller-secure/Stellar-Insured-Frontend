@@ -10,7 +10,8 @@
  *   4.1.2  Name, Role, Value (role=tablist/tab/tabpanel, aria-selected)
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { renderWithQueryClient as render } from '@/test-utils/renderWithQueryClient';
 import { axe, toHaveNoViolations } from 'jest-axe';
 
 expect.extend(toHaveNoViolations);
@@ -105,7 +106,8 @@ import MyPoliciesPage from '../MyPoliciesPage';
 
 describe('MyPoliciesPage – accessibility (jest-axe)', () => {
   it('has no violations in the default unauthenticated state', async () => {
-    const { container } = render(<MyPoliciesPage />);
+    const { container, getByText } = render(<MyPoliciesPage />);
+    await waitFor(() => getByText('Crypto Wallet Protection'));
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -113,7 +115,8 @@ describe('MyPoliciesPage – accessibility (jest-axe)', () => {
     const { useWallet } = require('@/hooks/useWallet');
     (useWallet as jest.Mock).mockReturnValue({ isConnected: true });
 
-    const { container } = render(<MyPoliciesPage />);
+    const { container, getByText } = render(<MyPoliciesPage />);
+    await waitFor(() => getByText('Crypto Wallet Protection'));
     expect(await axe(container)).toHaveNoViolations();
   });
 });

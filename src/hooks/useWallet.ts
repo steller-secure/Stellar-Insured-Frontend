@@ -93,7 +93,7 @@ export function useWallet() {
       };
 
       completeConnection(newSession);
-      
+
       if (showSuccessNotification) {
         showSuccessNotification('Wallet connected successfully');
       }
@@ -132,11 +132,11 @@ export function useWallet() {
     error,
     hasError,
     canRetry,
-    
+
     // Actions
     connectWallet,
     disconnect,
-    
+
     // Convenience
     address: session?.address ?? null,
     isConnected: status === 'connected' && !!session,

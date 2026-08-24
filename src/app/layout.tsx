@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { ThemeProvider, themeInitScript } from "@/components/ThemeProvider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { QueryProvider } from "@/components/QueryProvider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import GlobalLoader from "@/components/loaders/GlobalLoader";
 import { ToastProvider } from "@/components/ui/toast";
@@ -63,23 +64,25 @@ export default function RootLayout({
         <ThemeProvider>
           <Suspense fallback={null}>
             <ErrorBoundary>
-              <AnalyticsProvider>
-                <WebVitals />
-                <ToastProvider>
-                  <NotificationProvider>
-                    <AuthProvider>
-                      <LoadingProvider>
-                        <GlobalLoader />
-                        {/* The #main-content anchor is the skip-link target.
-                            Individual page layouts or page components must
-                            render a <main id="main-content"> element so this
-                            link lands in the right place. */}
-                        {children}
-                      </LoadingProvider>
-                    </AuthProvider>
-                  </NotificationProvider>
-                </ToastProvider>
-              </AnalyticsProvider>
+              <QueryProvider>
+                <AnalyticsProvider>
+                  <WebVitals />
+                  <ToastProvider>
+                    <NotificationProvider>
+                      <AuthProvider>
+                        <LoadingProvider>
+                          <GlobalLoader />
+                          {/* The #main-content anchor is the skip-link target.
+                              Individual page layouts or page components must
+                              render a <main id="main-content"> element so this
+                              link lands in the right place. */}
+                          {children}
+                        </LoadingProvider>
+                      </AuthProvider>
+                    </NotificationProvider>
+                  </ToastProvider>
+                </AnalyticsProvider>
+              </QueryProvider>
             </ErrorBoundary>
           </Suspense>
         </ThemeProvider>

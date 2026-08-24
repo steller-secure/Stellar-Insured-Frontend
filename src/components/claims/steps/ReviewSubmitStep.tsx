@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { DataService } from '@/config/dataSource';
-import { useDataFetchOne } from '@/hooks/useDataFetch';
+import { usePolicyQuery } from '@/hooks/queries/usePolicies';
 import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
 export interface ReviewSubmitStepProps {
@@ -21,10 +20,7 @@ export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ isSubmitting
   const values = watch();
 
   // Fetch the selected policy with caching
-  const { item: selectedPolicy } = useDataFetchOne(
-    () => DataService.getPolicy(values.policyId),
-    { cacheDuration: 10 * 60 * 1000 }
-  );
+  const { data: selectedPolicy } = usePolicyQuery(values.policyId);
 
   const confirmAccuracyError = (errors.confirmAccuracy as { message?: string } | undefined)?.message;
   const agreedToTermsError = (errors.agreedToTerms as { message?: string } | undefined)?.message;

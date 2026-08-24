@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { PolicyCard } from "@/components/policies/PolicyCard";
-import { policyService } from "@/services/policyService";
+import { usePoliciesQuery } from "@/hooks/queries/usePolicies";
 import { Search, Plus } from "lucide-react";
 import { Pagination } from "@/components/Pagination";
 import { FilterDropdown } from "@/components/FilterDropdown";
@@ -11,10 +11,8 @@ import { useWallet } from "@/hooks/useWallet";
 import { WalletStatus } from "@/components/WalletStatus";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { ProtectedRoute } from "@/components/protected-route";
-import type { Policy } from "@/types/policy";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PolicyCardSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
-import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function MyPoliciesPage() {
   const { trackAction } = useAnalytics();
@@ -23,32 +21,17 @@ export default function MyPoliciesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [policies, setPolicies] = useState<Policy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const itemsPerPage = 9;
 
-  const loadPolicies = React.useCallback(async (background = false) => {
-      try {
-        if (!background) setLoading(true);
-        const result = await policyService.getPolicies();
-        if (result.success) {
-          setPolicies(result.data.policies);
-        } else {
-          setError(result.error || "Failed to load policies");
-        }
-      } catch {
-        setError("Failed to load policies");
-      } finally {
-        if (!background) setLoading(false);
-      }
-    }, []);
-
-  useEffect(() => { void loadPolicies(); }, [loadPolicies]);
-  useEffect(() => blockchainEvents.subscribe(() => { void loadPolicies(true); }, [
-    'policy.purchased', 'policy.updated',
-  ]), [loadPolicies]);
+  const {
+    data: policiesData,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = usePoliciesQuery();
+  const policies = useMemo(() => policiesData?.policies ?? [], [policiesData]);
+  const error = queryError ? queryError.message || "Failed to load policies" : null;
 
   const filteredPolicies = useMemo(() => {
     return policies.filter((policy) => {
@@ -78,8 +61,7 @@ export default function MyPoliciesPage() {
   };
 
   const handleRetry = () => {
-    setError(null);
-    void loadPolicies();
+    void refetch();
   };
 
   const counts = {

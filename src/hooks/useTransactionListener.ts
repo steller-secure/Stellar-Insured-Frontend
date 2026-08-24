@@ -70,21 +70,17 @@ import { useEffect } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 
 export function useTransactionBalanceRefresh() {
-  const { refetch } = useWalletBalance();
+  const { triggerPostTransactionRefresh } = useWalletBalance();
 
   useEffect(() => {
     // Subscribe to transaction events
     const unsubscribe = transactionEventEmitter.subscribe((transactionHash: string) => {
       console.log('Transaction detected, scheduling balance refresh:', transactionHash.slice(0, 8));
-      
-      // Wait a bit for the transaction to confirm, then refresh balance
-      setTimeout(() => {
-        refetch();
-      }, 3000);
+      triggerPostTransactionRefresh();
     });
 
     return unsubscribe;
-  }, [refetch]);
+  }, [triggerPostTransactionRefresh]);
 }
 
 /**

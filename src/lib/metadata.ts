@@ -243,11 +243,11 @@ export const pageMetadata = {
 /** Build dynamic metadata for an individual policy detail page. */
 export function createPolicyMetadata(policy: Policy): Metadata {
   const title = policy.name;
-  const rawDescription = policy.description ?? "";
-  const description =
-    rawDescription.length > 160
-      ? `${rawDescription.slice(0, 157)}...`
-      : rawDescription;
+  const description = !policy.description
+    ? DEFAULT_DESCRIPTION
+    : policy.description.length > 160
+      ? `${policy.description.slice(0, 157)}...`
+      : policy.description;
 
   return createPageMetadata({
     title,

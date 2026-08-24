@@ -333,7 +333,10 @@ class ApiClient {
       }
     };
 
-    // Retry with exponential backoff via errorHandler
+    // Retry with exponential backoff via errorHandler. The category argument
+    // only matters when no explicit policy is passed (it's used to look up a
+    // default policy) — since we always pass one below, "NETWORK" is a safe
+    // placeholder.
     if (retries > 0) {
       const retryCategory: ErrorCategory = "NETWORK";
       return errorHandler.retryWithBackoff<ApiResponse<T>>(

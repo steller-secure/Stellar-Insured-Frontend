@@ -6,8 +6,7 @@ import { FormInput } from '@/components/ui/rhf/FormInput';
 import { FormSelect } from '@/components/ui/rhf/FormSelect';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { DataService } from '@/config/dataSource';
-import { useDataFetchOne } from '@/hooks/useDataFetch';
+import { usePolicyQuery } from '@/hooks/queries/usePolicies';
 import { setMultiStepClaimPolicy } from '@/lib/form-schemas';
 import type { MultiStepClaimFormValues } from '@/lib/form-schemas';
 
@@ -31,10 +30,7 @@ export const ClaimAmountStep: React.FC = () => {
   const breakdown = watch('breakdown');
 
   // Fetch the selected policy with caching
-  const { item: selectedPolicy } = useDataFetchOne(
-    () => DataService.getPolicy(policyId),
-    { cacheDuration: 10 * 60 * 1000 }
-  );
+  const { data: selectedPolicy } = usePolicyQuery(policyId);
 
   // Feed the selected policy's coverage into the shared schema and re-validate
   // the claim amount so the coverage-limit check stays in sync with RHF.

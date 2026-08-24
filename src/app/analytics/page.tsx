@@ -1,42 +1,49 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { analytics, AnalyticsEvent } from "@/lib/analytics";
+import React, { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { analytics } from "@/lib/analytics";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Activity, MousePointerClick, AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { AnalyticsSkeleton, EmptyState, ErrorState } from "@/components/ui/SkeletonLoaders";
+import { queryKeys } from "@/hooks/queries/queryKeys";
 import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function AnalyticsDashboard() {
-    const [events, setEvents] = useState<AnalyticsEvent[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const { startLoading, stopLoading } = useLoading();
 
-    const loadData = () => {
-        setLoading(true);
-        setError(null);
-        startLoading();
-        try {
-            const data = analytics.getAnalyticsData();
-            setEvents(data.sort((a, b) => b.timestamp - a.timestamp));
-        } catch (err) {
-            setError("Failed to load analytics data");
-        } finally {
-            setLoading(false);
-            stopLoading();
-        }
-    };
+    const {
+        data: events = [],
+        isLoading: loading,
+        error: queryError,
+        refetch,
+        isFetching,
+    } = useQuery({
+        queryKey: queryKeys.analytics.summary,
+        queryFn: () => analytics.getAnalyticsData().sort((a, b) => b.timestamp - a.timestamp),
+    });
+    const error = queryError ? "Failed to load analytics data" : null;
+
     useEffect(() => {
-        loadData();
-        return blockchainEvents.subscribe(() => loadData());
-    }, []);
+        if (isFetching) startLoading();
+        else stopLoading();
+    }, [isFetching, startLoading, stopLoading]);
+
+    // Analytics events are logged locally throughout the app (including
+    // alongside blockchain activity); refresh this view whenever any
+    // blockchain event fires so a background/open tab stays current.
+    useEffect(() => blockchainEvents.subscribe(() => void refetch()), [refetch]);
+
+    const loadData = () => {
+        void refetch();
+    };
 
     const clearData = () => {
         if (confirm("Are you sure you want to clear all local analytics data?")) {
             analytics.clearData();
-            loadData();
+            void queryClient.invalidateQueries({ queryKey: queryKeys.analytics.all });
         }
     };
 

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { Policy } from "@/types/policy";
-import { DataService } from "@/config/dataSource";
+import { usePolicyQuery } from "@/hooks/queries/usePolicies";
 import {
   ArrowLeft,
   Shield,
@@ -15,39 +14,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { LoadingState } from "@/components/ui/SkeletonLoaders";
-import { blockchainEvents } from "@/lib/blockchainEvents";
 
 export default function PolicyDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [policy, setPolicy] = useState<Policy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPolicy = async () => {
-      try {
-        const fetchedPolicy = await DataService.getPolicy(params.id as string);
-        if (fetchedPolicy) {
-          setPolicy(fetchedPolicy);
-        } else {
-          setError("Policy not found");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load policy");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPolicy();
-  }, [params.id]);
-
-  useEffect(() => blockchainEvents.subscribe((event) => {
-    if (!event.resourceId || event.resourceId === params.id) {
-      void DataService.getPolicy(params.id as string).then((next) => next && setPolicy(next));
-    }
-  }, ['policy.purchased', 'policy.updated']), [params.id]);
+  const policyId = params.id as string;
+  const { data: policy, isLoading: loading, error: queryError } = usePolicyQuery(policyId);
+  const error = queryError ? queryError.message || "Failed to load policy" : null;
 
   if (loading) {
     return <LoadingState message="Loading policy details..." />;

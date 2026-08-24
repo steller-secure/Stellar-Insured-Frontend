@@ -11,8 +11,8 @@ import type {
   PolicyStatistics,
   PolicyType,
 } from './types/policy.types';
-import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 
+import { blockchainEvents, type BlockchainEvent } from '@/lib/blockchainEvents';
 import { DataService } from '@/config/dataSource';
 
 class PolicyService {

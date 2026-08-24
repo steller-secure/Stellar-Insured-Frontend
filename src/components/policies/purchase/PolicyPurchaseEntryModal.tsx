@@ -10,6 +10,7 @@ import {
   STELLAR_EXPLORER_TX_URL,
 } from "@/data/policies/listing/policy-purchase-flow-mock";
 import { useTransactionHandler } from "@/hooks/useTransactionHandler";
+import { usePurchasePolicyMutation } from "@/hooks/queries/usePolicyMutations";
 import { useWallet } from "@/hooks/useWallet";
 import {
   policyPurchaseSchemaAsync,
@@ -61,6 +62,7 @@ export function PolicyPurchaseEntryModal({
     showSuccessToast: false,
     maxRetries: 1,
   });
+  const purchaseMutation = usePurchasePolicyMutation();
 
   const {
     address: connectedWalletAddress,
@@ -140,22 +142,26 @@ export function PolicyPurchaseEntryModal({
 
     executeTransaction(
       () =>
-        new Promise<string>((resolve, reject) => {
-          timersRef.current.push(
-            window.setTimeout(() => setStatus("submitting"), 800)
-          );
-          timersRef.current.push(
-            window.setTimeout(() => setStatus("confirming"), 1600)
-          );
-          timersRef.current.push(
-            window.setTimeout(() => {
-              if (SHOULD_SIMULATE_ERROR) {
-                reject(new Error("op_underfunded: Insufficient XLM balance."));
-              } else {
-                resolve(MOCK_TX_HASH);
-              }
-            }, 2400)
-          );
+        purchaseMutation.mutateAsync({
+          plan,
+          purchase: () =>
+            new Promise<string>((resolve, reject) => {
+              timersRef.current.push(
+                window.setTimeout(() => setStatus("submitting"), 800)
+              );
+              timersRef.current.push(
+                window.setTimeout(() => setStatus("confirming"), 1600)
+              );
+              timersRef.current.push(
+                window.setTimeout(() => {
+                  if (SHOULD_SIMULATE_ERROR) {
+                    reject(new Error("op_underfunded: Insufficient XLM balance."));
+                  } else {
+                    resolve(MOCK_TX_HASH);
+                  }
+                }, 2400)
+              );
+            }),
         }),
       { action: "policy_purchase", planId: plan?.id }
     ).then((hash) => {
